@@ -1,0 +1,25 @@
+@startuml
+title Registrar recorrência de despesa fixa - Diagrama de sequência
+
+' Sub-diagrama: não corresponde a um caso de uso. É chamado pelo ref
+' dentro de "Lançar despesa", por isso a mensagem inicial vem de fora
+' (found message, [->), e não de um ator.
+
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+[-> CTL : registrarRecorrencia()
+activate CTL
+
+CTL -> CTL : calcularProximoVencimento()
+activate CTL
+deactivate CTL
+
+CTL -> DB : grava recorrência mensal
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+[<-- CTL : recorrência registrada
+deactivate CTL
+@enduml

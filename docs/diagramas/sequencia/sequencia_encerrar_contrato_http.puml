@@ -1,0 +1,51 @@
+@startuml
+title Encerrar contrato - Diagrama de sequência (com códigos HTTP)
+
+actor "Proprietário" as PROP
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+PROP -> TELA : Seleciona o mensalista
+activate TELA
+TELA -> CTL : GET /contratos
+activate CTL
+
+CTL -> DB : consulta contrato
+activate DB
+DB --> CTL : contrato e vigência
+deactivate DB
+
+' sem deactivate dentro do break: as barras seguem pelo restante do fluxo
+break contrato inexistente ou já encerrado
+  CTL --> TELA : 404 Not Found
+  TELA --> PROP : exibe erro
+end
+
+CTL --> TELA : 200 OK + contrato
+deactivate CTL
+
+PROP -> TELA : Confirma o encerramento
+TELA -> CTL : DELETE /contratos/{id}
+activate CTL
+
+CTL -> DB : encerra contrato
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL -> DB : libera vaga e turnos
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL -> DB : registra histórico
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL --> TELA : 204 No Content
+deactivate CTL
+TELA --> PROP : exibe encerramento
+deactivate TELA
+@enduml

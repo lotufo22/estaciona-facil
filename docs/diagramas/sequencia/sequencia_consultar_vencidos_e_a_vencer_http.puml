@@ -1,0 +1,28 @@
+@startuml
+title Consultar vencidos e a vencer - Diagrama de sequência (com códigos HTTP)
+
+actor "Proprietário" as PROP
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+PROP -> TELA : Abre vencimentos
+activate TELA
+TELA -> CTL : GET /vencimentos
+activate CTL
+
+CTL -> DB : busca contratos ativos
+activate DB
+DB --> CTL : contratos e vencimentos
+deactivate DB
+
+' regra de data: em dia, a vencer ou vencido (RF13)
+CTL -> CTL : classificarContratos()
+activate CTL
+deactivate CTL
+
+CTL --> TELA : 200 OK + contratos
+deactivate CTL
+TELA --> PROP : exibe vencimentos
+deactivate TELA
+@enduml

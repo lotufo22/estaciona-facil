@@ -1,0 +1,62 @@
+@startuml
+title Lançar despesa - Diagrama de sequência (com códigos HTTP)
+
+actor "Auxiliar" as AUX
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+AUX -> TELA : Informa despesa e tipo
+activate TELA
+
+alt despesa fixa
+  TELA -> CTL : POST /despesas/fixa
+  activate CTL
+
+  CTL -> CTL : validarDados()
+  activate CTL
+  deactivate CTL
+
+  ' sem deactivate dentro do break: as barras seguem pelo restante do fluxo
+  break dados inválidos
+    CTL --> TELA : 422 Unprocessable
+    TELA --> AUX : exibe erro
+  end
+
+  CTL -> DB : grava despesa
+  activate DB
+  DB --> CTL : ok
+  deactivate DB
+
+  ' RF11: despesa fixa sempre registra a recorrência (sub-diagrama referenciado)
+  ref over CTL, DB : Registrar recorrência de despesa fixa
+
+  CTL --> TELA : 201 Created
+  deactivate CTL
+  TELA --> AUX : exibe confirmação
+
+else despesa variável
+  TELA -> CTL : POST /despesas/variavel
+  activate CTL
+
+  CTL -> CTL : validarDados()
+  activate CTL
+  deactivate CTL
+
+  break dados inválidos
+    CTL --> TELA : 422 Unprocessable
+    TELA --> AUX : exibe erro
+  end
+
+  CTL -> DB : grava despesa
+  activate DB
+  DB --> CTL : ok
+  deactivate DB
+
+  CTL --> TELA : 201 Created
+  deactivate CTL
+  TELA --> AUX : exibe confirmação
+end
+
+deactivate TELA
+@enduml

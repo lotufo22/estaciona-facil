@@ -1,0 +1,47 @@
+@startuml
+title Registrar pagamento - Diagrama de sequência (com códigos HTTP)
+
+actor "Auxiliar" as AUX
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+AUX -> TELA : Informa o mensalista
+activate TELA
+TELA -> CTL : GET /contratos
+activate CTL
+CTL -> DB : consulta contrato
+activate DB
+DB --> CTL : contrato e vencimento
+deactivate DB
+
+' sem deactivate dentro do break: as barras seguem pelo restante do fluxo
+break mensalista não encontrado
+  CTL --> TELA : 404 Not Found
+  TELA --> AUX : exibe erro
+end
+
+CTL --> TELA : 200 OK + contrato
+deactivate CTL
+
+AUX -> TELA : Confirma forma e valor
+TELA -> CTL : POST /pagamentos
+activate CTL
+CTL -> DB : grava pagamento
+activate DB
+DB --> CTL : ok
+deactivate DB
+CTL -> DB : atualiza vigência
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL -> CTL : emitirComprovante()
+activate CTL
+deactivate CTL
+
+CTL --> TELA : 201 Created
+deactivate CTL
+TELA --> AUX : exibe comprovante
+deactivate TELA
+@enduml

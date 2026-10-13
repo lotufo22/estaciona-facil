@@ -1,0 +1,38 @@
+@startuml
+title Consultar fluxo de caixa e resultado - Diagrama de sequência (com códigos HTTP)
+
+actor "Proprietário" as PROP
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+PROP -> TELA : Abre o fluxo de caixa
+activate TELA
+
+' extend do caso de uso "Filtrar por período, contrato e categoria"
+opt aplica filtros
+  PROP -> TELA : Define os filtros
+end
+
+TELA -> CTL : GET /fluxo-de-caixa
+activate CTL
+
+CTL -> DB : soma receitas
+activate DB
+DB --> CTL : total de receitas
+deactivate DB
+
+CTL -> DB : soma despesas
+activate DB
+DB --> CTL : total de despesas
+deactivate DB
+
+CTL -> CTL : calcularResultado()
+activate CTL
+deactivate CTL
+
+CTL --> TELA : 200 OK + fluxo
+deactivate CTL
+TELA --> PROP : exibe fluxo de caixa
+deactivate TELA
+@enduml
