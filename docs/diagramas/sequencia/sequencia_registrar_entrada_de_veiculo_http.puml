@@ -1,0 +1,48 @@
+@startuml
+title Registrar entrada de veículo - Diagrama de sequência (com códigos HTTP)
+
+actor "Auxiliar" as AUX
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+AUX -> TELA : Informa placa e tipo
+activate TELA
+TELA -> CTL : POST /entradas
+activate CTL
+
+CTL -> DB : consulta entrada aberta
+activate DB
+DB --> CTL : entradas em aberto
+deactivate DB
+
+' sem deactivate dentro do break: as barras seguem pelo restante do fluxo
+break veículo já está no pátio
+  CTL --> TELA : 409 Conflict
+  TELA --> AUX : exibe erro
+end
+
+' include "Atribuir vaga": precisa consultar o banco
+CTL -> CTL : atribuirVaga()
+activate CTL
+CTL -> DB : busca vaga livre
+activate DB
+DB --> CTL : vaga livre
+deactivate DB
+deactivate CTL
+
+break sem vaga livre
+  CTL --> TELA : 409 Conflict
+  TELA --> AUX : exibe erro
+end
+
+CTL -> DB : grava entrada
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL --> TELA : 201 Created
+deactivate CTL
+TELA --> AUX : exibe vaga atribuída
+deactivate TELA
+@enduml

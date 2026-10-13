@@ -1,0 +1,37 @@
+@startuml
+title Autenticar no sistema - Diagrama de sequência (com códigos HTTP)
+
+actor "Usuário" as USR
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+USR -> TELA : Informa login e senha
+activate TELA
+TELA -> CTL : POST /login
+activate CTL
+
+CTL -> DB : busca usuário
+activate DB
+DB --> CTL : usuário e hash da senha
+deactivate DB
+
+CTL -> CTL : verificarSenha()
+activate CTL
+deactivate CTL
+
+' sem deactivate dentro do break: as barras seguem pelo restante do fluxo
+break credenciais inválidas
+  CTL --> TELA : 401 Unauthorized
+  TELA --> USR : exibe erro
+end
+
+CTL -> CTL : iniciarSessão()
+activate CTL
+deactivate CTL
+
+CTL --> TELA : 200 OK + perfil
+deactivate CTL
+TELA --> USR : exibe tela inicial
+deactivate TELA
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+title Gerenciar vaga por turno - Diagrama de sequência (com códigos HTTP)
+
+actor "Proprietário" as PROP
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+PROP -> TELA : Define vaga e turno
+activate TELA
+TELA -> CTL : POST /turnos
+activate CTL
+
+' a consulta já leva o horário: devolve só turnos que se sobrepõem
+CTL -> DB : busca turnos sobrepostos
+activate DB
+DB --> CTL : turnos encontrados
+deactivate DB
+
+' sem deactivate dentro do break: as barras seguem pelo restante do fluxo
+break turno sobreposto encontrado
+  CTL --> TELA : 409 Conflict
+  TELA --> PROP : exibe erro
+end
+
+CTL -> DB : grava turno
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL --> TELA : 201 Created
+deactivate CTL
+TELA --> PROP : exibe vaga atualizada
+deactivate TELA
+@enduml

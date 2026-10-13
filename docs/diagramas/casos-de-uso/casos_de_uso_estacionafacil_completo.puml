@@ -1,0 +1,56 @@
+@startuml
+title EstacionaFácil - Casos de uso (completo, v5)
+left to right direction
+
+actor "Auxiliar" as AUX
+actor "Proprietário" as PROP
+PROP --|> AUX
+
+rectangle "EstacionaFácil" {
+  usecase "Autenticar no sistema" as UC01
+  usecase "Registrar entrada\nde veículo" as UC02
+  usecase "Atribuir vaga" as UC03
+  usecase "Registrar saída\nde veículo" as UC04
+  usecase "Calcular valor\nda estadia" as UC05
+  usecase "Registrar pagamento" as UC06
+  usecase "Emitir comprovante" as UC07
+  usecase "Lançar despesa" as UC08
+  usecase "Consultar lançamentos\ndo dia" as UC09
+  usecase "Consultar lista\nde mensalistas" as UC10
+  usecase "Consultar fluxo de caixa\ne resultado" as UC11
+  usecase "Consultar vencidos\ne a vencer" as UC12
+  usecase "Cadastrar mensalista" as UC13
+  usecase "Atualizar dados\ndo mensalista" as UC14
+  usecase "Renovar contrato" as UC15
+  usecase "Encerrar contrato" as UC16
+  usecase "Consultar histórico\ndo contrato" as UC17
+  usecase "Gerenciar vaga\npor turno" as UC18
+  usecase "Filtrar por período,\ncontrato e categoria" as UC19
+}
+
+' Auxiliar (o proprietário herda pela generalização)
+AUX -- UC01
+AUX -- UC02
+AUX -- UC04
+AUX -- UC06
+AUX -- UC08
+AUX -- UC09
+AUX -- UC10
+
+' Somente proprietário
+PROP -- UC11
+PROP -- UC12
+PROP -- UC13
+PROP -- UC14
+PROP -- UC15
+PROP -- UC16
+PROP -- UC17
+PROP -- UC18
+
+UC02 .> UC03 : <<include>>
+UC04 .> UC05 : <<include>>
+UC04 .> UC06 : <<include>>
+UC06 .> UC07 : <<include>>
+UC19 .> UC10 : <<extend>>
+UC19 .> UC11 : <<extend>>
+@enduml

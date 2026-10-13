@@ -1,0 +1,48 @@
+@startuml
+title Cadastrar mensalista - Diagrama de sequência (com códigos HTTP)
+
+actor "Proprietário" as PROP
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+PROP -> TELA : Preenche os dados
+activate TELA
+TELA -> CTL : POST /mensalistas
+activate CTL
+
+CTL -> CTL : validarDados()
+activate CTL
+deactivate CTL
+
+' sem deactivate dentro do break: as barras seguem pelo restante do fluxo
+break dados inválidos
+  CTL --> TELA : 422 Unprocessable
+  TELA --> PROP : exibe erro
+end
+
+CTL -> DB : consulta placa e vaga
+activate DB
+DB --> CTL : disponibilidade
+deactivate DB
+
+break placa ou vaga em conflito
+  CTL --> TELA : 409 Conflict
+  TELA --> PROP : exibe erro
+end
+
+CTL -> DB : grava cliente e veículo
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL -> DB : grava contrato
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL --> TELA : 201 Created
+deactivate CTL
+TELA --> PROP : exibe confirmação
+deactivate TELA
+@enduml

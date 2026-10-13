@@ -1,0 +1,45 @@
+@startuml
+title Registrar saída de veículo - Diagrama de sequência (com códigos HTTP)
+
+actor "Auxiliar" as AUX
+participant "Tela (HTML)" as TELA
+participant "Controlador (PHP)" as CTL
+database "Banco (MySQL)" as DB
+
+AUX -> TELA : Informa a placa
+activate TELA
+TELA -> CTL : POST /saidas
+activate CTL
+
+CTL -> DB : busca entrada da placa
+activate DB
+DB --> CTL : entrada e tipo de veículo
+deactivate DB
+
+' sem deactivate dentro do break: as barras seguem pelo restante do fluxo
+break veículo não encontrado
+  CTL --> TELA : 404 Not Found
+  TELA --> AUX : exibe erro
+end
+
+CTL -> DB : consulta tarifa
+activate DB
+DB --> CTL : tarifa vigente
+deactivate DB
+
+CTL -> CTL : calcularValorEstadia()
+activate CTL
+deactivate CTL
+
+ref over TELA, CTL, DB : Registrar pagamento
+
+CTL -> DB : grava saída
+activate DB
+DB --> CTL : ok
+deactivate DB
+
+CTL --> TELA : 201 Created
+deactivate CTL
+TELA --> AUX : exibe comprovante
+deactivate TELA
+@enduml
