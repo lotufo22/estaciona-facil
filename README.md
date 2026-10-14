@@ -1,3 +1,9 @@
+# Sistema de Gestão Web - 4º Semestre SI
+
+<p align="center">
+    <img src="./docs/img/estacionaFacil-logotipo.svg" alt="Logo do Projeto" width="200" />
+</p>
+
 # EstacionaFácil
 
 Sistema web de gestão para um estacionamento de pequeno porte, com controle de mensalistas, vencimentos, pagamentos, despesas e resultado financeiro.
@@ -176,7 +182,7 @@ Será desenvolvido junto com o manual. Link a definir.
 | Júlia Cesar dos Santos | [GitHub](https://github.com/JuliaCss) | Modelagem UML: casos de uso, classes e diagramas de sequência |
 | Maria Luiza Ribeiro Batista | [GitHub](https://github.com/mlrBatista) | Modelagem e implementação do banco de dados relacional |
 | Mateus Lotufo Silvestre | [GitHub](https://github.com/lotufo22) | Interface: protótipos e desenvolvimento das telas em HTML e CSS |
-| Paulo Vinicius Ferreira | A definir | Desenvolvimento em PHP e integração com o banco de dados |
+| Paulo Vinicius Ferreira | [GitHub](https://github.com/PauloViniciusFerreira) | Desenvolvimento em PHP e integração com o banco de dados |
 
 Compartilhado por todos: documentação do projeto, testes, elaboração do manual do usuário e condução da oficina de capacitação junto ao parceiro.
 
