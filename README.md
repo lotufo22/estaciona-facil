@@ -1,3 +1,21 @@
+# Sistema de Gestão Web - 4º Semestre SI
+
+<p align="center">
+    <img src="./docs/img/estacionaFacil-logotipo.svg" alt="Logo do Projeto" width="300">
+</p>
+
+<p align="center">
+    | <a href="#desafio">Desafio</a> |
+    <a href="#backlog">Backlog do Produto</a> |
+    <a href="#cronograma">Cronograma do Projeto</a> |
+    <a href="#sprint">Cronograma de Sprints</a> |
+    <a href="#tecnologia">Tecnologias</a> |
+    <a href="#modelagem">Modelagem</a> |
+    <a href="#manual">Manual de Instalação</a> |
+    <a href="#equipe">Equipe</a> |
+    <a href="#adicional">Informações Adicionais</a> |
+</p>
+
 # EstacionaFácil
 
 Sistema web de gestão para um estacionamento de pequeno porte, com controle de mensalistas, vencimentos, pagamentos, despesas e resultado financeiro.
@@ -6,7 +24,7 @@ Sistema web de gestão para um estacionamento de pequeno porte, com controle de 
 
 ---
 
-## 📋 Descrição do desafio
+## 📋 Descrição do desafio <a id="desafio"></a>
 
 ### Narrativa
 
@@ -46,7 +64,7 @@ Por isso o escopo foi revisado: o sistema foca em **contratos, cobrança, despes
 
 ---
 
-## ⚙️ Escopo do produto (backlog do produto)
+## ⚙️ Escopo do produto (backlog do produto) <a id="backlog"></a>
 
 | ID | Item | Requisito | Fase | Histórias | Status |
 |---|---|---|---|---|---|
@@ -77,7 +95,7 @@ Por isso o escopo foi revisado: o sistema foca em **contratos, cobrança, despes
 
 ---
 
-## 📅 Cronograma do projeto
+## 📅 Cronograma do projeto <a id="cronograma"></a>
 
 O cronograma abaixo cobre a Fase 1 até o fim do semestre, em dezembro de 2026. A Fase 2 não tem prazo definido (a definir).
 
@@ -113,7 +131,7 @@ gantt
 
 ---
 
-## 📦 Partes entregáveis (backlog da sprint)
+## 📦 Partes entregáveis (backlog da sprint) <a id="sprint"></a>
 
 | Entregável | Descrição | Responsável | Prazo | Status |
 |---|---|---|---|---|
@@ -132,7 +150,7 @@ gantt
 
 ---
 
-## 🛠️ Tecnologias utilizadas
+## 🛠️ Tecnologias utilizadas <a id="tecnologia"></a>
 
 | Camada | Tecnologia | Propósito |
 |---|---|---|
@@ -145,7 +163,7 @@ gantt
 
 ---
 
-## 📐 Modelagem
+## 📐 Modelagem <a id="modelagem"></a>
 
 A modelagem usa UML (casos de uso e diagramas de sequência), escrita em PlantUML.
 
@@ -156,7 +174,7 @@ A modelagem usa UML (casos de uso e diagramas de sequência), escrita em PlantUM
 
 ---
 
-## 📚 Documentação adicional
+## 📚 Documentação adicional <a id="manual"></a>
 
 ### Manual do usuário
 
@@ -166,7 +184,7 @@ Será criado com a finalização do desenvolvimento, em linguagem acessível e i
 
 Será desenvolvido junto com o manual. Link a definir.
 
-### Identidade da equipe
+### Identidade da equipe <a id="equipe"></a>
 
 | Integrante | Contato | Responsabilidade |
 |---|---|---|
@@ -176,13 +194,13 @@ Será desenvolvido junto com o manual. Link a definir.
 | Júlia Cesar dos Santos | [GitHub](https://github.com/JuliaCss) | Modelagem UML: casos de uso, classes e diagramas de sequência |
 | Maria Luiza Ribeiro Batista | [GitHub](https://github.com/mlrBatista) | Modelagem e implementação do banco de dados relacional |
 | Mateus Lotufo Silvestre | [GitHub](https://github.com/lotufo22) | Interface: protótipos e desenvolvimento das telas em HTML e CSS |
-| Paulo Vinicius Ferreira | A definir | Desenvolvimento em PHP e integração com o banco de dados |
+| Paulo Vinicius Ferreira | [GitHub](https://github.com/PauloViniciusFerreira) | Desenvolvimento em PHP e integração com o banco de dados |
 
 Compartilhado por todos: documentação do projeto, testes, elaboração do manual do usuário e condução da oficina de capacitação junto ao parceiro.
 
 ---
 
-## 🗂️ Estrutura do repositório
+## 🗂️ Estrutura do repositório <a id="adicional"></a>
 
 ```
 .
