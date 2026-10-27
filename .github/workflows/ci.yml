@@ -8,6 +8,23 @@ on:
 jobs:
   verificar:
     runs-on: ubuntu-latest
+    # Os testes da API rodam contra um Postgres de verdade (não há mocks de banco).
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: estaciona_teste
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL_TESTE: postgresql://postgres:postgres@localhost:5432/estaciona_teste
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

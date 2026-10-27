@@ -1,0 +1,21 @@
+# Postgres local para desenvolvimento e testes da API (opcional: serve também um Postgres já instalado).
+# Sobe na porta 5433 para não brigar com um Postgres instalado na máquina (5432).
+#
+#   docker compose up -d
+#   DATABASE_URL=postgresql://postgres:postgres@localhost:5433/estaciona_facil
+#   DATABASE_URL_TESTE=postgresql://postgres:postgres@localhost:5433/estaciona_teste
+services:
+  banco:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: estaciona_facil
+    ports:
+      - '5433:5432'
+    volumes:
+      - banco-dados:/var/lib/postgresql/data
+      - ./apps/api/docker-init.sql:/docker-entrypoint-initdb.d/01-banco-de-teste.sql:ro
+
+volumes:
+  banco-dados:

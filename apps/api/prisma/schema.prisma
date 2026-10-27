@@ -1,0 +1,229 @@
+// Esquema da Fase 1 (spec, seção 5). Dinheiro sempre em NUMERIC(12,2); datas de negócio em DATE.
+//
+// O que o Prisma não expressa fica em SQL na migração, e não aparece aqui:
+// - no máximo um contrato ativo por veículo (placa) e por vaga (índices únicos parciais);
+// - CHECK de valor > 0 e de dia do mês entre 1 e 31;
+// - ENABLE ROW LEVEL SECURITY em todas as tabelas, sem nenhuma política.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Perfil {
+  proprietario
+  auxiliar
+
+  @@map("perfil")
+}
+
+enum Categoria {
+  carro
+  moto
+
+  @@map("categoria")
+}
+
+enum TipoContrato {
+  mensal
+  semanal
+
+  @@map("tipo_contrato")
+}
+
+enum StatusContrato {
+  ativo
+  encerrado
+
+  @@map("status_contrato")
+}
+
+enum FormaPagamento {
+  dinheiro
+  pix
+  debito
+  credito
+
+  @@map("forma_pagamento")
+}
+
+enum TipoDespesa {
+  fixa
+  variavel
+
+  @@map("tipo_despesa")
+}
+
+enum EventoHistorico {
+  criado
+  renovado
+  pagamento
+  encerrado
+
+  @@map("evento_historico")
+}
+
+model Usuario {
+  id         Int                 @id @default(autoincrement())
+  nome       String
+  login      String              @unique
+  senhaHash  String              @map("senha_hash")
+  perfil     Perfil
+  ativo      Boolean             @default(true)
+  sessoes    Sessao[]
+  pagamentos Pagamento[]
+  despesas   Despesa[]
+  historico  HistoricoContrato[]
+
+  @@map("usuarios")
+}
+
+model Sessao {
+  /// Hash (SHA-256) do token que vai no cookie; o token em si nunca é gravado.
+  id        String   @id
+  usuarioId Int      @map("usuario_id")
+  expiraEm  DateTime @map("expira_em") @db.Timestamptz(3)
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([expiraEm])
+  @@map("sessoes")
+}
+
+/// Cada falha de login; o limite (5 a cada 15 minutos) conta aqui, e não em memória,
+/// porque a função serverless pode ter várias instâncias.
+model TentativaLogin {
+  id         Int      @id @default(autoincrement())
+  login      String
+  ip         String
+  ocorridaEm DateTime @map("ocorrida_em") @db.Timestamptz(3)
+
+  @@index([login, ocorridaEm])
+  @@index([ip, ocorridaEm])
+  @@map("tentativas_login")
+}
+
+model Mensalista {
+  id          Int        @id @default(autoincrement())
+  nome        String
+  telefone    String
+  arquivadoEm DateTime?  @map("arquivado_em") @db.Timestamptz(3)
+  veiculos    Veiculo[]
+  contratos   Contrato[]
+
+  @@map("mensalistas")
+}
+
+model Veiculo {
+  id           Int        @id @default(autoincrement())
+  mensalistaId Int        @map("mensalista_id")
+  placa        String     @unique
+  categoria    Categoria
+  mensalista   Mensalista @relation(fields: [mensalistaId], references: [id])
+  contratos    Contrato[]
+
+  @@index([mensalistaId])
+  @@map("veiculos")
+}
+
+/// Nasce com as 49 vagas (35 de carro e 14 de moto), pelo seed.
+model Vaga {
+  id        Int        @id @default(autoincrement())
+  codigo    String     @unique
+  categoria Categoria
+  contratos Contrato[]
+
+  @@map("vagas")
+}
+
+model Contrato {
+  id            Int                 @id @default(autoincrement())
+  mensalistaId  Int                 @map("mensalista_id")
+  veiculoId     Int                 @map("veiculo_id")
+  vagaId        Int?                @map("vaga_id")
+  tipo          TipoContrato
+  valor         Decimal             @db.Decimal(12, 2)
+  diaVencimento Int                 @map("dia_vencimento") @db.SmallInt
+  inicio        DateTime            @db.Date
+  /// Próxima data a pagar. A situação (vencido, a vencer, em dia) é calculada, nunca gravada.
+  vencimento    DateTime            @db.Date
+  status        StatusContrato      @default(ativo)
+  encerradoEm   DateTime?           @map("encerrado_em") @db.Timestamptz(3)
+  mensalista    Mensalista          @relation(fields: [mensalistaId], references: [id])
+  veiculo       Veiculo             @relation(fields: [veiculoId], references: [id])
+  vaga          Vaga?               @relation(fields: [vagaId], references: [id])
+  pagamentos    Pagamento[]
+  historico     HistoricoContrato[]
+
+  @@index([mensalistaId])
+  @@index([status, vencimento])
+  @@map("contratos")
+}
+
+model Pagamento {
+  id                Int            @id @default(autoincrement())
+  contratoId        Int            @map("contrato_id")
+  valor             Decimal        @db.Decimal(12, 2)
+  forma             FormaPagamento
+  pagoEm            DateTime       @map("pago_em") @db.Date
+  /// Primeiro dia do mês a que o pagamento se refere.
+  mesReferencia     DateTime       @map("mes_referencia") @db.Date
+  registradoPor     Int            @map("registrado_por")
+  /// Idempotency-Key do envio: repetir a chave não registra o pagamento de novo.
+  chaveIdempotencia String         @unique @map("chave_idempotencia")
+  contrato          Contrato       @relation(fields: [contratoId], references: [id])
+  usuario           Usuario        @relation(fields: [registradoPor], references: [id])
+
+  @@index([contratoId])
+  @@index([pagoEm])
+  @@map("pagamentos")
+}
+
+model RecorrenciaDespesa {
+  id        Int       @id @default(autoincrement())
+  descricao String
+  valor     Decimal   @db.Decimal(12, 2)
+  diaDoMes  Int       @map("dia_do_mes") @db.SmallInt
+  ativa     Boolean   @default(true)
+  despesas  Despesa[]
+
+  @@map("recorrencias_despesa")
+}
+
+model Despesa {
+  id            Int                 @id @default(autoincrement())
+  descricao     String
+  valor         Decimal             @db.Decimal(12, 2)
+  tipo          TipoDespesa
+  data          DateTime            @db.Date
+  /// Nulo nos lançamentos gerados pela recorrência (não há usuário envolvido).
+  registradoPor Int?                @map("registrado_por")
+  recorrenciaId Int?                @map("recorrencia_id")
+  /// Primeiro dia do mês que a despesa gerada cobre. Com a recorrência, é único:
+  /// gerar duas vezes no mesmo mês não duplica o lançamento.
+  competencia   DateTime?           @db.Date
+  usuario       Usuario?            @relation(fields: [registradoPor], references: [id])
+  recorrencia   RecorrenciaDespesa? @relation(fields: [recorrenciaId], references: [id])
+
+  @@unique([recorrenciaId, competencia])
+  @@index([data])
+  @@map("despesas")
+}
+
+model HistoricoContrato {
+  id         Int             @id @default(autoincrement())
+  contratoId Int             @map("contrato_id")
+  evento     EventoHistorico
+  em         DateTime        @db.Timestamptz(3)
+  usuarioId  Int?            @map("usuario_id")
+  detalhes   String?
+  contrato   Contrato        @relation(fields: [contratoId], references: [id])
+  usuario    Usuario?        @relation(fields: [usuarioId], references: [id])
+
+  @@index([contratoId, em])
+  @@map("historico_contrato")
+}

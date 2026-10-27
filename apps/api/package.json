@@ -1,0 +1,32 @@
+{
+  "name": "@estacionafacil/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/servidor.ts",
+    "pretest": "prisma generate",
+    "test": "vitest run",
+    "pretypecheck": "prisma generate",
+    "typecheck": "tsc --noEmit",
+    "gerar": "prisma generate",
+    "migrar": "prisma migrate deploy",
+    "semear": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@estacionafacil/shared": "*",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "prisma": "^7.10.1",
+    "supertest": "^7.3.1",
+    "tsx": "^4.23.15"
+  }
+}
