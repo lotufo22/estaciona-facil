@@ -1,4 +1,4 @@
-import { formatarReais, ultimoDiaDoMes } from '@estacionafacil/shared';
+import { formatarReais } from '@estacionafacil/shared';
 import { CabecalhoPagina } from '../../app/CabecalhoPagina';
 import { Botao } from '../../components/ui/Botao';
 import { Carregando } from '../../components/ui/Carregando';
@@ -7,27 +7,12 @@ import { MensagemErro } from '../../components/ui/MensagemErro';
 import { Tabela } from '../../components/ui/Tabela';
 import { formatarData } from '../../lib/formatar';
 import { hoje } from '../../lib/hoje';
+import { mesDe } from '../../lib/periodo';
 import { useSessao } from '../../lib/sessao';
 import { useAlternarRecorrencia, useDespesas, useRecorrencias } from './api';
 import { FormularioDespesa } from './FormularioDespesa';
 
 const NOME_DO_TIPO = { fixa: 'Fixa', variavel: 'Variável' } as const;
-
-/** Do primeiro ao último dia do mês de `hoje` (AAAA-MM-DD) e o nome do mês por extenso. */
-function mesDe(hoje: string) {
-  const ano = Number(hoje.slice(0, 4));
-  const mes = Number(hoje.slice(5, 7));
-  const prefixo = hoje.slice(0, 7);
-  return {
-    de: `${prefixo}-01`,
-    ate: `${prefixo}-${String(ultimoDiaDoMes(ano, mes)).padStart(2, '0')}`,
-    nome: new Date(Date.UTC(ano, mes - 1, 1)).toLocaleDateString('pt-BR', {
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }),
-  };
-}
 
 function DespesasDoMes({ de, ate }: { de: string; ate: string }) {
   const consulta = useDespesas({ de, ate });

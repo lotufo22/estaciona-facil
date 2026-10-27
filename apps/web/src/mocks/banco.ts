@@ -122,14 +122,15 @@ const RECEBIMENTOS: Omit<PagamentoItem, 'id' | 'numero'>[] = [
   },
 ];
 
-// Resultado do mês corrente: 4800,00 − 1440,00 = 3360,00 (12% acima de setembro).
+// Outubro: 11.340,00 − 7.980,00 = 3.360,00 (12% acima de setembro). As despesas de outubro
+// são as mesmas da aba Despesas; Painel e Fluxo de caixa leem esta série.
 const SERIE_MENSAL: SerieMensalItem[] = [
-  { mes: '2026-05-01', receitas: '3900.00', despesas: '1500.00' },
-  { mes: '2026-06-01', receitas: '4050.00', despesas: '1380.00' },
-  { mes: '2026-07-01', receitas: '4200.00', despesas: '1620.00' },
-  { mes: '2026-08-01', receitas: '4350.00', despesas: '1410.00' },
-  { mes: '2026-09-01', receitas: '4500.00', despesas: '1500.00' },
-  { mes: '2026-10-01', receitas: '4800.00', despesas: '1440.00' },
+  { mes: '2026-05-01', receitas: '9800.00', despesas: '7400.00' },
+  { mes: '2026-06-01', receitas: '10100.00', despesas: '7300.00' },
+  { mes: '2026-07-01', receitas: '10400.00', despesas: '7650.00' },
+  { mes: '2026-08-01', receitas: '10600.00', despesas: '7500.00' },
+  { mes: '2026-09-01', receitas: '10500.00', despesas: '7500.00' },
+  { mes: '2026-10-01', receitas: '11340.00', despesas: '7980.00' },
 ];
 
 // Despesas de outubro de 2026 somam R$ 7.980,00; as três fixas têm recorrência.

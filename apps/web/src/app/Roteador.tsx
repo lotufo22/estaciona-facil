@@ -3,17 +3,17 @@ import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Carregando } from '../components/ui/Carregando';
 import { Entrar } from '../features/auth/Entrar';
+import { Despesas } from '../features/despesas/Despesas';
+import { FluxoDeCaixa } from '../features/fluxo-de-caixa/FluxoDeCaixa';
 import { CadastroMensalista } from '../features/mensalistas/CadastroMensalista';
 import { DetalheMensalista } from '../features/mensalistas/DetalheMensalista';
 import { ListaMensalistas } from '../features/mensalistas/ListaMensalistas';
-import { Despesas } from '../features/despesas/Despesas';
 import { Painel } from '../features/painel/Painel';
 import { Recebimentos } from '../features/recebimentos/Recebimentos';
 import { Vencimentos } from '../features/vencimentos/Vencimentos';
 import { definirAoExpirar } from '../lib/api';
 import { useSessao } from '../lib/sessao';
 import { paginaInicial } from './abas';
-import { CabecalhoPagina } from './CabecalhoPagina';
 import { Casca } from './Casca';
 import { Provedores } from './Provedores';
 
@@ -41,16 +41,6 @@ function IrParaInicio() {
   return sessao ? <Navigate to={paginaInicial(sessao.perfil)} replace /> : null;
 }
 
-/** Marcador das telas ainda não construídas; cada tarefa seguinte troca o seu. */
-function PaginaEmConstrucao({ titulo }: { titulo: string }) {
-  return (
-    <>
-      <CabecalhoPagina titulo={titulo} />
-      <p className="text-base text-texto-suave">Em construção.</p>
-    </>
-  );
-}
-
 export function RotasApp() {
   return (
     <Routes>
@@ -63,10 +53,7 @@ export function RotasApp() {
             <Route path="/painel" element={<Painel />} />
             <Route path="/mensalistas/novo" element={<CadastroMensalista />} />
             <Route path="/vencimentos" element={<Vencimentos />} />
-            <Route
-              path="/fluxo-de-caixa"
-              element={<PaginaEmConstrucao titulo="Fluxo de caixa" />}
-            />
+            <Route path="/fluxo-de-caixa" element={<FluxoDeCaixa />} />
           </Route>
 
           <Route path="/mensalistas" element={<ListaMensalistas />} />
