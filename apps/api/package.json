@@ -11,17 +11,21 @@
     "typecheck": "tsc --noEmit",
     "gerar": "prisma generate",
     "migrar": "prisma migrate deploy",
-    "semear": "tsx prisma/seed.ts"
+    "semear": "tsx prisma/seed.ts",
+    "criar-proprietario": "tsx scripts/criar-proprietario.ts"
   },
   "dependencies": {
     "@estacionafacil/shared": "*",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "argon2": "^0.45.1",
+    "cookie-parser": "^1.4.7",
     "express": "^5.3.0",
     "helmet": "^8.3.0",
     "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",

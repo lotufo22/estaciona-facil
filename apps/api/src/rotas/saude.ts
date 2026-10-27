@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import type { Dependencias } from '../app';
+import type { Dependencias } from '../dependencias';
 
 /** `GET /api/saude`: responde 200 só se o banco também responde. Público (spec, seção 6). */
 export function criarRotaSaude({ prisma }: Dependencias): Router {
