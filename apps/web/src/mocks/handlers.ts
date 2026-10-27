@@ -1,7 +1,13 @@
 import {
+  adicionarDias,
   deCentavos,
   loginSchema,
+  mensalistaAtualizarSchema,
+  mensalistaCriarSchema,
+  normalizarPlaca,
   paraCentavos,
+  proximoVencimento,
+  renovacaoSchema,
   type CodigoErro,
   type MensalistaItem,
   type PainelResposta,
@@ -10,7 +16,13 @@ import {
   type VencimentosResposta,
 } from '@estacionafacil/shared';
 import { http, HttpResponse } from 'msw';
-import { bancoMock, listarMensalistas } from './banco';
+import {
+  bancoMock,
+  listarMensalistas,
+  montarDetalhe,
+  proximoIdHistorico,
+  type MensalistaMock,
+} from './banco';
 
 export function erro(
   status: number,
@@ -80,14 +92,68 @@ function montarPainel(): PainelResposta {
   };
 }
 
+const POR_PAGINA = 10;
+
+/** Campos com erro de validação, no formato `campos` da API. */
+function camposDoZod(erroZod: { issues: { path: PropertyKey[]; message: string }[] }) {
+  return Object.fromEntries(erroZod.issues.map((i) => [String(i.path[0]), i.message]));
+}
+
+const naoEncontrado = () => erro(404, 'NAO_ENCONTRADO', 'Mensalista não encontrado.');
+const contratoEncerrado = () => erro(409, 'CONTRATO_ENCERRADO', 'Este contrato já foi encerrado.');
+
+/** Conflito de placa ou vaga com outro contrato ativo; null quando está livre. */
+function conflito(placa: string | undefined, vaga: string | null | undefined, ignorarId?: number) {
+  const outros = bancoMock.mensalistas.filter((m) => m.status === 'ativo' && m.id !== ignorarId);
+  if (placa && outros.some((m) => m.placa === placa)) {
+    return erro(409, 'PLACA_JA_CADASTRADA', 'Esta placa já tem contrato ativo.', {
+      placa: 'Esta placa já tem contrato ativo',
+    });
+  }
+  if (vaga && outros.some((m) => m.vaga?.toLowerCase() === vaga.toLowerCase())) {
+    return erro(409, 'VAGA_OCUPADA', 'Esta vaga já está ocupada.', {
+      vaga: 'Esta vaga já está ocupada',
+    });
+  }
+  return null;
+}
+
+function buscarMensalistas(url: URL) {
+  const parametro = (nome: string) => url.searchParams.get(nome) ?? '';
+  const busca = parametro('busca').trim().toLowerCase();
+  const placaBuscada = normalizarPlaca(busca);
+  const pagina = Math.max(1, Number(parametro('pagina')) || 1);
+  const tipos = new Map(bancoMock.mensalistas.map((m) => [m.id, m.tipo]));
+
+  const filtrados = listarMensalistas()
+    .filter(
+      (m) =>
+        !busca ||
+        m.nome.toLowerCase().includes(busca) ||
+        (placaBuscada.length >= 3 && m.placa.includes(placaBuscada)),
+    )
+    .filter((m) => !parametro('situacao') || m.situacao === parametro('situacao'))
+    .filter((m) => !parametro('categoria') || m.categoria === parametro('categoria'))
+    .filter((m) => !parametro('tipo') || tipos.get(m.id) === parametro('tipo'))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+  return {
+    itens: filtrados.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA),
+    total: filtrados.length,
+    pagina,
+    porPagina: POR_PAGINA,
+  };
+}
+
+function acharPorContrato(id: string): MensalistaMock | undefined {
+  return bancoMock.mensalistas.find((m) => m.contratoId === Number(id));
+}
+
 export const handlers = [
   http.post('/api/auth/login', async ({ request }) => {
     const entrada = loginSchema.safeParse(await request.json());
     if (!entrada.success) {
-      const campos = Object.fromEntries(
-        entrada.error.issues.map((i) => [String(i.path[0]), i.message]),
-      );
-      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', campos);
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
     }
     const usuario = bancoMock.usuarios.find(
       (u) => u.login === entrada.data.login && u.senha === entrada.data.senha,
@@ -111,4 +177,120 @@ export const handlers = [
     () => exigir('proprietario') ?? HttpResponse.json(montarVencimentos()),
   ),
   http.get('/api/painel', () => exigir('proprietario') ?? HttpResponse.json(montarPainel())),
+
+  http.get(
+    '/api/mensalistas',
+    ({ request }) => exigir() ?? HttpResponse.json(buscarMensalistas(new URL(request.url))),
+  ),
+
+  http.post('/api/mensalistas', async ({ request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const entrada = mensalistaCriarSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    const dados = entrada.data;
+    const recusado = conflito(dados.placa, dados.vaga);
+    if (recusado) return recusado;
+
+    const id = Math.max(0, ...bancoMock.mensalistas.map((m) => m.id)) + 1;
+    bancoMock.mensalistas.push({
+      id,
+      contratoId: id,
+      nome: dados.nome,
+      telefone: dados.telefone,
+      placa: dados.placa,
+      categoria: dados.categoria,
+      vaga: dados.vaga ?? null,
+      vencimento:
+        dados.tipo === 'semanal'
+          ? adicionarDias(dados.inicio, 7)
+          : proximoVencimento(dados.inicio, 'mensal', dados.diaVencimento),
+      valor: dados.valor,
+      tipo: dados.tipo,
+      diaVencimento: dados.diaVencimento,
+      inicio: dados.inicio,
+      status: 'ativo',
+      encerradoEm: null,
+      historico: [
+        {
+          id: proximoIdHistorico(),
+          evento: 'criado',
+          em: bancoMock.hoje,
+          detalhes: null,
+          usuario: bancoMock.sessao?.nome ?? null,
+        },
+      ],
+    });
+    return HttpResponse.json({ mensalistaId: id, contratoId: id }, { status: 201 });
+  }),
+
+  http.get('/api/mensalistas/:id', ({ params }) => {
+    const bloqueio = exigir();
+    if (bloqueio) return bloqueio;
+    const m = bancoMock.mensalistas.find((x) => x.id === Number(params.id));
+    return m ? HttpResponse.json(montarDetalhe(m)) : naoEncontrado();
+  }),
+
+  http.patch('/api/mensalistas/:id', async ({ params, request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const m = bancoMock.mensalistas.find((x) => x.id === Number(params.id));
+    if (!m) return naoEncontrado();
+    const entrada = mensalistaAtualizarSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    if (m.status === 'encerrado') return contratoEncerrado();
+    const dados = entrada.data;
+    const recusado = conflito(dados.placa, dados.vaga, m.id);
+    if (recusado) return recusado;
+    if (dados.telefone !== undefined) m.telefone = dados.telefone;
+    if (dados.placa !== undefined) m.placa = dados.placa;
+    if (dados.vaga !== undefined) m.vaga = dados.vaga;
+    if (dados.valor !== undefined) m.valor = dados.valor;
+    return HttpResponse.json(montarDetalhe(m));
+  }),
+
+  http.post('/api/contratos/:id/renovacao', async ({ params, request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const m = acharPorContrato(String(params.id));
+    if (!m) return naoEncontrado();
+    const entrada = renovacaoSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    if (m.status === 'encerrado') return contratoEncerrado();
+    for (let i = 0; i < entrada.data.meses; i += 1) {
+      m.vencimento = proximoVencimento(m.vencimento, 'mensal', m.diaVencimento);
+    }
+    m.historico.unshift({
+      id: proximoIdHistorico(),
+      evento: 'renovado',
+      em: bancoMock.hoje,
+      detalhes: entrada.data.motivo,
+      usuario: bancoMock.sessao?.nome ?? null,
+    });
+    return HttpResponse.json(montarDetalhe(m));
+  }),
+
+  http.post('/api/contratos/:id/encerramento', ({ params }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const m = acharPorContrato(String(params.id));
+    if (!m) return naoEncontrado();
+    if (m.status === 'encerrado') return contratoEncerrado();
+    m.status = 'encerrado';
+    m.encerradoEm = bancoMock.hoje;
+    m.historico.unshift({
+      id: proximoIdHistorico(),
+      evento: 'encerrado',
+      em: bancoMock.hoje,
+      detalhes: null,
+      usuario: bancoMock.sessao?.nome ?? null,
+    });
+    return HttpResponse.json(montarDetalhe(m));
+  }),
 ];

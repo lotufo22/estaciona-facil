@@ -1,3 +1,4 @@
+import type { TipoContrato } from './datas';
 import type { Categoria, FormaPagamento, Perfil } from './enums';
 import type { Situacao } from './situacao';
 
@@ -76,4 +77,49 @@ export interface CaixaResposta {
 export interface VencimentosResposta {
   totais: Record<Situacao, ResumoSituacao>;
   itens: MensalistaItem[];
+}
+
+export interface ListaMensalistasResposta {
+  itens: MensalistaItem[];
+  /** Total de resultados com os filtros aplicados, em todas as páginas. */
+  total: number;
+  pagina: number;
+  porPagina: number;
+}
+
+export type EventoHistorico = 'criado' | 'renovado' | 'pagamento' | 'encerrado';
+
+export interface HistoricoItem {
+  id: number;
+  evento: EventoHistorico;
+  /** Data do evento, AAAA-MM-DD. */
+  em: string;
+  detalhes: string | null;
+  /** Nome de quem fez; null para eventos sem usuário. */
+  usuario: string | null;
+}
+
+export interface ContratoDetalhe {
+  id: number;
+  tipo: TipoContrato;
+  valor: string;
+  diaVencimento: number;
+  inicio: string;
+  vencimento: string;
+  vaga: string | null;
+  status: 'ativo' | 'encerrado';
+  encerradoEm: string | null;
+  /** Situação calculada; só faz sentido com o contrato ativo. */
+  situacao: Situacao;
+}
+
+export interface MensalistaDetalhe {
+  id: number;
+  nome: string;
+  telefone: string;
+  placa: string;
+  categoria: Categoria;
+  contrato: ContratoDetalhe;
+  /** Do mais recente para o mais antigo. */
+  historico: HistoricoItem[];
 }

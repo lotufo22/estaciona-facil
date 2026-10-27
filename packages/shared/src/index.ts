@@ -27,6 +27,7 @@ export type {
   LoginEntrada,
   MensalistaAtualizarEntrada,
   MensalistaCriarEntrada,
+  MensalistaCriarFormulario,
   PagamentoEntrada,
   RenovacaoEntrada,
 } from './schemas';
@@ -34,6 +35,11 @@ export { AVISO_DIAS, situacaoDoContrato } from './situacao';
 export type { Situacao } from './situacao';
 export type {
   CaixaResposta,
+  ContratoDetalhe,
+  EventoHistorico,
+  HistoricoItem,
+  ListaMensalistasResposta,
+  MensalistaDetalhe,
   MensalistaItem,
   PagamentoItem,
   PainelResposta,
