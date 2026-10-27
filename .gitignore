@@ -14,3 +14,7 @@ coverage/
 # Ferramentas locais
 .worktrees/
 .superpowers/
+
+# Resultados do Playwright
+playwright-report/
+test-results/

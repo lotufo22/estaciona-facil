@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "noEmit": true, "types": ["node"] },
+  "include": [
+    "./**/*.ts",
+    "../scripts/**/*.ts",
+    "../playwright.config.ts",
+    "../apps/api/src/express.d.ts"
+  ]
+}
