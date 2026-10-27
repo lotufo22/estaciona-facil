@@ -4,6 +4,7 @@ import {
   paraCentavos,
   type CodigoErro,
   type MensalistaItem,
+  type PainelResposta,
   type ResumoSituacao,
   type Situacao,
   type VencimentosResposta,
@@ -45,6 +46,40 @@ function montarVencimentos(): VencimentosResposta {
   };
 }
 
+function montarPainel(): PainelResposta {
+  const itens = listarMensalistas();
+  const por = (situacao: Situacao) => itens.filter((i) => i.situacao === situacao);
+  const atual = bancoMock.serieMensal.at(-1);
+  const anterior = bancoMock.serieMensal.at(-2);
+  if (!atual) throw new Error('Mock sem série mensal');
+  const resultadoDe = (m: { receitas: string; despesas: string }) =>
+    paraCentavos(m.receitas) - paraCentavos(m.despesas);
+  const resultado = resultadoDe(atual);
+  const anteriorCentavos = anterior ? resultadoDe(anterior) : 0;
+  return {
+    mensalistasAtivos: itens.length,
+    novosNoMes: 2,
+    vencidos: resumir(por('vencido')),
+    aVencer: resumir(por('a_vencer')),
+    resultadoDoMes: {
+      receitas: atual.receitas,
+      despesas: atual.despesas,
+      resultado: deCentavos(resultado),
+      variacao:
+        anteriorCentavos === 0
+          ? null
+          : Math.round(((resultado - anteriorCentavos) / Math.abs(anteriorCentavos)) * 100),
+    },
+    serieMensal: bancoMock.serieMensal,
+    situacao: {
+      emDia: por('em_dia').length,
+      aVencer: por('a_vencer').length,
+      vencido: por('vencido').length,
+    },
+    ultimosRecebimentos: bancoMock.recebimentos.slice(0, 5),
+  };
+}
+
 export const handlers = [
   http.post('/api/auth/login', async ({ request }) => {
     const entrada = loginSchema.safeParse(await request.json());
@@ -75,4 +110,5 @@ export const handlers = [
     '/api/vencimentos',
     () => exigir('proprietario') ?? HttpResponse.json(montarVencimentos()),
   ),
+  http.get('/api/painel', () => exigir('proprietario') ?? HttpResponse.json(montarPainel())),
 ];
