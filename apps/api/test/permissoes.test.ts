@@ -73,6 +73,9 @@ const ROTAS: { metodo: string; rota: string; quem: 'publico' | Perfil[] }[] = [
   { metodo: 'GET', rota: '/api/despesas', quem: ['proprietario', 'auxiliar'] },
   { metodo: 'GET', rota: '/api/recorrencias', quem: ['proprietario', 'auxiliar'] },
   { metodo: 'PATCH', rota: '/api/recorrencias/1', quem: ['proprietario'] },
+  { metodo: 'GET', rota: '/api/vencimentos', quem: ['proprietario'] },
+  { metodo: 'GET', rota: '/api/painel', quem: ['proprietario'] },
+  { metodo: 'GET', rota: '/api/caixa', quem: ['proprietario'] },
 ];
 
 describe('matriz de permissões das rotas da spec', () => {
