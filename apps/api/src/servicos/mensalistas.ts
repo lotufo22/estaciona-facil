@@ -151,7 +151,41 @@ export interface FiltrosLista {
   pagina: number;
 }
 
-/** Mensalistas com contrato ativo. São poucas dezenas, então a situação é filtrada em memória. */
+/**
+ * Contratos ativos de mensalistas não arquivados, já no formato da lista, com a situação calculada
+ * para `hoje`. Serve a lista de mensalistas, a de vencimentos e o painel: as três falam do mesmo
+ * conjunto. São poucas dezenas, então o que o banco não filtra é filtrado em memória.
+ */
+export async function itensAtivos(
+  prisma: PrismaClient,
+  hoje: string,
+  filtros: { tipo?: TipoContrato; categoria?: Categoria; contrato?: number } = {},
+): Promise<MensalistaItem[]> {
+  const contratos = await prisma.contrato.findMany({
+    where: {
+      status: 'ativo',
+      mensalista: { arquivadoEm: null },
+      ...(filtros.tipo ? { tipo: filtros.tipo } : {}),
+      ...(filtros.contrato ? { id: filtros.contrato } : {}),
+      ...(filtros.categoria ? { veiculo: { categoria: filtros.categoria } } : {}),
+    },
+    include: { mensalista: true, veiculo: true, vaga: true },
+  });
+  return contratos.map((c) => ({
+    id: c.mensalistaId,
+    contratoId: c.id,
+    nome: c.mensalista.nome,
+    telefone: c.mensalista.telefone,
+    placa: c.veiculo.placa,
+    categoria: c.veiculo.categoria,
+    vaga: c.vaga?.codigo ?? null,
+    vencimento: deData(c.vencimento),
+    valor: c.valor.toFixed(2),
+    situacao: situacaoDoContrato(deData(c.vencimento), hoje),
+  }));
+}
+
+/** Mensalistas com contrato ativo. */
 export async function listarMensalistas(
   prisma: PrismaClient,
   filtros: FiltrosLista,
@@ -161,29 +195,7 @@ export async function listarMensalistas(
   const busca = filtros.busca?.trim().toLowerCase() ?? '';
   const placaBuscada = normalizarPlaca(busca);
 
-  const contratos = await prisma.contrato.findMany({
-    where: {
-      status: 'ativo',
-      ...(filtros.tipo ? { tipo: filtros.tipo } : {}),
-      ...(filtros.contrato ? { id: filtros.contrato } : {}),
-      ...(filtros.categoria ? { veiculo: { categoria: filtros.categoria } } : {}),
-    },
-    include: { mensalista: true, veiculo: true, vaga: true },
-  });
-
-  const itens: MensalistaItem[] = contratos
-    .map((c) => ({
-      id: c.mensalistaId,
-      contratoId: c.id,
-      nome: c.mensalista.nome,
-      telefone: c.mensalista.telefone,
-      placa: c.veiculo.placa,
-      categoria: c.veiculo.categoria,
-      vaga: c.vaga?.codigo ?? null,
-      vencimento: deData(c.vencimento),
-      valor: c.valor.toFixed(2),
-      situacao: situacaoDoContrato(deData(c.vencimento), hoje),
-    }))
+  const itens: MensalistaItem[] = (await itensAtivos(prisma, hoje, filtros))
     .filter(
       (i) =>
         !busca ||

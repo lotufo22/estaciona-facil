@@ -6,12 +6,15 @@ import { rotaNaoEncontrada, tratadorDeErros } from './erros';
 import { exigirCabecalhoApp } from './middlewares/exigirCabecalhoApp';
 import type { PrismaClient } from './prisma';
 import { criarRotasAuth } from './rotas/auth';
+import { criarRotaCaixa } from './rotas/caixa';
 import { criarRotasContratos } from './rotas/contratos';
 import { criarRotasDespesas } from './rotas/despesas';
 import { criarRotasMensalistas } from './rotas/mensalistas';
+import { criarRotaPainel } from './rotas/painel';
 import { criarRotasPagamentos } from './rotas/pagamentos';
 import { criarRotasRecorrencias } from './rotas/recorrencias';
 import { criarRotaSaude } from './rotas/saude';
+import { criarRotasVencimentos } from './rotas/vencimentos';
 
 /**
  * Monta o app sem abrir porta. O servidor local (`servidor.ts`) e a função da Netlify chamam esta
@@ -39,6 +42,9 @@ export function criarApp(deps: { prisma: PrismaClient; agora?: () => Date }): Ex
   api.use('/pagamentos', criarRotasPagamentos(dependencias));
   api.use('/despesas', criarRotasDespesas(dependencias));
   api.use('/recorrencias', criarRotasRecorrencias(dependencias));
+  api.use('/vencimentos', criarRotasVencimentos(dependencias));
+  api.use('/painel', criarRotaPainel(dependencias));
+  api.use('/caixa', criarRotaCaixa(dependencias));
   app.use('/api', api);
 
   app.use(rotaNaoEncontrada);

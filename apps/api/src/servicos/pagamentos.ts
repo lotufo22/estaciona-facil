@@ -130,7 +130,7 @@ function respostaDeUmPagamentoExistente(p: PagamentoComRelacoes): RegistroPagame
 
 export async function listarPagamentos(
   prisma: PrismaClient,
-  filtros: { de?: string; ate?: string; forma?: FormaPagamento },
+  filtros: { de?: string; ate?: string; forma?: FormaPagamento; limite?: number },
 ): Promise<PagamentosResposta> {
   const pagamentos = await prisma.pagamento.findMany({
     where: {
@@ -145,6 +145,7 @@ export async function listarPagamentos(
         : {}),
     },
     orderBy: [{ pagoEm: 'desc' }, { id: 'desc' }],
+    ...(filtros.limite ? { take: filtros.limite } : {}),
     include: { contrato: { include: { mensalista: true, veiculo: true } } },
   });
   const itens = pagamentos.map(paraItem);

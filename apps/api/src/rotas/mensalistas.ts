@@ -32,12 +32,12 @@ export function idDaRota(req: Request, parametro = 'id'): number {
   return id;
 }
 
-function texto(req: Request, nome: string): string | undefined {
+export function texto(req: Request, nome: string): string | undefined {
   const valor = req.query[nome];
   return typeof valor === 'string' && valor !== '' ? valor : undefined;
 }
 
-function escolha<T extends string>(
+export function escolha<T extends string>(
   req: Request,
   nome: string,
   validos: readonly T[],
