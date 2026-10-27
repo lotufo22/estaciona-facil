@@ -1,0 +1,43 @@
+@import 'tailwindcss';
+
+/* Tokens da spec §7. Cores de texto precisam manter contraste ≥ 4,5:1 (ver estilos.test.ts). */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-primaria: #4a55c7;
+  --color-primaria-escura: #3a44a8;
+  --color-primaria-clara: #e8eafb;
+  --color-destaque: #0a7f75;
+  --color-amarelo: #e0a100;
+
+  --color-texto: #1f2933;
+  --color-texto-suave: #52606d;
+  --color-fundo: #f5f7fa;
+  --color-superficie: #ffffff;
+  --color-borda: #cbd2d9;
+
+  --color-ok: #187534;
+  --color-ok-fundo: #e3f5e8;
+  --color-alerta: #8a5300;
+  --color-alerta-fundo: #fff1d6;
+  --color-atraso: #b42318;
+  --color-atraso-fundo: #fde7e4;
+
+  --color-barra: #2a3042;
+  --color-barra-texto: #aeb6d4;
+  --color-barra-icone: #d5daf2;
+  --color-barra-ativa: #3b4263;
+}
+
+@layer base {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    background-color: var(--color-fundo);
+    color: var(--color-texto);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
