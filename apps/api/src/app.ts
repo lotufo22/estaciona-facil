@@ -6,6 +6,8 @@ import { rotaNaoEncontrada, tratadorDeErros } from './erros';
 import { exigirCabecalhoApp } from './middlewares/exigirCabecalhoApp';
 import type { PrismaClient } from './prisma';
 import { criarRotasAuth } from './rotas/auth';
+import { criarRotasContratos } from './rotas/contratos';
+import { criarRotasMensalistas } from './rotas/mensalistas';
 import { criarRotaSaude } from './rotas/saude';
 
 /**
@@ -29,6 +31,8 @@ export function criarApp(deps: { prisma: PrismaClient; agora?: () => Date }): Ex
   api.use(exigirCabecalhoApp);
   api.use('/saude', criarRotaSaude(dependencias));
   api.use('/auth', criarRotasAuth(dependencias));
+  api.use('/mensalistas', criarRotasMensalistas(dependencias));
+  api.use('/contratos', criarRotasContratos(dependencias));
   app.use('/api', api);
 
   app.use(rotaNaoEncontrada);

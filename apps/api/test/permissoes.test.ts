@@ -60,6 +60,12 @@ const ROTAS: { metodo: string; rota: string; quem: 'publico' | Perfil[] }[] = [
   { metodo: 'POST', rota: '/api/auth/login', quem: 'publico' },
   { metodo: 'POST', rota: '/api/auth/logout', quem: ['proprietario', 'auxiliar'] },
   { metodo: 'GET', rota: '/api/auth/me', quem: ['proprietario', 'auxiliar'] },
+  { metodo: 'GET', rota: '/api/mensalistas', quem: ['proprietario', 'auxiliar'] },
+  { metodo: 'POST', rota: '/api/mensalistas', quem: ['proprietario'] },
+  { metodo: 'GET', rota: '/api/mensalistas/1', quem: ['proprietario', 'auxiliar'] },
+  { metodo: 'PATCH', rota: '/api/mensalistas/1', quem: ['proprietario'] },
+  { metodo: 'POST', rota: '/api/contratos/1/renovacao', quem: ['proprietario'] },
+  { metodo: 'POST', rota: '/api/contratos/1/encerramento', quem: ['proprietario'] },
 ];
 
 describe('matriz de permissões das rotas da spec', () => {
