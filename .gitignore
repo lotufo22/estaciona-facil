@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+.netlify/
+*.log
+
+# Segredos: nunca no repositório (use .env.example como modelo)
+.env
+.env.*
+!.env.example
+
+# Ferramentas locais
+.worktrees/
+.superpowers/
