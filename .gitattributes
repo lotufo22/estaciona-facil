@@ -1,0 +1,14 @@
+# Fins de linha: o repositório guarda LF e as pastas de trabalho também usam LF, em qualquer
+# sistema. Sem isto, no Windows (core.autocrlf=true) os arquivos viram CRLF e o
+# `prettier --check` falha em todos eles.
+* text=auto eol=lf
+
+# Binários: nunca converter.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
