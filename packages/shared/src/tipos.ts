@@ -1,5 +1,5 @@
 import type { TipoContrato } from './datas';
-import type { Categoria, FormaPagamento, Perfil } from './enums';
+import type { Categoria, FormaPagamento, Perfil, TipoDespesa } from './enums';
 import type { Situacao } from './situacao';
 
 export interface Sessao {
@@ -134,4 +134,35 @@ export interface RegistroPagamentoResposta {
   pagamento: PagamentoItem;
   /** Próxima data a pagar do contrato depois deste pagamento, AAAA-MM-DD. */
   novoVencimento: string;
+}
+
+export interface DespesaItem {
+  id: number;
+  descricao: string;
+  valor: string;
+  tipo: TipoDespesa;
+  /** Data do lançamento, AAAA-MM-DD. */
+  data: string;
+  /** Nome de quem lançou; null para lançamentos gerados pela recorrência. */
+  registradoPor: string | null;
+  /** Preenchido quando o lançamento veio de uma despesa fixa. */
+  recorrenciaId: number | null;
+}
+
+export interface DespesasResposta {
+  itens: DespesaItem[];
+  /** Soma das despesas listadas, em texto decimal. */
+  total: string;
+}
+
+export interface RecorrenciaItem {
+  id: number;
+  descricao: string;
+  valor: string;
+  diaDoMes: number;
+  ativa: boolean;
+}
+
+export interface RecorrenciasResposta {
+  itens: RecorrenciaItem[];
 }

@@ -19,6 +19,7 @@ export {
   mensalistaAtualizarSchema,
   mensalistaCriarSchema,
   pagamentoCriarSchema,
+  recorrenciaAtualizarSchema,
   renovacaoSchema,
 } from './schemas';
 export type {
@@ -29,6 +30,7 @@ export type {
   MensalistaCriarEntrada,
   MensalistaCriarFormulario,
   PagamentoEntrada,
+  RecorrenciaAtualizarEntrada,
   RenovacaoEntrada,
 } from './schemas';
 export { AVISO_DIAS, situacaoDoContrato } from './situacao';
@@ -36,6 +38,8 @@ export type { Situacao } from './situacao';
 export type {
   CaixaResposta,
   ContratoDetalhe,
+  DespesaItem,
+  DespesasResposta,
   EventoHistorico,
   HistoricoItem,
   ListaMensalistasResposta,
@@ -44,6 +48,8 @@ export type {
   PagamentoItem,
   PagamentosResposta,
   PainelResposta,
+  RecorrenciaItem,
+  RecorrenciasResposta,
   RegistroPagamentoResposta,
   ResumoSituacao,
   Sessao,
