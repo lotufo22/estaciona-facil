@@ -49,12 +49,21 @@ function resumir(itens: MensalistaItem[]): ResumoSituacao {
   return { quantidade: itens.length, total: deCentavos(centavos) };
 }
 
-function montarVencimentos(): VencimentosResposta {
-  const itens = listarMensalistas().sort((a, b) => a.vencimento.localeCompare(b.vencimento));
-  const por = (situacao: Situacao) => resumir(itens.filter((i) => i.situacao === situacao));
+/**
+ * `categoria` e `tipo` valem para totais e tabela; `situacao` só filtra a tabela,
+ * para os totais seguirem mostrando as três situações.
+ */
+function montarVencimentos(url: URL): VencimentosResposta {
+  const parametro = (nome: string) => url.searchParams.get(nome) ?? '';
+  const tipos = new Map(bancoMock.mensalistas.map((m) => [m.id, m.tipo]));
+  const base = listarMensalistas()
+    .filter((m) => !parametro('categoria') || m.categoria === parametro('categoria'))
+    .filter((m) => !parametro('tipo') || tipos.get(m.id) === parametro('tipo'))
+    .sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+  const por = (situacao: Situacao) => resumir(base.filter((i) => i.situacao === situacao));
   return {
     totais: { vencido: por('vencido'), a_vencer: por('a_vencer'), em_dia: por('em_dia') },
-    itens,
+    itens: base.filter((i) => !parametro('situacao') || i.situacao === parametro('situacao')),
   };
 }
 
@@ -174,7 +183,8 @@ export const handlers = [
 
   http.get(
     '/api/vencimentos',
-    () => exigir('proprietario') ?? HttpResponse.json(montarVencimentos()),
+    ({ request }) =>
+      exigir('proprietario') ?? HttpResponse.json(montarVencimentos(new URL(request.url))),
   ),
   http.get('/api/painel', () => exigir('proprietario') ?? HttpResponse.json(montarPainel())),
 

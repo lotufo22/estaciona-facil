@@ -7,6 +7,7 @@ import { CadastroMensalista } from '../features/mensalistas/CadastroMensalista';
 import { DetalheMensalista } from '../features/mensalistas/DetalheMensalista';
 import { ListaMensalistas } from '../features/mensalistas/ListaMensalistas';
 import { Painel } from '../features/painel/Painel';
+import { Vencimentos } from '../features/vencimentos/Vencimentos';
 import { definirAoExpirar } from '../lib/api';
 import { useSessao } from '../lib/sessao';
 import { paginaInicial } from './abas';
@@ -59,7 +60,7 @@ export function RotasApp() {
           <Route element={<RotaProtegida perfis={SO_PROPRIETARIO} />}>
             <Route path="/painel" element={<Painel />} />
             <Route path="/mensalistas/novo" element={<CadastroMensalista />} />
-            <Route path="/vencimentos" element={<PaginaEmConstrucao titulo="Vencimentos" />} />
+            <Route path="/vencimentos" element={<Vencimentos />} />
             <Route
               path="/fluxo-de-caixa"
               element={<PaginaEmConstrucao titulo="Fluxo de caixa" />}

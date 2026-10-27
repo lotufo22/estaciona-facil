@@ -264,7 +264,7 @@ git add -A && git commit -m "feat: adiciona casca com abas, rotas por perfil, lo
 - Consumes: `VencimentosResposta`, `EtiquetaSituacao`, `formatarReais`.
 - Produces: `useVencimentos(filtros: { situacao?: Situacao; categoria?; tipo? })`; mock `GET /vencimentos`.
 
-- [ ] **Step 1: Write the failing test** — a página mostra 3 totais (vencidos, a vencer, em dia) e a tabela; o filtro "Em atraso" deixa só Carlos Mendes e Rita Souza; cada linha tem "Registrar pagamento", que navega para `/recebimentos?contrato=<id>`; o botão de alerta do sino leva a esta aba filtrada por vencidos.
+- [ ] **Step 1: Write the failing test** — a página mostra 3 totais (vencidos, a vencer, em dia) e a tabela; o filtro "Em atraso" deixa só os 4 vencidos do mock (Sérgio Alves, Carlos Mendes, Rita Souza e Beatriz Campos), os mesmos que o Painel e o sino contam; cada linha tem "Registrar pagamento", que navega para `/recebimentos?contrato=<id>`; o botão de alerta do sino leva a esta aba filtrada por vencidos.
 - [ ] **Step 2: Run to verify failure** — `npm test -w @estacionafacil/web -- vencimentos` → FAIL.
 - [ ] **Step 3: Implement** a página (chips de filtro Todos / Em atraso / A vencer / Em dia, tabela ordenada por vencimento crescente).
 - [ ] **Step 4: Run to verify pass** → PASS.
