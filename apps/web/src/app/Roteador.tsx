@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Carregando } from '../components/ui/Carregando';
 import { Entrar } from '../features/auth/Entrar';
+import { Painel } from '../features/painel/Painel';
 import { definirAoExpirar } from '../lib/api';
 import { useSessao } from '../lib/sessao';
 import { paginaInicial } from './abas';
@@ -53,7 +54,7 @@ export function RotasApp() {
           <Route index element={<IrParaInicio />} />
 
           <Route element={<RotaProtegida perfis={SO_PROPRIETARIO} />}>
-            <Route path="/painel" element={<PaginaEmConstrucao titulo="Painel" />} />
+            <Route path="/painel" element={<Painel />} />
             <Route
               path="/mensalistas/novo"
               element={<PaginaEmConstrucao titulo="Novo mensalista" />}

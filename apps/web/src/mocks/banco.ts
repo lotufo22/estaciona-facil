@@ -1,7 +1,9 @@
 import {
   situacaoDoContrato,
   type MensalistaItem,
+  type PagamentoItem,
   type Perfil,
+  type SerieMensalItem,
   type Sessao,
 } from '@estacionafacil/shared';
 
@@ -21,6 +23,10 @@ export interface BancoMock {
   /** Quem está logado no mock; null = sem sessão. */
   sessao: Sessao | null;
   mensalistas: MensalistaMock[];
+  /** Do mais recente para o mais antigo. */
+  recebimentos: PagamentoItem[];
+  /** Seis meses até o mês de `hoje`; o último é o mês corrente. */
+  serieMensal: SerieMensalItem[];
 }
 
 type Linha = [
@@ -52,6 +58,61 @@ const LINHAS: Linha[] = [
   ['Patrícia Gomes', 'RIO4A56', 'carro', '28', '2026-11-18', '255.00'],
 ];
 
+const RECEBIMENTOS: Omit<PagamentoItem, 'id' | 'numero'>[] = [
+  {
+    mensalista: 'Carlos Mendes',
+    placa: 'FGH4J56',
+    valor: '255.00',
+    forma: 'pix',
+    pagoEm: '2026-10-26',
+  },
+  {
+    mensalista: 'Rita Souza',
+    placa: 'KLM2N90',
+    valor: '120.00',
+    forma: 'dinheiro',
+    pagoEm: '2026-10-25',
+  },
+  {
+    mensalista: 'Joana Prado',
+    placa: 'QRS7T81',
+    valor: '255.00',
+    forma: 'debito',
+    pagoEm: '2026-10-24',
+  },
+  {
+    mensalista: 'Helena Costa',
+    placa: 'GHI8J90',
+    valor: '255.00',
+    forma: 'pix',
+    pagoEm: '2026-10-23',
+  },
+  {
+    mensalista: 'Marcos Lima',
+    placa: 'BCD5E67',
+    valor: '255.00',
+    forma: 'credito',
+    pagoEm: '2026-10-22',
+  },
+  {
+    mensalista: 'Tiago Melo',
+    placa: 'PQR7S89',
+    valor: '120.00',
+    forma: 'dinheiro',
+    pagoEm: '2026-10-21',
+  },
+];
+
+// Resultado do mês corrente: 4800,00 − 1440,00 = 3360,00 (12% acima de setembro).
+const SERIE_MENSAL: SerieMensalItem[] = [
+  { mes: '2026-05-01', receitas: '3900.00', despesas: '1500.00' },
+  { mes: '2026-06-01', receitas: '4050.00', despesas: '1380.00' },
+  { mes: '2026-07-01', receitas: '4200.00', despesas: '1620.00' },
+  { mes: '2026-08-01', receitas: '4350.00', despesas: '1410.00' },
+  { mes: '2026-09-01', receitas: '4500.00', despesas: '1500.00' },
+  { mes: '2026-10-01', receitas: '4800.00', despesas: '1440.00' },
+];
+
 function criarBanco(): BancoMock {
   return {
     hoje: HOJE_MOCK,
@@ -71,6 +132,8 @@ function criarBanco(): BancoMock {
       vencimento,
       valor,
     })),
+    recebimentos: RECEBIMENTOS.map((r, i) => ({ ...r, id: 100 - i, numero: 100 - i })),
+    serieMensal: SERIE_MENSAL.map((m) => ({ ...m })),
   };
 }
 
