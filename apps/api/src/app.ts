@@ -8,6 +8,7 @@ import type { PrismaClient } from './prisma';
 import { criarRotasAuth } from './rotas/auth';
 import { criarRotasContratos } from './rotas/contratos';
 import { criarRotasMensalistas } from './rotas/mensalistas';
+import { criarRotasPagamentos } from './rotas/pagamentos';
 import { criarRotaSaude } from './rotas/saude';
 
 /**
@@ -33,6 +34,7 @@ export function criarApp(deps: { prisma: PrismaClient; agora?: () => Date }): Ex
   api.use('/auth', criarRotasAuth(dependencias));
   api.use('/mensalistas', criarRotasMensalistas(dependencias));
   api.use('/contratos', criarRotasContratos(dependencias));
+  api.use('/pagamentos', criarRotasPagamentos(dependencias));
   app.use('/api', api);
 
   app.use(rotaNaoEncontrada);
