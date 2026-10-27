@@ -1,10 +1,13 @@
 import {
   situacaoDoContrato,
+  type HistoricoItem,
+  type MensalistaDetalhe,
   type MensalistaItem,
   type PagamentoItem,
   type Perfil,
   type SerieMensalItem,
   type Sessao,
+  type TipoContrato,
 } from '@estacionafacil/shared';
 
 /** Data fixa do mock: as telas de exemplo ficam iguais às do protótipo, em qualquer dia. */
@@ -15,7 +18,16 @@ export interface UsuarioMock extends Sessao {
   senha: string;
 }
 
-export type MensalistaMock = Omit<MensalistaItem, 'situacao'>;
+/** Mensalista com o contrato atual; `placa` e `telefone` ficam sem máscara, como na API. */
+export interface MensalistaMock extends Omit<MensalistaItem, 'situacao'> {
+  tipo: TipoContrato;
+  diaVencimento: number;
+  inicio: string;
+  status: 'ativo' | 'encerrado';
+  encerradoEm: string | null;
+  /** Do mais recente para o mais antigo. */
+  historico: HistoricoItem[];
+}
 
 export interface BancoMock {
   hoje: string;
@@ -131,6 +143,14 @@ function criarBanco(): BancoMock {
       vaga,
       vencimento,
       valor,
+      tipo: 'mensal',
+      diaVencimento: Number(vencimento.slice(8, 10)),
+      inicio: '2026-01-10',
+      status: 'ativo',
+      encerradoEm: null,
+      historico: [
+        { id: i + 1, evento: 'criado', em: '2026-01-10', detalhes: null, usuario: 'Proprietário' },
+      ],
     })),
     recebimentos: RECEBIMENTOS.map((r, i) => ({ ...r, id: 100 - i, numero: 100 - i })),
     serieMensal: SERIE_MENSAL.map((m) => ({ ...m })),
@@ -152,10 +172,48 @@ export function entrarNoMock(perfil: Perfil): Sessao {
   return bancoMock.sessao;
 }
 
-/** Mensalistas com a situação calculada para a data do mock. */
+/** Mensalistas com contrato ativo, com a situação calculada para a data do mock. */
 export function listarMensalistas(): MensalistaItem[] {
-  return bancoMock.mensalistas.map((m) => ({
-    ...m,
-    situacao: situacaoDoContrato(m.vencimento, bancoMock.hoje),
-  }));
+  return bancoMock.mensalistas
+    .filter((m) => m.status === 'ativo')
+    .map((m) => ({
+      id: m.id,
+      contratoId: m.contratoId,
+      nome: m.nome,
+      telefone: m.telefone,
+      placa: m.placa,
+      categoria: m.categoria,
+      vaga: m.vaga,
+      vencimento: m.vencimento,
+      valor: m.valor,
+      situacao: situacaoDoContrato(m.vencimento, bancoMock.hoje),
+    }));
+}
+
+/** Próximo id livre para um evento de histórico (únicos em todo o mock). */
+export function proximoIdHistorico(): number {
+  return Math.max(0, ...bancoMock.mensalistas.flatMap((m) => m.historico.map((h) => h.id))) + 1;
+}
+
+export function montarDetalhe(m: MensalistaMock): MensalistaDetalhe {
+  return {
+    id: m.id,
+    nome: m.nome,
+    telefone: m.telefone,
+    placa: m.placa,
+    categoria: m.categoria,
+    contrato: {
+      id: m.contratoId,
+      tipo: m.tipo,
+      valor: m.valor,
+      diaVencimento: m.diaVencimento,
+      inicio: m.inicio,
+      vencimento: m.vencimento,
+      vaga: m.vaga,
+      status: m.status,
+      encerradoEm: m.encerradoEm,
+      situacao: situacaoDoContrato(m.vencimento, bancoMock.hoje),
+    },
+    historico: m.historico,
+  };
 }

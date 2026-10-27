@@ -1,5 +1,5 @@
 export { Aba } from './Aba';
-export { Botao } from './Botao';
+export { Botao, classesDoBotao } from './Botao';
 export type { BotaoProps } from './Botao';
 export { Campo } from './Campo';
 export type { CampoProps } from './Campo';
@@ -8,6 +8,9 @@ export { Carregando } from './Carregando';
 export { EstadoVazio } from './EstadoVazio';
 export { EtiquetaSituacao } from './EtiquetaSituacao';
 export { Icone } from './Icone';
+export { LinkBotao } from './LinkBotao';
 export type { NomeIcone } from './Icone';
 export { MensagemErro } from './MensagemErro';
+export { Selecao } from './Selecao';
+export type { SelecaoProps } from './Selecao';
 export { Tabela } from './Tabela';

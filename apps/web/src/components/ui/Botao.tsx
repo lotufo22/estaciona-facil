@@ -13,6 +13,11 @@ const VARIANTES = {
   secundario: 'border-2 border-primaria bg-superficie text-primaria hover:bg-primaria-clara',
 };
 
+/** Classes do botão, para dar a mesma cara a um link (`LinkBotao`). */
+export function classesDoBotao(variante: keyof typeof VARIANTES = 'primario'): string {
+  return juntar(BASE, VARIANTES[variante]);
+}
+
 export function Botao({ variante = 'primario', type = 'button', className, ...resto }: BotaoProps) {
   return <button type={type} className={juntar(BASE, VARIANTES[variante], className)} {...resto} />;
 }

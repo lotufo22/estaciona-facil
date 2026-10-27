@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Carregando } from '../components/ui/Carregando';
 import { Entrar } from '../features/auth/Entrar';
+import { CadastroMensalista } from '../features/mensalistas/CadastroMensalista';
+import { DetalheMensalista } from '../features/mensalistas/DetalheMensalista';
+import { ListaMensalistas } from '../features/mensalistas/ListaMensalistas';
 import { Painel } from '../features/painel/Painel';
 import { definirAoExpirar } from '../lib/api';
 import { useSessao } from '../lib/sessao';
@@ -55,10 +58,7 @@ export function RotasApp() {
 
           <Route element={<RotaProtegida perfis={SO_PROPRIETARIO} />}>
             <Route path="/painel" element={<Painel />} />
-            <Route
-              path="/mensalistas/novo"
-              element={<PaginaEmConstrucao titulo="Novo mensalista" />}
-            />
+            <Route path="/mensalistas/novo" element={<CadastroMensalista />} />
             <Route path="/vencimentos" element={<PaginaEmConstrucao titulo="Vencimentos" />} />
             <Route
               path="/fluxo-de-caixa"
@@ -66,8 +66,8 @@ export function RotasApp() {
             />
           </Route>
 
-          <Route path="/mensalistas" element={<PaginaEmConstrucao titulo="Mensalistas" />} />
-          <Route path="/mensalistas/:id" element={<PaginaEmConstrucao titulo="Mensalista" />} />
+          <Route path="/mensalistas" element={<ListaMensalistas />} />
+          <Route path="/mensalistas/:id" element={<DetalheMensalista />} />
           <Route path="/recebimentos" element={<PaginaEmConstrucao titulo="Recebimentos" />} />
           <Route path="/despesas" element={<PaginaEmConstrucao titulo="Despesas" />} />
           <Route path="*" element={<IrParaInicio />} />

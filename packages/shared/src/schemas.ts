@@ -47,7 +47,8 @@ const codigoVagaSchema = z
   .min(1, 'Informe o código da vaga')
   .max(10, 'O código da vaga pode ter no máximo 10 caracteres');
 
-const diaSchema = (mensagem: string) => z.number().int(mensagem).min(1, mensagem).max(31, mensagem);
+const diaSchema = (mensagem: string) =>
+  z.number({ error: mensagem }).int(mensagem).min(1, mensagem).max(31, mensagem);
 
 export const loginSchema = z.object({
   login: z.string().trim().min(1, 'Informe o usuário'),
@@ -142,6 +143,8 @@ export const filtrosCaixaSchema = z
 
 export type LoginEntrada = z.infer<typeof loginSchema>;
 export type MensalistaCriarEntrada = z.infer<typeof mensalistaCriarSchema>;
+/** O que o formulário digita, antes das transformações do schema (placa e telefone limpos). */
+export type MensalistaCriarFormulario = z.input<typeof mensalistaCriarSchema>;
 export type MensalistaAtualizarEntrada = z.infer<typeof mensalistaAtualizarSchema>;
 export type RenovacaoEntrada = z.infer<typeof renovacaoSchema>;
 export type PagamentoEntrada = z.infer<typeof pagamentoCriarSchema>;
