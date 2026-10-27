@@ -9,6 +9,7 @@ export const CODIGOS_ERRO = [
   'NAO_ENCONTRADO',
   'DADOS_INVALIDOS',
   'CHAVE_IDEMPOTENCIA_AUSENTE',
+  'ERRO_INTERNO',
 ] as const;
 
 export type CodigoErro = (typeof CODIGOS_ERRO)[number];

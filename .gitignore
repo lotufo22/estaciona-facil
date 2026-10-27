@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# Cliente do Prisma, gerado por `prisma generate` (roda sozinho antes de testes e typecheck)
+apps/api/generated/
 coverage/
 .netlify/
 *.log
