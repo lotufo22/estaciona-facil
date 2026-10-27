@@ -4,5 +4,5 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["src", "test", "prisma", "prisma.config.ts", "vitest.config.ts"]
+  "include": ["src", "test", "scripts", "prisma", "prisma.config.ts", "vitest.config.ts"]
 }
