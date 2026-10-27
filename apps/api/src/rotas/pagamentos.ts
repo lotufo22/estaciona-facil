@@ -26,7 +26,7 @@ function chaveDeIdempotencia(req: Request): string {
   return chave;
 }
 
-function dataDaConsulta(req: Request, nome: 'de' | 'ate'): string | undefined {
+export function dataDaConsulta(req: Request, nome: 'de' | 'ate'): string | undefined {
   const valor = req.query[nome];
   if (valor === undefined || valor === '') return undefined;
   const valida =
