@@ -2,6 +2,7 @@ import {
   adicionarDias,
   deCentavos,
   despesaCriarSchema,
+  filtrosCaixaSchema,
   loginSchema,
   mensalistaAtualizarSchema,
   mensalistaCriarSchema,
@@ -11,7 +12,10 @@ import {
   proximoVencimento,
   recorrenciaAtualizarSchema,
   renovacaoSchema,
+  type CaixaResposta,
   type CodigoErro,
+  type FiltrosCaixa,
+  type FormaPagamento,
   type MensalistaItem,
   type DespesaItem,
   type DespesasResposta,
@@ -109,6 +113,85 @@ function montarPainel(): PainelResposta {
 }
 
 const POR_PAGINA = 10;
+
+/** Como as receitas se dividem por forma de pagamento no mock, em %. O resto vai para o Pix. */
+const PROPORCAO_POR_FORMA: [FormaPagamento, number][] = [
+  ['pix', 45],
+  ['dinheiro', 25],
+  ['debito', 15],
+  ['credito', 15],
+];
+
+/** Meses (AAAA-MM) de `de` até `ate`, inclusive. */
+function mesesDoPeriodo(de: string, ate: string): string[] {
+  const meses: string[] = [];
+  let ano = Number(de.slice(0, 4));
+  let mes = Number(de.slice(5, 7));
+  const ultimo = ate.slice(0, 7);
+  for (let i = 0; i < 120; i += 1) {
+    const chave = `${ano}-${String(mes).padStart(2, '0')}`;
+    if (chave > ultimo) break;
+    meses.push(chave);
+    mes += 1;
+    if (mes > 12) {
+      mes = 1;
+      ano += 1;
+    }
+  }
+  return meses;
+}
+
+/**
+ * Fluxo de caixa por mês inteiro. Tipo e categoria só afetam as receitas (em proporção ao valor
+ * dos contratos ativos que atendem ao filtro); as despesas não pertencem a contrato nem veículo,
+ * então com filtro o resultado fica `null`.
+ */
+function montarCaixa(filtros: FiltrosCaixa): CaixaResposta {
+  const ativos = listarMensalistas();
+  const tipos = new Map(bancoMock.mensalistas.map((m) => [m.id, m.tipo]));
+  const somar = (itens: typeof ativos) => itens.reduce((s, i) => s + paraCentavos(i.valor), 0);
+  const doFiltro = ativos.filter(
+    (i) =>
+      (!filtros.tipo || tipos.get(i.id) === filtros.tipo) &&
+      (!filtros.categoria || i.categoria === filtros.categoria),
+  );
+  const filtrado = Boolean(filtros.tipo || filtros.categoria);
+  const parte = filtrado ? somar(doFiltro) : 1;
+  const todo = filtrado ? somar(ativos) : 1;
+  const receitasDoFiltro = (valor: string) =>
+    todo === 0 ? 0 : Math.round((paraCentavos(valor) * parte) / todo);
+
+  const serieMensal = mesesDoPeriodo(filtros.de, filtros.ate).map((chave) => {
+    const mes = bancoMock.serieMensal.find((m) => m.mes.startsWith(chave));
+    return {
+      mes: `${chave}-01`,
+      receitas: deCentavos(receitasDoFiltro(mes?.receitas ?? '0.00')),
+      despesas: mes?.despesas ?? '0.00',
+    };
+  });
+  const receitas = serieMensal.reduce((s, m) => s + paraCentavos(m.receitas), 0);
+  const despesas = serieMensal.reduce((s, m) => s + paraCentavos(m.despesas), 0);
+
+  const porForma = PROPORCAO_POR_FORMA.map(([forma, percentual]) => ({
+    forma,
+    centavos: Math.floor((receitas * percentual) / 100),
+  }));
+  const resto = receitas - porForma.reduce((s, f) => s + f.centavos, 0);
+
+  return {
+    de: filtros.de,
+    ate: filtros.ate,
+    receitas: deCentavos(receitas),
+    despesas: deCentavos(despesas),
+    resultado: filtrado ? null : deCentavos(receitas - despesas),
+    filtrado,
+    serieMensal,
+    porForma: porForma.map((f, i) => ({
+      forma: f.forma,
+      total: deCentavos(f.centavos + (i === 0 ? resto : 0)),
+    })),
+  };
+}
 
 /** Campos com erro de validação, no formato `campos` da API. */
 function camposDoZod(erroZod: { issues: { path: PropertyKey[]; message: string }[] }) {
@@ -441,5 +524,22 @@ export const handlers = [
     }
     recorrencia.ativa = entrada.data.ativa;
     return HttpResponse.json(recorrencia);
+  }),
+
+  http.get('/api/caixa', ({ request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const parametros = new URL(request.url).searchParams;
+    const entrada = filtrosCaixaSchema.safeParse(
+      Object.fromEntries(
+        ['de', 'ate', 'tipo', 'categoria']
+          .map((nome) => [nome, parametros.get(nome)] as const)
+          .filter(([, valor]) => valor),
+      ),
+    );
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira o período.', camposDoZod(entrada.error));
+    }
+    return HttpResponse.json(montarCaixa(entrada.data));
   }),
 ];

@@ -6,7 +6,7 @@ import { EstadoVazio } from '../../components/ui/EstadoVazio';
 import { MensagemErro } from '../../components/ui/MensagemErro';
 import { Tabela } from '../../components/ui/Tabela';
 import { usePainel } from './api';
-import { GraficoReceitaDespesa } from './GraficoReceitaDespesa';
+import { GraficoReceitaDespesa } from '../../components/GraficoReceitaDespesa';
 import { GraficoSituacao } from './GraficoSituacao';
 
 const FORMAS: Record<FormaPagamento, string> = {
