@@ -1,10 +1,12 @@
 import {
   situacaoDoContrato,
+  type DespesaItem,
   type HistoricoItem,
   type MensalistaDetalhe,
   type MensalistaItem,
   type PagamentoItem,
   type Perfil,
+  type RecorrenciaItem,
   type RegistroPagamentoResposta,
   type SerieMensalItem,
   type Sessao,
@@ -42,6 +44,8 @@ export interface BancoMock {
   serieMensal: SerieMensalItem[];
   /** Resposta de cada Idempotency-Key já usada: repetir a chave devolve a mesma resposta. */
   pagamentosPorChave: Map<string, RegistroPagamentoResposta>;
+  despesas: DespesaItem[];
+  recorrencias: RecorrenciaItem[];
 }
 
 type Linha = [
@@ -128,6 +132,56 @@ const SERIE_MENSAL: SerieMensalItem[] = [
   { mes: '2026-10-01', receitas: '4800.00', despesas: '1440.00' },
 ];
 
+// Despesas de outubro de 2026 somam R$ 7.980,00; as três fixas têm recorrência.
+const DESPESAS: Omit<DespesaItem, 'id'>[] = [
+  {
+    descricao: 'Aluguel',
+    valor: '5500.00',
+    tipo: 'fixa',
+    data: '2026-10-05',
+    registradoPor: null,
+    recorrenciaId: 1,
+  },
+  {
+    descricao: 'Luz',
+    valor: '1150.00',
+    tipo: 'fixa',
+    data: '2026-10-10',
+    registradoPor: null,
+    recorrenciaId: 2,
+  },
+  {
+    descricao: 'Água',
+    valor: '430.00',
+    tipo: 'fixa',
+    data: '2026-10-10',
+    registradoPor: null,
+    recorrenciaId: 3,
+  },
+  {
+    descricao: 'Manutenção do portão',
+    valor: '600.00',
+    tipo: 'variavel',
+    data: '2026-10-18',
+    registradoPor: 'Proprietário',
+    recorrenciaId: null,
+  },
+  {
+    descricao: 'Material de limpeza',
+    valor: '300.00',
+    tipo: 'variavel',
+    data: '2026-10-22',
+    registradoPor: 'Auxiliar',
+    recorrenciaId: null,
+  },
+];
+
+const RECORRENCIAS: RecorrenciaItem[] = [
+  { id: 1, descricao: 'Aluguel', valor: '5500.00', diaDoMes: 5, ativa: true },
+  { id: 2, descricao: 'Luz', valor: '1150.00', diaDoMes: 10, ativa: true },
+  { id: 3, descricao: 'Água', valor: '430.00', diaDoMes: 10, ativa: true },
+];
+
 function criarBanco(): BancoMock {
   return {
     hoje: HOJE_MOCK,
@@ -158,6 +212,8 @@ function criarBanco(): BancoMock {
     recebimentos: RECEBIMENTOS.map((r, i) => ({ ...r, id: 100 - i, numero: 100 - i })),
     serieMensal: SERIE_MENSAL.map((m) => ({ ...m })),
     pagamentosPorChave: new Map(),
+    despesas: DESPESAS.map((d, i) => ({ ...d, id: i + 1 })),
+    recorrencias: RECORRENCIAS.map((r) => ({ ...r })),
   };
 }
 

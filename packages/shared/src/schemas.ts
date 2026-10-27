@@ -127,6 +127,11 @@ export const despesaCriarSchema = z
     }
   });
 
+/** Pausa ou retoma uma despesa fixa. */
+export const recorrenciaAtualizarSchema = z.object({
+  ativa: z.boolean({ error: 'Informe se a despesa fixa fica ativa ou pausada' }),
+});
+
 export const filtrosCaixaSchema = z
   .object({
     de: dataSchema,
@@ -153,3 +158,4 @@ export type RenovacaoEntrada = z.infer<typeof renovacaoSchema>;
 export type PagamentoEntrada = z.infer<typeof pagamentoCriarSchema>;
 export type DespesaEntrada = z.infer<typeof despesaCriarSchema>;
 export type FiltrosCaixa = z.infer<typeof filtrosCaixaSchema>;
+export type RecorrenciaAtualizarEntrada = z.infer<typeof recorrenciaAtualizarSchema>;

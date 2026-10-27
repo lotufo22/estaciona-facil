@@ -1,6 +1,7 @@
 import {
   adicionarDias,
   deCentavos,
+  despesaCriarSchema,
   loginSchema,
   mensalistaAtualizarSchema,
   mensalistaCriarSchema,
@@ -8,9 +9,12 @@ import {
   pagamentoCriarSchema,
   paraCentavos,
   proximoVencimento,
+  recorrenciaAtualizarSchema,
   renovacaoSchema,
   type CodigoErro,
   type MensalistaItem,
+  type DespesaItem,
+  type DespesasResposta,
   type PagamentoItem,
   type PagamentosResposta,
   type PainelResposta,
@@ -374,5 +378,68 @@ export const handlers = [
     if (bloqueio) return bloqueio;
     const pagamento = bancoMock.recebimentos.find((r) => r.id === Number(params.id));
     return pagamento ? HttpResponse.json(pagamento) : naoEncontrado('Comprovante não encontrado.');
+  }),
+
+  http.get('/api/despesas', ({ request }) => {
+    const bloqueio = exigir();
+    if (bloqueio) return bloqueio;
+    const parametros = new URL(request.url).searchParams;
+    const de = parametros.get('de');
+    const ate = parametros.get('ate');
+    const tipo = parametros.get('tipo');
+    const itens = bancoMock.despesas
+      .filter((d) => (!de || d.data >= de) && (!ate || d.data <= ate) && (!tipo || d.tipo === tipo))
+      .sort((a, b) => b.data.localeCompare(a.data) || b.id - a.id);
+    const resposta: DespesasResposta = {
+      itens,
+      total: deCentavos(itens.reduce((soma, d) => soma + paraCentavos(d.valor), 0)),
+    };
+    return HttpResponse.json(resposta);
+  }),
+
+  http.post('/api/despesas', async ({ request }) => {
+    const bloqueio = exigir();
+    if (bloqueio) return bloqueio;
+    const entrada = despesaCriarSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    const { descricao, valor, tipo, data, diaDoMes } = entrada.data;
+
+    // A despesa fixa nasce com a recorrência que a repete nos meses seguintes.
+    let recorrenciaId: number | null = null;
+    if (tipo === 'fixa' && diaDoMes !== undefined) {
+      recorrenciaId = Math.max(0, ...bancoMock.recorrencias.map((r) => r.id)) + 1;
+      bancoMock.recorrencias.push({ id: recorrenciaId, descricao, valor, diaDoMes, ativa: true });
+    }
+    const despesa: DespesaItem = {
+      id: Math.max(0, ...bancoMock.despesas.map((d) => d.id)) + 1,
+      descricao,
+      valor,
+      tipo,
+      data,
+      registradoPor: bancoMock.sessao?.nome ?? null,
+      recorrenciaId,
+    };
+    bancoMock.despesas.push(despesa);
+    return HttpResponse.json({ despesaId: despesa.id, recorrenciaId }, { status: 201 });
+  }),
+
+  http.get(
+    '/api/recorrencias',
+    () => exigir() ?? HttpResponse.json({ itens: bancoMock.recorrencias }),
+  ),
+
+  http.patch('/api/recorrencias/:id', async ({ params, request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const recorrencia = bancoMock.recorrencias.find((r) => r.id === Number(params.id));
+    if (!recorrencia) return naoEncontrado('Despesa fixa não encontrada.');
+    const entrada = recorrenciaAtualizarSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    recorrencia.ativa = entrada.data.ativa;
+    return HttpResponse.json(recorrencia);
   }),
 ];

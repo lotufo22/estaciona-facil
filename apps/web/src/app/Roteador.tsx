@@ -6,6 +6,7 @@ import { Entrar } from '../features/auth/Entrar';
 import { CadastroMensalista } from '../features/mensalistas/CadastroMensalista';
 import { DetalheMensalista } from '../features/mensalistas/DetalheMensalista';
 import { ListaMensalistas } from '../features/mensalistas/ListaMensalistas';
+import { Despesas } from '../features/despesas/Despesas';
 import { Painel } from '../features/painel/Painel';
 import { Recebimentos } from '../features/recebimentos/Recebimentos';
 import { Vencimentos } from '../features/vencimentos/Vencimentos';
@@ -71,7 +72,7 @@ export function RotasApp() {
           <Route path="/mensalistas" element={<ListaMensalistas />} />
           <Route path="/mensalistas/:id" element={<DetalheMensalista />} />
           <Route path="/recebimentos" element={<Recebimentos />} />
-          <Route path="/despesas" element={<PaginaEmConstrucao titulo="Despesas" />} />
+          <Route path="/despesas" element={<Despesas />} />
           <Route path="*" element={<IrParaInicio />} />
         </Route>
       </Route>

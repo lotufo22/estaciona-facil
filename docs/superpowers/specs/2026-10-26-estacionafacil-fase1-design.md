@@ -140,7 +140,7 @@ Rotas sob `/api`, respostas em JSON.
 | `GET /pagamentos/:id` | Dados do comprovante | todos | 200, 404 |
 | `POST /despesas` | Lança despesa (`tipo`; `diaDoMes` se fixa) | todos | 201, 422 |
 | `GET /despesas` | Lista do período | todos | 200 |
-| `GET /recorrencias` | Despesas fixas ativas | todos | 200 |
+| `GET /recorrencias` | Despesas fixas, ativas e pausadas (com o campo `ativa`) | todos | 200 |
 | `PATCH /recorrencias/:id` | Pausa ou retoma uma despesa fixa | Prop. | 200, 404 |
 | `GET /caixa` | Receitas, despesas, resultado, série por mês e divisão por forma | Prop. | 200, 422 |
 | `GET /saude` | Verificação de funcionamento | público | 200 |
