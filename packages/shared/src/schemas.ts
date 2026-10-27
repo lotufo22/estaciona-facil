@@ -96,7 +96,10 @@ export const renovacaoSchema = z.object({
 });
 
 export const pagamentoCriarSchema = z.object({
-  contratoId: z.number().int().positive(),
+  contratoId: z
+    .number({ error: 'Escolha o mensalista' })
+    .int('Escolha o mensalista')
+    .positive('Escolha o mensalista'),
   valor: valorSchema,
   forma: z.enum(FORMAS_PAGAMENTO, { error: 'Escolha a forma de pagamento' }),
   pagoEm: dataSchema,

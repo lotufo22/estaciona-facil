@@ -23,6 +23,8 @@ export interface FiltrosMensalistas {
   categoria?: Categoria;
   tipo?: TipoContrato;
   pagina?: number;
+  /** Só o item deste contrato ativo (a tela Recebimentos abre com `?contrato=`). */
+  contrato?: number;
 }
 
 function montarConsulta(filtros: FiltrosMensalistas): string {
@@ -43,11 +45,12 @@ function invalidarDependentes(cliente: QueryClient) {
   void cliente.invalidateQueries({ queryKey: ['painel'] });
 }
 
-export function useMensalistas(filtros: FiltrosMensalistas) {
+export function useMensalistas(filtros: FiltrosMensalistas, opcoes: { habilitado?: boolean } = {}) {
   return useQuery({
     queryKey: ['mensalistas', 'lista', filtros],
     queryFn: () => apiFetch<ListaMensalistasResposta>(`/mensalistas${montarConsulta(filtros)}`),
     placeholderData: keepPreviousData,
+    enabled: opcoes.habilitado ?? true,
   });
 }
 

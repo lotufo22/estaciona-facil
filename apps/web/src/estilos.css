@@ -41,3 +41,27 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* Imprimir o comprovante: só ele aparece na folha (fora de @layer para vencer os utilitários). */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .comprovante-imprimivel,
+  .comprovante-imprimivel * {
+    visibility: visible;
+  }
+
+  .comprovante-imprimivel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: none;
+  }
+
+  .nao-imprimir {
+    display: none !important;
+  }
+}

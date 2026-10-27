@@ -123,3 +123,15 @@ export interface MensalistaDetalhe {
   /** Do mais recente para o mais antigo. */
   historico: HistoricoItem[];
 }
+
+export interface PagamentosResposta {
+  itens: PagamentoItem[];
+  /** Soma dos pagamentos listados, em texto decimal. */
+  total: string;
+}
+
+export interface RegistroPagamentoResposta {
+  pagamento: PagamentoItem;
+  /** Próxima data a pagar do contrato depois deste pagamento, AAAA-MM-DD. */
+  novoVencimento: string;
+}
