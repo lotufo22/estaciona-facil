@@ -1,4 +1,4 @@
-import { formatarReais, type FormaPagamento } from '@estacionafacil/shared';
+import { formatarPlaca, formatarReais, type FormaPagamento } from '@estacionafacil/shared';
 import { CabecalhoPagina } from '../../app/CabecalhoPagina';
 import { CartaoKpi } from '../../components/ui/CartaoKpi';
 import { Carregando } from '../../components/ui/Carregando';
@@ -97,7 +97,7 @@ export function Painel() {
                 {data.ultimosRecebimentos.map((r) => (
                   <tr key={r.id}>
                     <td className="px-2 py-3 font-semibold">{r.mensalista}</td>
-                    <td className="px-2 py-3">{r.placa}</td>
+                    <td className="px-2 py-3">{formatarPlaca(r.placa)}</td>
                     <td className="px-2 py-3">{FORMAS[r.forma]}</td>
                     <td className="px-2 py-3">{diaEMes(r.pagoEm)}</td>
                     <td className="px-2 py-3 font-semibold">{formatarReais(r.valor)}</td>

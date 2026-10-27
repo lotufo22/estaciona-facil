@@ -5,6 +5,7 @@ import {
   type MensalistaItem,
   type PagamentoItem,
   type Perfil,
+  type RegistroPagamentoResposta,
   type SerieMensalItem,
   type Sessao,
   type TipoContrato,
@@ -39,6 +40,8 @@ export interface BancoMock {
   recebimentos: PagamentoItem[];
   /** Seis meses até o mês de `hoje`; o último é o mês corrente. */
   serieMensal: SerieMensalItem[];
+  /** Resposta de cada Idempotency-Key já usada: repetir a chave devolve a mesma resposta. */
+  pagamentosPorChave: Map<string, RegistroPagamentoResposta>;
 }
 
 type Linha = [
@@ -154,6 +157,7 @@ function criarBanco(): BancoMock {
     })),
     recebimentos: RECEBIMENTOS.map((r, i) => ({ ...r, id: 100 - i, numero: 100 - i })),
     serieMensal: SERIE_MENSAL.map((m) => ({ ...m })),
+    pagamentosPorChave: new Map(),
   };
 }
 

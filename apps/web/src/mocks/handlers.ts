@@ -5,11 +5,14 @@ import {
   mensalistaAtualizarSchema,
   mensalistaCriarSchema,
   normalizarPlaca,
+  pagamentoCriarSchema,
   paraCentavos,
   proximoVencimento,
   renovacaoSchema,
   type CodigoErro,
   type MensalistaItem,
+  type PagamentoItem,
+  type PagamentosResposta,
   type PainelResposta,
   type ResumoSituacao,
   type Situacao,
@@ -108,7 +111,8 @@ function camposDoZod(erroZod: { issues: { path: PropertyKey[]; message: string }
   return Object.fromEntries(erroZod.issues.map((i) => [String(i.path[0]), i.message]));
 }
 
-const naoEncontrado = () => erro(404, 'NAO_ENCONTRADO', 'Mensalista não encontrado.');
+const naoEncontrado = (mensagem = 'Mensalista não encontrado.') =>
+  erro(404, 'NAO_ENCONTRADO', mensagem);
 const contratoEncerrado = () => erro(409, 'CONTRATO_ENCERRADO', 'Este contrato já foi encerrado.');
 
 /** Conflito de placa ou vaga com outro contrato ativo; null quando está livre. */
@@ -135,6 +139,7 @@ function buscarMensalistas(url: URL) {
   const tipos = new Map(bancoMock.mensalistas.map((m) => [m.id, m.tipo]));
 
   const filtrados = listarMensalistas()
+    .filter((m) => !parametro('contrato') || m.contratoId === Number(parametro('contrato')))
     .filter(
       (m) =>
         !busca ||
@@ -302,5 +307,72 @@ export const handlers = [
       usuario: bancoMock.sessao?.nome ?? null,
     });
     return HttpResponse.json(montarDetalhe(m));
+  }),
+
+  http.post('/api/pagamentos', async ({ request }) => {
+    const bloqueio = exigir();
+    if (bloqueio) return bloqueio;
+    const chave = request.headers.get('Idempotency-Key');
+    if (!chave) {
+      return erro(400, 'CHAVE_IDEMPOTENCIA_AUSENTE', 'Não foi possível identificar o envio.');
+    }
+    // Repetir a chave devolve o mesmo resultado, sem registrar de novo.
+    const anterior = bancoMock.pagamentosPorChave.get(chave);
+    if (anterior) return HttpResponse.json(anterior, { status: 201 });
+
+    const entrada = pagamentoCriarSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    const { contratoId, valor, forma, pagoEm } = entrada.data;
+    const m = acharPorContrato(String(contratoId));
+    if (!m) return naoEncontrado('Contrato não encontrado.');
+    if (m.status === 'encerrado') return contratoEncerrado();
+
+    const id = Math.max(0, ...bancoMock.recebimentos.map((r) => r.id)) + 1;
+    const pagamento: PagamentoItem = {
+      id,
+      numero: id,
+      mensalista: m.nome,
+      placa: m.placa,
+      valor,
+      forma,
+      pagoEm,
+    };
+    bancoMock.recebimentos.unshift(pagamento);
+    m.vencimento = proximoVencimento(m.vencimento, m.tipo, m.diaVencimento);
+    m.historico.unshift({
+      id: proximoIdHistorico(),
+      evento: 'pagamento',
+      em: pagoEm,
+      detalhes: `Comprovante nº ${id}`,
+      usuario: bancoMock.sessao?.nome ?? null,
+    });
+    const resposta = { pagamento, novoVencimento: m.vencimento };
+    bancoMock.pagamentosPorChave.set(chave, resposta);
+    return HttpResponse.json(resposta, { status: 201 });
+  }),
+
+  http.get('/api/pagamentos', ({ request }) => {
+    const bloqueio = exigir();
+    if (bloqueio) return bloqueio;
+    const parametros = new URL(request.url).searchParams;
+    const de = parametros.get('de');
+    const ate = parametros.get('ate');
+    const itens = bancoMock.recebimentos.filter(
+      (r) => (!de || r.pagoEm >= de) && (!ate || r.pagoEm <= ate),
+    );
+    const resposta: PagamentosResposta = {
+      itens,
+      total: deCentavos(itens.reduce((soma, r) => soma + paraCentavos(r.valor), 0)),
+    };
+    return HttpResponse.json(resposta);
+  }),
+
+  http.get('/api/pagamentos/:id', ({ params }) => {
+    const bloqueio = exigir();
+    if (bloqueio) return bloqueio;
+    const pagamento = bancoMock.recebimentos.find((r) => r.id === Number(params.id));
+    return pagamento ? HttpResponse.json(pagamento) : naoEncontrado('Comprovante não encontrado.');
   }),
 ];
