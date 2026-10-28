@@ -20,6 +20,14 @@
 # As funções são geradas por `npm run funcoes` (scripts/empacotar-funcoes.mjs); a Netlify só as envia.
 [functions]
   directory = "netlify/functions"
+  # O `argon2` (senhas) é um módulo nativo. O empacotador leva só o binário da máquina que monta o
+  # pacote: num Windows, o do Windows, que não roda na Netlify (Linux) e derrubaria o login. Estas
+  # linhas levam também os de Linux, não importa onde o deploy seja montado. Veja o teste em
+  # apps/api/test/netlify.test.ts.
+  included_files = [
+    "node_modules/argon2/prebuilds/linux-x64/**",
+    "node_modules/argon2/prebuilds/linux-arm64/**",
+  ]
 
 # Despesa fixa mensal: todo dia às 03:00 UTC (meia-noite em Brasília). Só roda em deploy publicado.
 [functions."gerar-despesas"]
