@@ -137,7 +137,7 @@ gantt
 |---|---|---|---|---|
 | Documento de Visão 1.0 | Descrição do desafio, requisitos e pilha tecnológica | Felipe | 01/09/2026 | Concluído |
 | Diagramas de casos de uso e de sequência | 1 diagrama de casos de uso e 12 de sequência, com códigos HTTP | Júlia | 13/10/2026 | Concluído |
-| Segunda rodada de perguntas | Coleta das lacunas de modelagem (Apêndice C do relatório extensionista) | Daniel | 23/10/2026 | A desenvolver |
+| Segunda rodada de perguntas | Coleta das lacunas de modelagem (Apêndice C do relatório extensionista) | Daniel | 23/10/2026 | Respondida; registro em [`docs/respostas-do-proprietario.md`](./docs/respostas-do-proprietario.md) |
 | Documento de Visão 2.0 | Reclassificação dos requisitos, RF11 a RF14 e rastreabilidade | Felipe | 30/10/2026 | A desenvolver |
 | Modelo do banco de dados | Esquema Prisma (`apps/api/prisma/schema.prisma`) | Maria Luiza | 06/11/2026 | A desenvolver |
 | Protótipos das interfaces | Painel do proprietário, cadastro de mensalistas e lançamento de caixa | Mateus | 06/11/2026 | A desenvolver |
@@ -187,6 +187,10 @@ A modelagem usa UML (casos de uso e diagramas de sequência), escrita em PlantUM
 ### Guia de instalação e configuração
 
 [`docs/guia-de-instalacao.md`](./docs/guia-de-instalacao.md): contas, banco, Netlify, migrações, backup e o roteiro de restauração ([`scripts/restaurar-backup.md`](./scripts/restaurar-backup.md)).
+
+### Respostas do proprietário
+
+[`docs/respostas-do-proprietario.md`](./docs/respostas-do-proprietario.md): o questionário de validação e a segunda rodada de perguntas, o nome **Tanaga**, as cores (sem vermelho) e o modelo do comprovante de estacionamento.
 
 ### Decisões para o proprietário
 
