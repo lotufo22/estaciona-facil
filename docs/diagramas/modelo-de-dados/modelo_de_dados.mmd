@@ -1,0 +1,97 @@
+erDiagram
+    usuarios ||--o{ sessoes : "abre"
+    usuarios ||--o{ pagamentos : "registra"
+    usuarios |o--o{ despesas : "lança"
+    usuarios |o--o{ historico_contrato : "faz"
+    mensalistas ||--o{ veiculos : "tem"
+    mensalistas ||--o{ contratos : "contrata"
+    veiculos ||--o{ contratos : "é de"
+    vagas |o--o{ contratos : "ocupada por"
+    contratos ||--o{ pagamentos : "recebe"
+    contratos ||--o{ historico_contrato : "registra"
+    recorrencias_despesa |o--o{ despesas : "gera"
+
+    usuarios {
+        int id PK
+        string nome
+        string login UK
+        string senha_hash "argon2id"
+        enum perfil "proprietario ou auxiliar"
+        boolean ativo
+    }
+    sessoes {
+        string id PK "hash SHA-256 do token"
+        int usuario_id FK
+        timestamptz expira_em "12 h sem uso"
+    }
+    tentativas_login {
+        int id PK
+        string login
+        string ip
+        timestamptz ocorrida_em "limite: 5 em 15 min"
+    }
+    mensalistas {
+        int id PK
+        string nome
+        string telefone
+        timestamptz arquivado_em
+    }
+    veiculos {
+        int id PK
+        int mensalista_id FK
+        string placa UK "normalizada"
+        enum categoria "carro ou moto"
+    }
+    vagas {
+        int id PK
+        string codigo UK "01 a 35, M1 a M14"
+        enum categoria "carro ou moto"
+    }
+    contratos {
+        int id PK
+        int mensalista_id FK
+        int veiculo_id FK
+        int vaga_id FK "opcional"
+        enum tipo "mensal ou semanal"
+        decimal valor "NUMERIC 12,2"
+        int dia_vencimento "1 a 31"
+        date inicio
+        date vencimento "proxima data a pagar"
+        enum status "ativo ou encerrado"
+        timestamptz encerrado_em
+    }
+    pagamentos {
+        int id PK "numero do comprovante"
+        int contrato_id FK
+        decimal valor "NUMERIC 12,2"
+        enum forma "dinheiro pix debito credito"
+        date pago_em
+        date mes_referencia "1o dia do mes"
+        int registrado_por FK
+        string chave_idempotencia UK
+    }
+    recorrencias_despesa {
+        int id PK
+        string descricao
+        decimal valor
+        int dia_do_mes "1 a 31"
+        boolean ativa
+    }
+    despesas {
+        int id PK
+        string descricao
+        decimal valor "NUMERIC 12,2"
+        enum tipo "fixa ou variavel"
+        date data
+        int registrado_por FK "nulo se gerada"
+        int recorrencia_id FK "opcional"
+        date competencia "UK com recorrencia_id"
+    }
+    historico_contrato {
+        int id PK
+        int contrato_id FK
+        enum evento "criado renovado pagamento encerrado"
+        timestamptz em
+        int usuario_id FK
+        string detalhes
+    }

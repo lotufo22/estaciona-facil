@@ -149,8 +149,8 @@ A **Tarefa 18** está implementada, mas **nada foi implantado**:
 2. Agendamento diário de recorrências: função `gerar-despesas` às `03:00 UTC`.
 3. `migrar.yml` (manual, por ambiente) e `backup.yml` (noturno: `pg_dump`, criptografia com gpg e envio a um armazenamento S3 privado). A restauração foi testada **em PostgreSQL local**, com resultado em `docs/guia-de-instalacao.md` (seção 9); falta repetir com um backup real e no Supabase.
 4. CI com build e E2E.
-5. Manual do usuário, guia de instalação, README e `docs/api.md` atualizados; os diagramas UML ganharam uma nota, mas **não foram redesenhados**. O Documento de Visão 2.0 continua pendente.
-6. Falta a validação com o proprietário, incluindo regras de negócio, renovação semanal e dependência de internet.
+5. Manual do usuário, guia de instalação, README e `docs/api.md` atualizados; os diagramas UML ganharam uma nota, mas **não foram redesenhados**. O Documento de Visão 2.0 continua pendente. O diagrama exportado do esquema (RNF04) está em `docs/modelo-de-dados.md`.
+6. Falta a validação com o proprietário, incluindo regras de negócio, renovação semanal e dependência de internet. As suposições e limitações conhecidas estão reunidas, com sugestões, em `docs/decisoes-para-o-proprietario.md` (por exemplo: não há como corrigir um recebimento ou uma despesa lançados errado).
 
 Pontos de atenção:
 
