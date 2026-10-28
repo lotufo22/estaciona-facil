@@ -1,0 +1,39 @@
+# Configuração da Netlify. Leia docs/guia-de-instalacao.md antes de publicar.
+
+[build]
+  # O cliente do Prisma não vai no Git; é gerado aqui, antes do build do front. `npm run funcoes`
+  # transforma netlify/funcoes/*.mts em JavaScript puro em netlify/functions (veja o script).
+  command = "npm run gerar -w @estacionafacil/api && npm run build -w @estacionafacil/web && npm run funcoes"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Publicação em produção é MANUAL (cada deploy de produção gasta 15 dos 300 créditos mensais do
+# plano gratuito). Este comando cancela os builds automáticos de produção, os que o merge na `main`
+# dispararia; deploys de prévia (por Pull Request) continuam normais e não gastam créditos.
+# Para publicar, siga os critérios do guia de instalação e use `npx netlify deploy --build --prod`.
+# Confirme também, no painel do site, "Deploys > Build settings > Stop auto publishing".
+[context.production]
+  ignore = "exit 0"
+
+# As funções são geradas por `npm run funcoes` (scripts/empacotar-funcoes.mjs); a Netlify só as envia.
+[functions]
+  directory = "netlify/functions"
+
+# Despesa fixa mensal: todo dia às 03:00 UTC (meia-noite em Brasília). Só roda em deploy publicado.
+[functions."gerar-despesas"]
+  schedule = "0 3 * * *"
+
+# /api/* vai para a função que contém o Express. Mesmo domínio: sem CORS, cookie de sessão normal.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+# Qualquer outro caminho cai no front (rotas do React Router).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

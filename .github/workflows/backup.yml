@@ -1,0 +1,83 @@
+name: Backup do banco
+
+# Backup noturno do banco (o plano gratuito do Supabase não tem backup automático).
+# O arquivo é criptografado ANTES de sair do runner e enviado a um armazenamento PRIVADO.
+# Nunca use "artefatos" do Actions para isso: em repositório público eles são legíveis por qualquer pessoa.
+#
+# Segredos necessários (Settings > Secrets and variables > Actions, no ambiente "producao"):
+#   DATABASE_URL_BACKUP   URL do banco (pooler do Supabase em modo sessão, porta 5432)
+#   BACKUP_PASSPHRASE     senha da criptografia (guarde uma cópia FORA do GitHub)
+#   BACKUP_S3_BUCKET      nome do bucket privado (Cloudflare R2, Backblaze B2 ou outro compatível com S3)
+#   BACKUP_S3_ENDPOINT    endereço S3 do provedor (ex.: https://<conta>.r2.cloudflarestorage.com)
+#   AWS_ACCESS_KEY_ID e AWS_SECRET_ACCESS_KEY   credenciais do bucket (só escrita, se o provedor permitir)
+# Passo a passo e teste de restauração: docs/guia-de-instalacao.md e scripts/restaurar-backup.md.
+
+on:
+  schedule:
+    - cron: '30 5 * * *' # 05:30 UTC, depois da geração das despesas fixas (03:00 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    environment: producao
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir os segredos
+        env:
+          TEM_URL: ${{ secrets.DATABASE_URL_BACKUP != '' }}
+          TEM_SENHA: ${{ secrets.BACKUP_PASSPHRASE != '' }}
+          TEM_BUCKET: ${{ secrets.BACKUP_S3_BUCKET != '' }}
+          TEM_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT != '' }}
+          TEM_CHAVE: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
+        run: |
+          faltando=""
+          [ "$TEM_URL" = "true" ] || faltando="$faltando DATABASE_URL_BACKUP"
+          [ "$TEM_SENHA" = "true" ] || faltando="$faltando BACKUP_PASSPHRASE"
+          [ "$TEM_BUCKET" = "true" ] || faltando="$faltando BACKUP_S3_BUCKET"
+          [ "$TEM_ENDPOINT" = "true" ] || faltando="$faltando BACKUP_S3_ENDPOINT"
+          [ "$TEM_CHAVE" = "true" ] || faltando="$faltando AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY"
+          if [ -n "$faltando" ]; then
+            echo "::error::Faltam segredos:$faltando"
+            exit 1
+          fi
+
+      # O pg_dump precisa ser da mesma versão do servidor ou mais novo.
+      - name: Instalar o cliente do PostgreSQL 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Dump e criptografia
+        id: backup
+        env:
+          DATABASE_URL_BACKUP: ${{ secrets.DATABASE_URL_BACKUP }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+          BACKUP_PASTA: ${{ runner.temp }}/backup
+        run: |
+          arquivo="$(bash scripts/backup.sh)"
+          echo "arquivo=$arquivo" >> "$GITHUB_OUTPUT"
+
+      - name: Enviar para o armazenamento privado
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          ARQUIVO: ${{ steps.backup.outputs.arquivo }}
+        run: |
+          aws s3 cp "$ARQUIVO" "s3://$BUCKET/estaciona/$(basename "$ARQUIVO")" --endpoint-url "$ENDPOINT"
+          echo "Enviado: $(basename "$ARQUIVO")"

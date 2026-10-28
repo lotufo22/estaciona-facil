@@ -32,7 +32,9 @@ export function GraficoFormas({ porForma }: { porForma: CaixaResposta['porForma'
     .join('; ');
 
   return (
-    <div className="flex flex-col items-center gap-6 sm:flex-row">
+    // Rosca em cima e legenda embaixo: lado a lado, a legenda não cabe no cartão (que divide a linha
+    // com o gráfico de barras) e estourava a página.
+    <div className="flex flex-col items-center gap-6">
       <div
         role="img"
         aria-label={`Divisão das receitas por forma de pagamento. ${resumo}.`}

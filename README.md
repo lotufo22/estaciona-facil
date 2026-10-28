@@ -20,7 +20,7 @@
 
 Sistema web de gestão para um estacionamento de pequeno porte, com controle de mensalistas, vencimentos, pagamentos, despesas e resultado financeiro.
 
-> **Status do projeto:** 🚧 Fase inicial — especificação e modelagem concluídas, desenvolvimento a iniciar
+> **Status do projeto:** 🚧 Fase 1 implementada (API, interface, testes de aceitação, backup e documentação); falta a validação com o proprietário e a publicação em produção. Veja o [guia de instalação](./docs/guia-de-instalacao.md).
 
 ---
 
@@ -88,7 +88,7 @@ Por isso o escopo foi revisado: o sistema foca em **contratos, cobrança, despes
 
 - Manual do usuário em linguagem acessível, ilustrado com telas reais (requisito crítico, pelo perfil do usuário)
 - Guia de instalação e configuração do ambiente
-- Modelagem do banco de dados relacional (DER, no MySQL Workbench)
+- Modelagem do banco de dados relacional (esquema Prisma e diagrama exportado)
 - Painel responsivo, compatível com Chrome, Firefox e Edge
 - Armazenamento seguro de dados sensíveis (dados pessoais e financeiros dos mensalistas e acessos), seguindo boas práticas de proteção de dados
 - Tempo de resposta inferior a 2 segundos no registro de entrada e saída (Fase 2)
@@ -119,7 +119,7 @@ gantt
     Validação dos protótipos com o proprietário :p3, 2026-11-09, 2026-11-13
 
     section Desenvolvimento
-    Implementação da Fase 1 (PHP, HTML/CSS, SQL) :d1, 2026-11-09, 2026-12-02
+    Implementação da Fase 1 (React, Express, PostgreSQL) :d1, 2026-11-09, 2026-12-02
     Teste de aceitação e ajustes                :d2, 2026-12-01, 2026-12-04
 
     section Entrega
@@ -139,10 +139,10 @@ gantt
 | Diagramas de casos de uso e de sequência | 1 diagrama de casos de uso e 12 de sequência, com códigos HTTP | Júlia | 13/10/2026 | Concluído |
 | Segunda rodada de perguntas | Coleta das lacunas de modelagem (Apêndice C do relatório extensionista) | Daniel | 23/10/2026 | A desenvolver |
 | Documento de Visão 2.0 | Reclassificação dos requisitos, RF11 a RF14 e rastreabilidade | Felipe | 30/10/2026 | A desenvolver |
-| Modelo do banco de dados | DER no MySQL Workbench | Maria Luiza | 06/11/2026 | A desenvolver |
+| Modelo do banco de dados | Esquema Prisma (`apps/api/prisma/schema.prisma`) | Maria Luiza | 06/11/2026 | A desenvolver |
 | Protótipos das interfaces | Painel do proprietário, cadastro de mensalistas e lançamento de caixa | Mateus | 06/11/2026 | A desenvolver |
 | Validação dos protótipos | Apresentação das telas ao proprietário, com ajustes | Daniel e Mateus | 13/11/2026 | A desenvolver |
-| Implementação da Fase 1 | Módulos em PHP, HTML/CSS e SQL | Paulo e Mateus | 02/12/2026 | A desenvolver |
+| Implementação da Fase 1 | Front em React, API em Express e banco PostgreSQL | Paulo e Mateus | 02/12/2026 | A desenvolver |
 | Teste de aceitação | Execução pelo proprietário de um cadastro, um pagamento, uma despesa e leitura do painel | Todos | 04/12/2026 | A desenvolver |
 | Manual do usuário | Será criado com a finalização do desenvolvimento | Todos | 09/12/2026 | A desenvolver |
 | Guia de instalação e configuração | Implantação no computador do estabelecimento | Todos | 09/12/2026 | A desenvolver |
@@ -154,10 +154,12 @@ gantt
 
 | Camada | Tecnologia | Propósito |
 |---|---|---|
-| Interface | HTML5 e CSS3, sem framework | Simplicidade de manutenção e de leitura do código, com compatibilidade com Chrome, Firefox e Edge |
-| Processamento | PHP | Linguagem dominada pela equipe, de licença livre e ampla documentação, executável em servidor local sem custo |
-| Persistência | MySQL, modelado no MySQL Workbench | Banco relacional gratuito, adequado ao volume do estabelecimento e usado para o DER |
-| Ambiente de execução | Servidor local (XAMPP ou equivalente) | Funciona sem conexão estável de internet, no computador que o estabelecimento já tem, sem custo de hospedagem |
+| Interface | React, TypeScript, Vite e Tailwind CSS (React Router, TanStack Query, React Hook Form, Recharts) | Telas responsivas, acessíveis (contraste, alvos de clique grandes, situação sempre em texto) e compatíveis com Chrome, Firefox e Edge |
+| Validação | Zod, em um pacote compartilhado | As mesmas regras validam o formulário e a API, e as regras do domínio (vencimento, situação, dinheiro) ficam num lugar só |
+| API | Node.js, Express e TypeScript | Uma API REST simples, com sessão por cookie, permissões por perfil e senhas com argon2id |
+| Persistência | PostgreSQL (Supabase) e Prisma | Banco relacional com esquema versionado em migrações e RLS ligado; o esquema Prisma substitui o DER |
+| Hospedagem | Netlify (front e funções) e GitHub Actions | Um domínio só, sem CORS; publicação em produção manual; migrações e backup noturno criptografado por GitHub Actions |
+| Testes | Vitest, Testing Library, Supertest e Playwright | Testes de unidade e de API contra PostgreSQL de verdade, e um roteiro de aceitação com navegador |
 | Versionamento | Git e GitHub | Controle de versão do código e da documentação |
 | Modelagem | PlantUML | Diagramas UML escritos como código, versionados junto do projeto |
 
@@ -170,7 +172,8 @@ A modelagem usa UML (casos de uso e diagramas de sequência), escrita em PlantUM
 ![Diagrama de casos de uso do EstacionaFácil](./docs/diagramas/casos-de-uso/casos_de_uso_estacionafacil_completo.svg)
 
 - [Todos os diagramas](./docs/diagramas/README.md)
-- [Rotas da API](./docs/api.md): proposta de rotas HTTP e códigos de resposta.
+- [Rotas da API](./docs/api.md): as rotas HTTP implementadas, com permissões e códigos de resposta.
+- [Especificação de design da Fase 1](./docs/superpowers/specs/2026-10-26-estacionafacil-fase1-design.md) e [plano de implementação](./docs/superpowers/plans/2026-10-26-estacionafacil-fase1.md).
 
 ---
 
@@ -178,11 +181,11 @@ A modelagem usa UML (casos de uso e diagramas de sequência), escrita em PlantUM
 
 ### Manual do usuário
 
-Será criado com a finalização do desenvolvimento, em linguagem acessível e ilustrado com telas reais do sistema. Link a definir.
+[`docs/manual-do-usuario.md`](./docs/manual-do-usuario.md): em linguagem acessível e ilustrado com telas reais do sistema (as imagens são geradas pelo teste de ponta a ponta, em `docs/manual/capturas/`).
 
 ### Guia de instalação e configuração
 
-Será desenvolvido junto com o manual. Link a definir.
+[`docs/guia-de-instalacao.md`](./docs/guia-de-instalacao.md): contas, banco, Netlify, migrações, backup e o roteiro de restauração ([`scripts/restaurar-backup.md`](./scripts/restaurar-backup.md)).
 
 ### Identidade da equipe <a id="equipe"></a>
 
@@ -204,27 +207,55 @@ Compartilhado por todos: documentação do projeto, testes, elaboração do manu
 
 ```
 .
-├── docs/
-│   ├── diagramas/     # Casos de uso e sequências (.puml)
-│   └── api.md         # Rotas da API (proposta)
-├── src/               # Código-fonte da aplicação
+├── apps/
+│   ├── web/             # Interface (React + Vite)
+│   └── api/             # API (Express + Prisma): rotas, serviços, migrações e testes
+├── packages/
+│   └── shared/          # Regras do domínio, schemas Zod e tipos usados pelo front e pela API
+├── netlify/
+│   ├── funcoes/         # Pontos de entrada das funções da Netlify (api e gerar-despesas)
+│   └── nucleo/          # Lógica das funções (testada em apps/api/test/netlify.test.ts)
+├── e2e/                 # Testes de ponta a ponta (Playwright): aceitação e capturas do manual
+├── scripts/             # Backup, restauração, empacotamento das funções e dados de demonstração
+├── docs/                # Visão, API, diagramas UML, manual do usuário, guia de instalação e spec
+├── .github/workflows/   # CI, migração (manual) e backup noturno
+├── netlify.toml         # Build, funções, redirecionamentos e política de publicação
 ├── README.md
-└── CONTRIBUTING.md    # Guia de fluxo de trabalho em equipe (branches, PRs, commits)
+└── CONTRIBUTING.md      # Guia de fluxo de trabalho em equipe (branches, PRs, commits)
 ```
-
-> A estrutura acima é um ponto de partida e será ajustada conforme o projeto avança.
 
 ---
 
 ## 🚀 Como começar
 
+Precisa de **Node.js 22+**, **Git** e um **PostgreSQL** local (ou o `docker-compose.yml` da raiz).
+
 ```bash
-# Clonar o repositório
 git clone https://github.com/lotufo22/estaciona-facil.git
 cd estaciona-facil
+npm ci
+cp .env.example .env     # preencha DATABASE_URL, DATABASE_URL_MIGRACAO e DATABASE_URL_TESTE
+
+npm run migrar -w @estacionafacil/api                # cria as tabelas
+npm run semear -w @estacionafacil/api                # cria as 49 vagas
+npm run criar-proprietario -w @estacionafacil/api    # cria o primeiro usuário (a senha é pedida na hora)
+
+npm run dev -w @estacionafacil/api    # API em http://localhost:3001/api
+npm run dev -w @estacionafacil/web    # interface em http://localhost:5173
 ```
 
-Instruções de instalação e configuração do ambiente serão adicionadas aqui conforme a stack do projeto for definida.
+Para ver só a interface, com dados de exemplo e sem banco: `npm run dev:mocks -w @estacionafacil/web`
+(login `dono` ou `auxiliar`, senha `teste123`).
+
+| Comando | O que faz |
+|---|---|
+| `npm test` | testes de unidade e de API (a API roda contra o PostgreSQL de `DATABASE_URL_TESTE`, que é **apagado**) |
+| `npm run e2e` | roteiro de aceitação com navegador (Playwright) e capturas do manual |
+| `npm run lint` e `npm run typecheck` | análise estática |
+| `npm run build -w @estacionafacil/web` | build do front |
+| `npm run funcoes` | gera as funções da Netlify em `netlify/functions` |
+
+Publicação, backup e migrações em homologação e produção: [guia de instalação](./docs/guia-de-instalacao.md).
 
 ---
 
