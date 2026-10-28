@@ -279,3 +279,27 @@ Estes documentos precisam ser atualizados quando a implementação começar:
 6. O Fluxo de caixa mostra receitas, despesas e resultado do período, e oculta o resultado quando há filtro de contrato ou categoria.
 7. Nenhum dado é acessível sem login nem fora do perfil.
 8. O backup é executado e restaurado com sucesso em ambiente de teste.
+
+## 14. Adendo de 27/10/2026: respostas do proprietário
+
+Este adendo **não altera** as decisões das seções anteriores. Registra o que as respostas do proprietário
+(questionário e segunda rodada, em [`docs/respostas-do-proprietario.md`](../../respostas-do-proprietario.md))
+colocam em questão, para a equipe decidir. As perguntas abertas estão em
+[`docs/decisoes-para-o-proprietario.md`](../../decisoes-para-o-proprietario.md).
+
+- **Cores (seção 7).** A paleta traz um vermelho (`#B42318`) para "em atraso" e para erros. O proprietário
+  pediu **verde, azul, amarelo e branco** e disse que o **vermelho não pode aparecer**. A paleta da seção 7 vai
+  precisar mudar (decisão 11).
+- **Nome e identidade.** O estacionamento se chama **Tanaga**; o sistema se chama EstacionaFácil na tela e no
+  comprovante (decisão 15).
+- **Aparelho (seções 7 e 9).** Ele está **sem computador** e usa o **celular**. A hospedagem na nuvem está
+  confirmada, e o layout para celular passa a ser requisito de primeira ordem (decisão 12).
+- **Perfis (seções 2 e 6).** Ele respondeu "Não" a perfis diferentes e disse que só ele trabalha e usa o
+  sistema. O perfil Auxiliar continua no sistema, mas pode ser desnecessário.
+- **Vaga e turno (seção 5).** A regra "um contrato ativo por vaga" não comporta o mensalista noturno na mesma
+  vaga de um diurno, e a maioria dos mensalistas **não tem vaga fixa** (decisão 13). Há mais mensalistas do que
+  49 vagas, e a mensalidade noturna é mais barata (decisão 16).
+- **Escopo (seção 2).** Ele respondeu "Sim" a avaliações e satisfação, que estão fora do escopo (decisão 14).
+  Surgiram ainda a **fila de espera** de 16 carros e a cobrança por WhatsApp (decisões 17 e 18).
+- **Comprovante de estacionamento (Fase 2).** O comprovante do avulso deve ter **data, veículo, placa,
+  entrada, saída e valor**, como o papel atual; o modelo está na seção 4 de `respostas-do-proprietario.md`.

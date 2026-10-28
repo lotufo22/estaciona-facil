@@ -150,7 +150,7 @@ A **Tarefa 18** está implementada, mas **nada foi implantado**:
 3. `migrar.yml` (manual, por ambiente) e `backup.yml` (noturno: `pg_dump`, criptografia com gpg e envio a um armazenamento S3 privado). A restauração foi testada **em PostgreSQL local**, com resultado em `docs/guia-de-instalacao.md` (seção 9); falta repetir com um backup real e no Supabase.
 4. CI com build e E2E.
 5. Manual do usuário, guia de instalação, README e `docs/api.md` atualizados; os diagramas UML ganharam uma nota, mas **não foram redesenhados**. O Documento de Visão 2.0 continua pendente. O diagrama exportado do esquema (RNF04) está em `docs/modelo-de-dados.md`.
-6. Falta a validação com o proprietário, incluindo regras de negócio, renovação semanal e dependência de internet. As suposições e limitações conhecidas estão reunidas, com sugestões, em `docs/decisoes-para-o-proprietario.md` (por exemplo: não há como corrigir um recebimento ou uma despesa lançados errado).
+6. Falta a validação com o proprietário, incluindo regras de negócio e renovação semanal. As respostas dele (questionário e segunda rodada) estão em `docs/respostas-do-proprietario.md`; as suposições, limitações e perguntas abertas estão em `docs/decisoes-para-o-proprietario.md`. **Três pontos pedem atenção antes de mostrar o sistema a ele:** (a) ele disse que o **vermelho não pode aparecer**, e o sistema usa vermelho para "em atraso" e para erros; (b) ele está **sem computador** e usa o **celular**, então o layout para celular importa; (c) o mensalista noturno usa a mesma vaga de um diurno, o que a regra "um contrato ativo por vaga" não comporta. A dependência de internet foi respondida: há internet, e a nuvem está confirmada.
 
 Pontos de atenção:
 
