@@ -95,14 +95,17 @@ export function ListaMensalistas() {
 
       <section
         aria-label="Filtros"
-        className="grid gap-4 rounded-lg border border-borda bg-superficie p-6 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-4 rounded-lg border border-borda bg-superficie p-4 sm:p-6 xl:grid-cols-4"
       >
-        <Campo
-          rotulo="Buscar por nome ou placa"
-          type="search"
-          valor={busca}
-          onChange={(e) => setBusca(e.target.value)}
-        />
+        {/* No celular a busca ocupa a linha toda e os seletores ficam dois a dois (menos rolagem). */}
+        <div className="col-span-2 xl:col-span-1">
+          <Campo
+            rotulo="Buscar por nome ou placa"
+            type="search"
+            valor={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
         <Selecao
           rotulo="Situação"
           opcoes={OPCOES_SITUACAO}

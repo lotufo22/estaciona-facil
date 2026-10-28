@@ -144,9 +144,11 @@ afeta o escopo da Fase 2 (registrar entrada e saída de todos, e não só dos av
 *Impacto.* O sistema se chama **EstacionaFácil** na tela de entrada, na barra superior, no rodapé, no título
 da página e no comprovante. E **usa vermelho** como a cor de "em atraso" (quadro do Painel, etiquetas, sininho)
 e nas mensagens de erro e campos inválidos; a paleta com esse vermelho veio da nossa spec (seção 7), sem
-conhecimento da restrição. *Decisão pendente:* qual cor usar no lugar para "em atraso" e para erros, dentro de
-verde, azul, amarelo e branco, **sem depender só da cor** (a situação já aparece sempre em texto), e se o nome
-**Tanaga** passa a aparecer no sistema e no comprovante.
+conhecimento da restrição.
+
+*Atualização de 27/10/2026.* A equipe trocou o vermelho por **bordô `#550000`** (fundo `#F2E9E9`) em todo o
+sistema. Como bordô ainda é um tom escuro de vermelho, **falta o proprietário confirmar, em tela,** se aceita
+(decisão 11). Continua pendente se o nome **Tanaga** passa a aparecer no sistema e no comprovante.
 
 ## 4. Modelo do comprovante de estacionamento (veículo avulso, Fase 2)
 
@@ -205,8 +207,9 @@ vencimento. Não tem *entrada* nem *saída*, porque o mensalista paga uma mensal
 | Recebimento (dinheiro, débito, crédito e Pix) com comprovante | ✅ Fase 1 |
 | Vencimentos, Painel e Fluxo de caixa, com filtros | ✅ Fase 1 |
 | Consulta da situação pela placa digitada | ✅ Fase 1 |
-| Funcionar bem no celular | 🟡 funciona; falta melhorar o cabeçalho e testar em aparelho real |
-| Cores sem vermelho e o nome Tanaga | ❌ pendente (decisão) |
+| Funcionar bem no celular | 🟡 abas embaixo, cabeçalho compacto e listas em cartões (27/10/2026); falta testar em aparelho real |
+| Cores sem vermelho | 🟡 trocado por bordô (`#550000`); falta ele confirmar |
+| Nome Tanaga no sistema e no comprovante | ❌ pendente (decisão) |
 | Valores padrão por categoria e turno | ❌ não existe |
 | Pagar vários meses de uma vez; corrigir lançamento errado | ❌ não existe |
 | Cobrança pelo WhatsApp com mensagem pronta | ❌ não existe |

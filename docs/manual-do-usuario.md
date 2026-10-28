@@ -179,7 +179,39 @@ Mostra **quanto entrou, quanto saiu e o resultado** de qualquer período. Escolh
 pertencem a um contrato nem a um veículo. Por isso, **com um desses filtros ligado, o resultado some** e o
 sistema avisa o motivo. Volte o filtro para *Todos/Todas* para ver o resultado.
 
-## 10. Perguntas e problemas comuns
+## 10. Usando no celular
+
+O sistema funciona no navegador do celular, sem instalar nada. Abra o mesmo endereço e entre com o seu
+usuário e senha. As telas se ajustam ao tamanho da tela:
+
+![Painel no celular](./manual/capturas/12-celular-painel.png)
+
+- **No alto da tela** ficam o nome do sistema, o **sininho** (contratos em atraso), a sua inicial e o botão
+  **Sair**. Logo abaixo está a **busca** por nome ou placa, para ver na hora se um cliente está em dia.
+- **Embaixo da tela** ficam as abas, ao alcance do polegar. Ficam sempre à mostra **Painel**, **Mensalistas**
+  e **Recebimentos**. Para as outras, toque em **Mais**:
+
+![Menu Mais no celular](./manual/capturas/15-celular-menu-mais.png)
+
+  Aparecem **Vencimentos**, **Despesas** e **Fluxo de caixa**. Toque numa delas para abrir; o menu fecha
+  sozinho. (O Auxiliar vê só as abas dele, e todas à mostra, sem o "Mais".)
+- **As listas viram cartões.** Em vez de uma tabela larga, cada cliente aparece num cartão, com o **nome em
+  cima** (toque nele para abrir os detalhes) e os dados em linhas, com o nome de cada informação ao lado:
+
+![Lista de mensalistas no celular](./manual/capturas/13-celular-mensalistas.png)
+
+- **Registrar um recebimento** funciona do mesmo jeito que no computador:
+
+![Recebimentos no celular](./manual/capturas/14-celular-recebimentos.png)
+
+Dicas para o celular:
+
+- Gire o aparelho para o modo **deitado** se quiser ver mais colunas; o sistema se ajusta.
+- Para chegar mais rápido, adicione o endereço à **tela inicial** do celular (no menu do navegador, "Adicionar à
+  tela inicial").
+- Toque **uma vez** nos botões, e espere. Se a internet estiver lenta, o sistema não cobra duas vezes.
+
+## 11. Perguntas e problemas comuns
 
 | Mensagem ou situação | O que significa | O que fazer |
 |---|---|---|

@@ -25,8 +25,8 @@ respostas, e o item 3 já foi respondido por elas.
 | 8 | Cor do resultado negativo no Painel | Baixa | trivial |
 | 9 | Arquivar mensalistas antigos | Baixa | funcionalidade nova |
 | 10 | Custo e riscos da hospedagem em produção | Na entrega | decisão |
-| 11 | **Sem vermelho:** cor de "em atraso" e dos erros | **Alta** | pequena |
-| 12 | Celular como aparelho principal | **Alta** | média |
+| 11 | **Sem vermelho:** cor de "em atraso" e dos erros | ✅ bordô aplicado; **falta ele confirmar** | feita |
+| 12 | Celular como aparelho principal | ✅ melhorado; **falta testar em aparelho real** | feita |
 | 13 | Mensalista noturno e vaga compartilhada (turno) | **Alta** | grande (Fase 2) |
 | 14 | Avaliações dos clientes: ele respondeu "Sim" | Média | decisão |
 | 15 | Nome **Tanaga** e identidade visual | Média | pequena |
@@ -137,11 +137,11 @@ dá erro no campo; digitar uma ocupada também.
 ## 8. Cor do resultado negativo no Painel
 
 **Como é hoje.** O quadro **Resultado do mês** do Painel é **verde**, inclusive quando o resultado é negativo
-(o sinal de menos e a porcentagem aparecem em texto). No Fluxo de caixa, o resultado negativo já é vermelho.
+(o sinal de menos e a porcentagem aparecem em texto). No Fluxo de caixa, o resultado negativo usa a cor de "em atraso" (hoje bordô, item 11).
 
 **Atenção.** Este item **depende do item 11**: o proprietário disse que o **vermelho não pode aparecer** no
-sistema, então "vermelho para negativo" deixou de ser uma opção. A cor do resultado negativo precisa ser
-escolhida junto com a cor de "em atraso".
+sistema, e a cor do resultado negativo é a de "em atraso" (hoje bordô). O quadro do Painel segue verde mesmo
+com resultado negativo.
 
 **Sugestão.** Que o resultado positivo e o negativo tenham cores diferentes **nos dois lugares**, com o sinal
 sempre em texto. Trivial depois de decidido o item 11.
@@ -187,9 +187,18 @@ Os itens abaixo vêm de [`respostas-do-proprietario.md`](./respostas-do-propriet
 etiquetas, sininho, gráfico) e também nas **mensagens de erro** e nos campos inválidos dos formulários. Esse
 vermelho (`#B42318`) veio da nossa spec, sem conhecimento da restrição.
 
-**Pergunta.** A restrição vale para tudo, inclusive atraso e erros? Qual cor ele aceita no lugar?
+**Decisão da equipe (27/10/2026): bordô `#550000`** no lugar do vermelho, com fundo claro neutro
+(`#F2E9E9`), para "em atraso" e para os erros. Já está no sistema (quadro **Contratos vencidos**, etiquetas,
+sininho, gráfico, mensagens de erro e campos inválidos). O contraste do bordô sobre branco é de cerca de 14:1.
 
-**Opções.** A situação **já aparece sempre em texto**, então a cor é reforço, não a única informação.
+**Atenção: falta a confirmação dele.** Bordô é um tom escuro de vermelho. O proprietário disse "vermelho não
+pode", e só ele sabe se o bordô passa. **Mostrar em tela** (o Painel e a aba Vencimentos) antes de dar o assunto
+por resolvido.
+
+**Pergunta que sobra.** O bordô é aceitável? Se não, qual cor ele aceita no lugar?
+
+**Se ele não aceitar, as alternativas.** A situação **já aparece sempre em texto**, então a cor é reforço, não
+a única informação.
 
 - **A. Cinza-escuro ou preto** para "em atraso" e para erros, com o ícone de alerta. Contraste forte, sem
   ficar parecido com vermelho, mas "frio".
@@ -197,22 +206,29 @@ vermelho (`#B42318`) veio da nossa spec, sem conhecimento da restrição.
   paleta dele, mas azul costuma significar "normal".
 - **C. Laranja/âmbar** para erros e atraso. Fica perto do vermelho: **só se ele aceitar**.
 
-**Sugestão.** B ou A, mostrando a ele as três em tela antes de escolher.
 **Resposta:** ____________________
 
 ## 12. Celular como aparelho principal
 
 **O que ele disse.** Está "sem computador"; usa o celular para trabalho, Pix e WhatsApp.
 
-**Como é hoje.** Testamos numa tela de 390 px: as telas principais **funcionam e não estouram para o lado**.
-Mas o cabeçalho ocupa cerca de **um terço da tela** e as abas rolam para o lado. Não foi testado em aparelho
-real.
+**O que foi feito (27/10/2026).** Antes, numa tela de 390 px as telas funcionavam, mas o cabeçalho ocupava
+cerca de **um terço da tela** (260 px) e as abas rolavam para o lado. Agora, no celular:
+
+- o **cabeçalho tem 128 px** (nome do sistema, sino, avatar e **Sair** numa linha, com a busca em tela cheia);
+- as **abas ficam embaixo**, onde o polegar alcança: **Painel, Mensalistas e Recebimentos** à mostra, e
+  **Vencimentos, Despesas e Fluxo de caixa** atrás do botão **Mais** (o Auxiliar vê as 3 abas dele, sem "Mais");
+- as **tabelas viram cartões** (cada linha mostra o nome do cliente como título e os dados em linhas com
+  rótulo), sem rolar para o lado, e os **filtros** de Mensalistas ocupam bem menos espaço;
+- há testes automáticos de celular (390 px, com toque) que conferem tudo isso e que nenhuma tela rola para o lado.
+
+**Ainda não foi testado em aparelho real.** Só em um navegador de computador simulando a tela de celular.
 
 **Pergunta.** Que celular ele usa (Android ou iPhone) e que navegador? Ele quer o sistema como "atalho" na
 tela inicial?
 
-**Sugestão.** Cabeçalho mais compacto no celular e abas na parte de baixo da tela; testar num aparelho real
-na próxima visita.
+**Sugestão.** Testar num aparelho real na próxima visita, com ele usando: registrar um recebimento, consultar
+uma placa e ver quem está em atraso.
 **Resposta:** ____________________
 
 ## 13. Mensalista noturno e vaga compartilhada (turno)
