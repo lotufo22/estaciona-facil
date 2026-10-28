@@ -176,7 +176,7 @@ Rotas sob `/api`, respostas em JSON.
 | fundo / superfície / borda | `#F5F7FA` / `#FFFFFF` / `#CBD2D9` | estrutura |
 | em dia (texto / fundo) | `#1B7F3B` / `#E3F5E8` | situação |
 | a vencer (texto / fundo) | `#8A5300` / `#FFF1D6` | situação |
-| em atraso (texto / fundo) | `#B42318` / `#FDE7E4` | situação |
+| em atraso (texto / fundo) | `#550000` / `#F2E9E9` | situação e erros. Bordô, trocado em 27/10/2026: o proprietário pediu um sistema sem vermelho (o `#B42318` / `#FDE7E4` original saiu). Ver adendo, seção 14 |
 | barra / texto da barra / ícone / aba ativa | `#2A3042` / `#AEB6D4` / `#D5DAF2` / `#3B4263` | barra superior |
 
 Tipografia: Inter. Base de 16px; títulos de tela 28px, de seção 20px, números de KPI 36px.
@@ -288,12 +288,15 @@ colocam em questão, para a equipe decidir. As perguntas abertas estão em
 [`docs/decisoes-para-o-proprietario.md`](../../decisoes-para-o-proprietario.md).
 
 - **Cores (seção 7).** A paleta traz um vermelho (`#B42318`) para "em atraso" e para erros. O proprietário
-  pediu **verde, azul, amarelo e branco** e disse que o **vermelho não pode aparecer**. A paleta da seção 7 vai
-  precisar mudar (decisão 11).
+  pediu **verde, azul, amarelo e branco** e disse que o **vermelho não pode aparecer**. **A equipe decidiu, em
+  27/10/2026, trocar o vermelho por bordô `#550000`** (fundo `#F2E9E9`); a tabela da seção 7 já reflete isso.
+  Bordô ainda é um tom escuro de vermelho, então **falta o proprietário confirmar, em tela,** se aceita
+  (decisão 11).
 - **Nome e identidade.** O estacionamento se chama **Tanaga**; o sistema se chama EstacionaFácil na tela e no
   comprovante (decisão 15).
 - **Aparelho (seções 7 e 9).** Ele está **sem computador** e usa o **celular**. A hospedagem na nuvem está
-  confirmada, e o layout para celular passa a ser requisito de primeira ordem (decisão 12).
+  confirmada, e o layout para celular passa a ser requisito de primeira ordem (decisão 12). Em 27/10/2026 o
+  celular ganhou barra de abas embaixo, cabeçalho compacto e listas em cartões; falta testar em aparelho real.
 - **Perfis (seções 2 e 6).** Ele respondeu "Não" a perfis diferentes e disse que só ele trabalha e usa o
   sistema. O perfil Auxiliar continua no sistema, mas pode ser desnecessário.
 - **Vaga e turno (seção 5).** A regra "um contrato ativo por vaga" não comporta o mensalista noturno na mesma

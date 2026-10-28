@@ -46,6 +46,20 @@ export default defineConfig({
       dependencies: ['aceitacao'],
       use: { ...devices['Desktop Chrome'], ...navegador, viewport: { width: 1280, height: 800 } },
     },
+    {
+      // O proprietário usa o celular (não tem computador): o mesmo sistema numa tela de 390 px, com
+      // toque. Roda depois das capturas, que deixam o banco com os dados de demonstração.
+      name: 'celular',
+      testMatch: 'celular.spec.ts',
+      dependencies: ['capturas'],
+      use: {
+        ...devices['Desktop Chrome'],
+        ...navegador,
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
   ],
   webServer: [
     {

@@ -53,6 +53,13 @@ const CAMINHOS = {
     </>
   ),
   seta: <path d="M5 12h14M12 5l7 7-7 7" />,
+  mais: (
+    <>
+      <circle cx="5" cy="12" r="1.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="19" cy="12" r="1.6" />
+    </>
+  ),
 } as const;
 
 export type NomeIcone = keyof typeof CAMINHOS;

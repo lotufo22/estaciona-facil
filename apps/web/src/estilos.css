@@ -20,8 +20,10 @@
   --color-ok-fundo: #e3f5e8;
   --color-alerta: #8a5300;
   --color-alerta-fundo: #fff1d6;
-  --color-atraso: #b42318;
-  --color-atraso-fundo: #fde7e4;
+  /* "Em atraso" e erros. O proprietário pediu um sistema sem vermelho: bordô, com fundo neutro
+     (sem o rosado de antes). A situação continua sempre em texto, nunca só pela cor. */
+  --color-atraso: #550000;
+  --color-atraso-fundo: #f2e9e9;
 
   --color-barra: #2a3042;
   --color-barra-texto: #aeb6d4;

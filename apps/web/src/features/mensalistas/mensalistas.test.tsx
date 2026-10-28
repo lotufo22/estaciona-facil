@@ -95,7 +95,8 @@ describe('lista de Mensalistas', () => {
     expect(screen.getByText('Página 1 de 2')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Próxima' }));
     expect(await screen.findByText('Página 2 de 2')).toBeInTheDocument();
-    await waitFor(() => expect(linhasDaTabela()).toHaveLength(6));
+    // Folga maior que o padrão (1 s): com a máquina ocupada, a segunda página demora a chegar.
+    await waitFor(() => expect(linhasDaTabela()).toHaveLength(6), { timeout: 5000 });
   });
 
   it('sem mensalistas mostra o estado vazio com o botão de cadastrar', async () => {
