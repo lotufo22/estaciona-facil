@@ -277,4 +277,14 @@ describe('netlify.toml', () => {
     expect(toml).toMatch(/npm run gerar -w @estacionafacil\/api/);
     expect(toml).toMatch(/publish\s*=\s*"apps\/web\/dist"/);
   });
+
+  it('leva os binários de Linux do argon2 no pacote da função, mesmo montado no Windows', () => {
+    // Sem isto, o pacote montado num Windows só leva o binário do Windows, e o login cai na Netlify.
+    expect(toml).toMatch(
+      /included_files\s*=\s*\[[^\]]*node_modules\/argon2\/prebuilds\/linux-x64\/\*\*/,
+    );
+    expect(toml).toMatch(
+      /included_files\s*=\s*\[[^\]]*node_modules\/argon2\/prebuilds\/linux-arm64\/\*\*/,
+    );
+  });
 });
