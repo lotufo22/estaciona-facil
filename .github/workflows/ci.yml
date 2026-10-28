@@ -35,3 +35,45 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      # O build do front e das funções da Netlify (o teste da função já empacota; aqui conferimos o build).
+      - run: npm run build -w @estacionafacil/web
+      - run: npm run funcoes
+
+  # Roteiro de aceitação (critérios 1 a 7 da spec): navegador de verdade, front, API e Postgres.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: verificar
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: estaciona_teste
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL_TESTE: postgresql://postgres:postgres@localhost:5432/estaciona_teste
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run gerar -w @estacionafacil/api
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: relatorio-e2e
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

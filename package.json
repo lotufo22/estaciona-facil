@@ -12,12 +12,14 @@
     "lint": "eslint .",
     "typecheck": "npm run typecheck --workspaces --if-present && tsc -p e2e",
     "e2e": "playwright test",
-    "formatar": "prettier --write ."
+    "formatar": "prettier --write .",
+    "funcoes": "node scripts/empacotar-funcoes.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
     "eslint": "^10.13.0",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",

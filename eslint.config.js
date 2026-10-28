@@ -10,10 +10,17 @@ export default defineConfig(
       '**/generated/**',
       '**/coverage/**',
       '.netlify/**',
+      // Funções da Netlify geradas por `npm run funcoes` (as fontes ficam em netlify/funcoes).
+      'netlify/functions/**',
       '.superpowers/**',
       '.worktrees/**',
     ],
   },
   js.configs.recommended,
   tseslint.configs.recommended,
+  {
+    // Scripts em JavaScript puro rodam no Node.
+    files: ['**/*.mjs'],
+    languageOptions: { globals: { process: 'readonly', console: 'readonly' } },
+  },
 );

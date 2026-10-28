@@ -53,6 +53,15 @@ Atualizar dados do mensalista, consultar lista de mensalistas, histórico do con
 
 ## Convenções
 
+> **Nota sobre a implementação.** Os diagramas foram feitos antes da escolha da stack final e **não foram
+> redesenhados**. Onde eles dizem *Tela (HTML)*, *Controlador (PHP)* e *Banco (MySQL)*, leia
+> *Tela (React)*, *API (Express)* e *Banco (PostgreSQL)*. O fluxo de cada caso de uso continua valendo.
+> Divergências conhecidas: as rotas reais estão em [`../api.md`](../api.md) (por exemplo,
+> `POST /contratos/:id/renovacao` e `/encerramento` no lugar de `PATCH` e `DELETE /contratos/{id}`;
+> `POST /despesas` com o `tipo` no corpo, no lugar de `/despesas/fixa` e `/despesas/variavel`;
+> `POST /auth/login`); a autenticação é por cookie de sessão e o `POST /pagamentos` exige `Idempotency-Key`.
+> Os diagramas de **entrada e saída de veículo** e de **vaga por turno** são da Fase 2 e não foram implementados.
+
 - **Participantes:** Ator, Tela (HTML), Controlador (PHP) e Banco (MySQL).
 - **Mensagens:** chamadas síncronas (seta cheia) e retornos tracejados. Verbos e códigos HTTP só aparecem entre Tela e Controlador. O lado do banco usa consultas SQL (`ok`, etc.).
 - **`include`:** autochamada no controlador com o nome do método. Se precisar do banco, a consulta aparece aninhada.

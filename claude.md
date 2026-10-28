@@ -13,7 +13,8 @@ Este arquivo foi solicitado como `claude.md`. Ferramentas que exijam `CLAUDE.md`
 - Monorepo npm workspaces: `apps/web`, `apps/api`, `packages/shared`. Comandos na raiz; selecionar workspace com `-w`.
 - TypeScript, módulos ESM e nomes/mensagens em português, conforme os padrões existentes.
 - Schemas Zod, tipos e regras comuns no pacote shared; evitar duplicação entre API, front e mocks.
-- Rotas validam/autorizam; serviços concentram regras e transações. `criarApp` recebe Prisma e relógio; só o servidor local abre porta.
+- Rotas validam/autorizam; serviços concentram regras e transações. `criarApp` recebe Prisma, relógio e `confiarNoProxy`; só o servidor local abre porta.
+- Funções da Netlify: em `netlify/funcoes/*.mts` só `export default` (um `handler` nomeado vira função v1, empacotada em CommonJS, e o `import.meta.url` do Prisma quebra). A lógica fica em `netlify/nucleo/`. `netlify/functions/` é gerada por `npm run funcoes` e não é versionada.
 - Front organizado por `features`; reutilizar `components/ui`, `lib/api.ts` e TanStack Query, invalidando consultas após mutações.
 - Preservar carregamento, vazio, erro, sessão expirada, foco visível e situação com texto. Interface e mensagens em pt-BR, adequadas a usuários com pouca experiência digital.
 - Fase 1: mensalistas, contratos, recebimentos, vencimentos, despesas e caixa. Avulsos/estadias/turnos são Fase 2.
@@ -27,7 +28,7 @@ Este arquivo foi solicitado como `claude.md`. Ferramentas que exijam `CLAUDE.md`
 - Renovação é sem receita, exclusiva do proprietário, com motivo. O código atual avança em meses inclusive para semanal; confirmar intenção antes de mudar.
 - Encerramento lógico preserva histórico. Respeitar unicidade de contrato ativo por veículo/vaga.
 - Caixa usa regime de caixa; filtro de categoria/tipo afeta receitas e oculta resultado (`null`).
-- Recorrências únicas por competência; limitar dia ao fim do mês. Geração cobre o mês recebido; agendamento ainda não existe.
+- Recorrências únicas por competência; limitar dia ao fim do mês. Geração cobre o mês recebido; o agendamento diário é a função `gerar-despesas` (Netlify), ainda não implantada.
 
 ## Segurança e banco
 
@@ -71,7 +72,7 @@ npm test -w @estacionafacil/web
 npx playwright test --project=aceitacao
 ```
 
-Não existe build na raiz. CI atual: lint, tipos e testes, sem build/E2E. Fora do CI, Playwright seleciona Edge; detalhes para Linux em `handoff.md`.
+Não existe build na raiz (há `npm run funcoes`, que gera as funções da Netlify). O CI roda lint, tipos, testes, build do front e das funções e, num job à parte, o E2E. Fora do CI, Playwright seleciona Edge; detalhes para Linux em `handoff.md`.
 
 Para mudanças funcionais, executar verificações pertinentes e cobertura da regra afetada. Para documentação, revisar comandos, referências e diff. Não executar capturas que regravam imagens sem necessidade. Informar verificações não executadas.
 
@@ -79,6 +80,6 @@ Para mudanças funcionais, executar verificações pertinentes e cobertura da re
 
 Criar branch de tarefa (`docs/`, `feature/`, `fix/`), Conventional Commits e PR para `main`, conforme CONTRIBUTING. Incluir somente mudanças solicitadas. Conferir diff/checks antes do merge e respeitar proteções do GitHub e autorização do usuário.
 
-Próxima etapa: Task 18 do [plano](docs/superpowers/plans/2026-10-26-estacionafacil-fase1.md), com Netlify, agendador, migrações em CI, backup criptografado, restauração e documentação. Não afirmar que recursos planejados já estão implantados nem executar deploy apenas porque houve merge.
+A Task 18 do [plano](docs/superpowers/plans/2026-10-26-estacionafacil-fase1.md) (Netlify, agendador, migrações em CI, backup criptografado, restauração e documentação) está **implementada, mas nada foi implantado**. Não afirmar que Netlify, Supabase ou o backup já estão no ar, e não executar deploy nem os workflows de migração e backup contra produção sem autorização do usuário; merge não é autorização. Próximas etapas: validação com o proprietário e o roteiro de publicação do [guia de instalação](docs/guia-de-instalacao.md), seção 7.
 
 Atualizar o handoff após trabalho relevante, distinguindo implementação, testes executados e validação com o proprietário.

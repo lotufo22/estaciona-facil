@@ -1,6 +1,6 @@
 # Handoff — EstacionaFácil
 
-Atualizado em 27/10/2026. Referência: `main` no commit `25ce64c` (PR #24, integração com API real e E2E). Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
+Atualizado em 27/10/2026. Referência: `main` no commit `8f305b5` mais a Tarefa 18 (Netlify, backup, migrações em CI e documentação), que foi acrescentada depois por este PR. Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
 
 ## Contexto e stack
 
@@ -25,7 +25,9 @@ Avulsos, cálculo de estadia e vagas por turno pertencem à Fase 2.
 | `apps/api/prisma/` | Esquema, migrações SQL e seed |
 | `packages/shared/src/` | Schemas Zod, tipos, enums, datas, dinheiro e situação |
 | `e2e/` | Playwright com API/banco reais e capturas do manual |
-| `.github/workflows/ci.yml` | Node 22 e PostgreSQL 17; lint, tipos e testes |
+| `.github/workflows/` | `ci.yml` (Node 22 e PostgreSQL 17: lint, tipos, testes, build e E2E), `migrar.yml` (manual, por ambiente) e `backup.yml` (noturno, criptografado) |
+| `netlify.toml` e `netlify/` | Build, redirecionamento `/api/*` e política de publicação; `funcoes/` tem os pontos de entrada (só `export default`) e `nucleo/` a lógica, testada em `apps/api/test/netlify.test.ts` |
+| `scripts/` | `backup.sh`, `restaurar-backup.md`, `empacotar-funcoes.mjs` (gera `netlify/functions`, ignorada pelo Git) e os dados de demonstração |
 
 Monorepo com npm workspaces. Fluxo: navegador → `/api` na mesma origem → Express → serviços → Prisma 7 com adapter PostgreSQL. O Vite encaminha `/api` para a porta 3001; `API_URL` altera o destino. O front não acessa o banco diretamente.
 
@@ -35,7 +37,7 @@ Monorepo com npm workspaces. Fluxo: navegador → `/api` na mesma origem → Exp
 - Cadastro/edição de mensalistas, veículo e contrato; renovação, encerramento e histórico.
 - Recebimentos com comprovante e idempotência.
 - Despesas variáveis/fixas e recorrências com pausa/retomada.
-- Serviço `gerarDespesasRecorrentes`, idempotente por competência, **ainda sem agendamento operacional**.
+- Serviço `gerarDespesasRecorrentes`, idempotente por competência, chamado pela função agendada `gerar-despesas` (`03:00 UTC`, em `netlify.toml`). **Só roda em deploy publicado, e nada foi publicado.**
 - Painel, vencimentos e fluxo de caixa com filtros.
 - Interface integrada à API por padrão, com mocks opcionais.
 - Testes compartilhados, de interface, API e aceitação; capturas em `docs/manual/capturas/`.
@@ -56,7 +58,7 @@ O proprietário inicia no Painel e vê seis abas. O auxiliar inicia em Recebimen
 
 Senhas usam Argon2id. Sessões ficam no PostgreSQL, com hash do token e expiração renovável de 12 horas sem uso. Cookie `estaciona_sessao`: `HttpOnly`, `Secure`, `SameSite=Lax`. Escritas, inclusive login, exigem `X-Estaciona-App: 1`.
 
-Login admite cinco falhas por par login/IP em quinze minutos; não há limite por IP isolado. A configuração de `trust proxy` depende da futura infraestrutura. Manter HTTPS na implantação; hosts HTTP diferentes de localhost podem não aceitar o cookie seguro.
+Login admite cinco falhas por par login/IP em quinze minutos; não há limite por IP isolado. Na Netlify, a função liga `trust proxy` (`confiarNoProxy` em `criarApp`) e repassa o IP do cabeçalho da Netlify; sem isso todos pareceriam ter o IP do proxy. Manter HTTPS na implantação; hosts HTTP diferentes de localhost podem não aceitar o cookie seguro.
 
 ## Regras essenciais
 
@@ -137,20 +139,26 @@ Playwright sobe API em 3101 e front em 5174, com um worker. Fora do CI usa Edge;
 
 O projeto `capturas` roda depois da aceitação, recria o banco com dados de demonstração e regrava imagens versionadas. Não executá-lo apenas para validar documentação.
 
-O CI atual executa `npm ci`, lint, typecheck e testes dos workspaces; **não executa build nem Playwright**, apesar do escopo maior previsto na spec.
+O CI executa `npm ci`, lint, typecheck e testes dos workspaces, o build do front (`npm run build -w @estacionafacil/web`) e das funções (`npm run funcoes`) e, num job à parte, o E2E com Chromium (`needs: verificar`).
 
 ## Pendências e continuação
 
-A próxima etapa do plano é a **Task 18**, ausente nesta referência:
+A **Tarefa 18** está implementada, mas **nada foi implantado**:
 
-1. Empacotamento Netlify: função Express, redirecionamento de API, fallback SPA e proxy confiável.
-2. Agendamento diário de recorrências; o plano prevê `03:00 UTC`.
-3. Workflows de migração e backup criptografado para armazenamento privado; restauração testada e documentada em banco descartável.
-4. Ampliar CI com build e, conforme infraestrutura, E2E.
-5. Manual com capturas existentes e guia de instalação; atualizar README, `docs/api.md`, notas UML e Documento de Visão para a stack vigente.
-6. Validação com proprietário, incluindo regras de negócio, renovação semanal e dependência de internet da implantação planejada.
+1. Netlify: `netlify.toml`, função `api` (Express, função v2/ESM), redirecionamento `/api/*`, fallback do SPA e `trust proxy`. Publicação em produção **manual** (`[context.production] ignore = "exit 0"`).
+2. Agendamento diário de recorrências: função `gerar-despesas` às `03:00 UTC`.
+3. `migrar.yml` (manual, por ambiente) e `backup.yml` (noturno: `pg_dump`, criptografia com gpg e envio a um armazenamento S3 privado). A restauração foi testada **em PostgreSQL local**, com resultado em `docs/guia-de-instalacao.md` (seção 9); falta repetir com um backup real e no Supabase.
+4. CI com build e E2E.
+5. Manual do usuário, guia de instalação, README e `docs/api.md` atualizados; os diagramas UML ganharam uma nota, mas **não foram redesenhados**. O Documento de Visão 2.0 continua pendente.
+6. Falta a validação com o proprietário, incluindo regras de negócio, renovação semanal e dependência de internet.
 
-Netlify/Supabase são destinos planejados, sem implantação confirmada. Não existem `netlify.toml`, funções nem workflows de backup/migração na referência. A spec prevê publicação manual após CI, aceitação, backup/restauração e validação do guia; merge não equivale a autorização de deploy.
+Pontos de atenção:
+
+- **Funções da Netlify:** em `netlify/funcoes/*.mts` só pode haver `export default`. Um `handler` nomeado faz a Netlify tratar a função como v1 e empacotá-la em CommonJS, e o `import.meta.url` do cliente gerado do Prisma fica indefinido (a função cai ao iniciar). Funções v2 não passam pelo esbuild da Netlify, por isso `npm run funcoes` gera o bundle em `netlify/functions`. O teste `netlify.test.ts` cobre isso.
+- Netlify, Supabase, o armazenamento do backup e os segredos do GitHub **ainda não foram criados nem exercitados**. O guia de instalação indica os passos, e a primeira execução real vai confirmar os detalhes das telas desses serviços.
+- `BACKUP_PASSPHRASE` precisa de cópia fora do GitHub; sem ela o backup não abre.
+
+A spec prevê publicação manual após CI, aceitação, backup/restauração e validação do guia; merge não equivale a autorização de deploy.
 
 ## Fontes e validação desta análise
 
@@ -159,3 +167,5 @@ Netlify/Supabase são destinos planejados, sem implantação confirmada. Não ex
 - [API](apps/api/README.md), [E2E](e2e/README.md), [colaboração](CONTRIBUTING.md) e [instruções para assistentes](claude.md).
 
 Ao retomar, conferir código, histórico e `git status`. Não foram executados testes locais nesta análise: checkout sem `node_modules` e WSL com Node 20, enquanto o CI usa Node 22. Consultar o CI do PR destes documentos para a validação automatizada da entrega.
+
+Verificações da Tarefa 18 (27/10/2026, em máquina local com Node 24 e PostgreSQL 18): lint, tipos, testes (shared 56, web 195, API 256), build do front, `npm run funcoes` e E2E (14) passaram. As funções foram também empacotadas com o `@netlify/zip-it-and-ship-it` e executadas a partir do zip contra o banco, e a restauração do backup foi conferida tabela a tabela. O CI do PR (Node 22, PostgreSQL 17) é a confirmação independente; nada disso substitui a validação com o proprietário.

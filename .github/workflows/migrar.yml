@@ -1,0 +1,47 @@
+name: Migrar o banco
+
+# Aplica as migrações do Prisma no banco de homologação ou de produção. É MANUAL de propósito:
+# migração em produção só depois de olhar o SQL e de ter um backup recente.
+# As migrações NÃO rodam ao subir a função da Netlify.
+#
+# Segredo necessário em cada ambiente (Settings > Environments > homologacao / producao):
+#   DATABASE_URL_MIGRACAO   URL do banco pelo pooler do Supabase em modo SESSÃO (porta 5432).
+#                           A conexão direta do Supabase é só IPv6, e o runner do Actions não a alcança.
+# Dica: no ambiente "producao", ative "Required reviewers" para exigir uma segunda pessoa.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: Banco que receberá as migrações
+        type: choice
+        options:
+          - homologacao
+          - producao
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  migrar:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.ambiente }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Migrações pendentes
+        env:
+          DATABASE_URL_MIGRACAO: ${{ secrets.DATABASE_URL_MIGRACAO }}
+        run: npm exec -w @estacionafacil/api -- prisma migrate status || true
+
+      - name: Aplicar as migrações
+        env:
+          DATABASE_URL_MIGRACAO: ${{ secrets.DATABASE_URL_MIGRACAO }}
+        run: npm run migrar -w @estacionafacil/api
