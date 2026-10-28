@@ -188,7 +188,7 @@ sistema avisa o motivo. Volte o filtro para *Todos/Todas* para ver o resultado.
 | "Sua sessão expirou. Entre de novo." | 12 horas sem uso | entre de novo |
 | "Esta placa já tem contrato ativo" | placa repetida | procure o mensalista na lista, ou encerre o contrato antigo |
 | "Esta vaga já está ocupada" | vaga de outro cliente | escolha outra vaga ou encerre o outro contrato |
-| "Com ponto e duas casas, por exemplo 255.00" | valor com vírgula ou casas demais | digite `255.00` |
+| "Informe o valor com duas casas decimais, como 255.00" | valor com vírgula ou casas demais | digite `255.00` (com ponto) |
 | "Contrato não encontrado ou já encerrado" | o contrato foi encerrado | confira nos detalhes do mensalista |
 | "Sem conexão com o servidor" | internet caiu | confira a internet e tente de novo; nada foi duplicado |
 | A primeira abertura do dia demora alguns segundos | o servidor "acordando" | é normal; espere |

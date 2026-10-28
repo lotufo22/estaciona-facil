@@ -172,6 +172,7 @@ A modelagem usa UML (casos de uso e diagramas de sequência), escrita em PlantUM
 ![Diagrama de casos de uso do EstacionaFácil](./docs/diagramas/casos-de-uso/casos_de_uso_estacionafacil_completo.svg)
 
 - [Todos os diagramas](./docs/diagramas/README.md)
+- [Modelo de dados](./docs/modelo-de-dados.md): diagrama entidade-relacionamento do banco (substitui o DER) e as regras que o esquema Prisma não mostra.
 - [Rotas da API](./docs/api.md): as rotas HTTP implementadas, com permissões e códigos de resposta.
 - [Especificação de design da Fase 1](./docs/superpowers/specs/2026-10-26-estacionafacil-fase1-design.md) e [plano de implementação](./docs/superpowers/plans/2026-10-26-estacionafacil-fase1.md).
 
@@ -186,6 +187,10 @@ A modelagem usa UML (casos de uso e diagramas de sequência), escrita em PlantUM
 ### Guia de instalação e configuração
 
 [`docs/guia-de-instalacao.md`](./docs/guia-de-instalacao.md): contas, banco, Netlify, migrações, backup e o roteiro de restauração ([`scripts/restaurar-backup.md`](./scripts/restaurar-backup.md)).
+
+### Decisões para o proprietário
+
+[`docs/decisoes-para-o-proprietario.md`](./docs/decisoes-para-o-proprietario.md): suposições e limitações conhecidas da Fase 1 que precisam da resposta do proprietário, com uma sugestão para cada uma.
 
 ### Identidade da equipe <a id="equipe"></a>
 
