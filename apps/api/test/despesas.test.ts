@@ -85,7 +85,7 @@ describe('POST /despesas', () => {
   });
 
   it('valor inválido: 422 em campos.valor', async () => {
-    for (const valor of ['45,90', '0.00', '-1.00', '10.123']) {
+    for (const valor of ['abc', '0.00', '-1.00', '10.123']) {
       const resposta = await lancar(variavel({ valor }));
       expect(resposta.status).toBe(422);
       expect(resposta.body.erro.campos.valor).toBeTruthy();

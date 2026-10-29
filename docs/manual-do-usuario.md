@@ -30,6 +30,8 @@ descrito aqui, avise a equipe: o manual deve ser corrigido.
 | Recebimentos | ✅ | ✅ |
 | Despesas | ✅ | ✅ (lança, mas não pausa despesa fixa) |
 | Fluxo de caixa | ✅ | ❌ |
+| Usuários | ✅ | ❌ |
+| Minha conta (clique no seu nome, no alto) | ✅ | ✅ |
 
 O **Proprietário** abre no Painel. O **Auxiliar** abre direto em Recebimentos, que é o que ele usa o
 dia todo. Se o Auxiliar tentar abrir uma página que não é dele, o sistema o devolve para Recebimentos.
@@ -179,7 +181,28 @@ Mostra **quanto entrou, quanto saiu e o resultado** de qualquer período. Escolh
 pertencem a um contrato nem a um veículo. Por isso, **com um desses filtros ligado, o resultado some** e o
 sistema avisa o motivo. Volte o filtro para *Todos/Todas* para ver o resultado.
 
-## 10. Usando no celular
+## 10. Usuários e Minha conta
+
+### Cadastrar e gerenciar auxiliares (só Proprietário)
+
+Na aba **Usuários**, preencha **Nome completo**, **Login** (letras minúsculas, números, ponto ou traço)
+e **Senha inicial** (pelo menos 10 caracteres) e clique em **Cadastrar auxiliar**. Passe o login e a
+senha ao auxiliar; ele pode trocar a senha sozinho em *Minha conta*.
+
+- **Redefinir senha:** use quando alguém esquecer a senha. Ele é desconectado de todos os aparelhos e
+  entra com a senha nova.
+- **Desativar:** para quem saiu. Ele não consegue mais entrar e é desconectado na hora. O histórico dele
+  (recebimentos e despesas que lançou) continua. **Reativar** devolve o acesso.
+- Só existe **um** Proprietário. O Proprietário não aparece com botões nessa lista: ele altera os
+  próprios dados em *Minha conta*.
+
+### Minha conta (todos)
+
+Clique no seu **nome**, no alto da tela. Ali você troca o **nome** e a **senha**. Para trocar a senha é
+preciso digitar a atual. Ao trocar, você continua conectado neste aparelho, e os outros aparelhos pedem
+a senha nova.
+
+## 11. Usando no celular
 
 O sistema funciona no navegador do celular, sem instalar nada. Abra o mesmo endereço e entre com o seu
 usuário e senha. As telas se ajustam ao tamanho da tela:
@@ -211,7 +234,7 @@ Dicas para o celular:
   tela inicial").
 - Toque **uma vez** nos botões, e espere. Se a internet estiver lenta, o sistema não cobra duas vezes.
 
-## 11. Perguntas e problemas comuns
+## 12. Perguntas e problemas comuns
 
 | Mensagem ou situação | O que significa | O que fazer |
 |---|---|---|

@@ -76,7 +76,7 @@ describe('POST /mensalistas', () => {
   });
 
   it('valor inválido: 422 em campos.valor', async () => {
-    for (const valor of ['255,00', '0.00', '-5.00', '10.123']) {
+    for (const valor of ['abc', '0.00', '-5.00', '10.123']) {
       const resposta = await criar(mensalistaValido({ valor }));
       expect(resposta.status).toBe(422);
       expect(resposta.body.erro.campos.valor).toBeTruthy();

@@ -97,6 +97,17 @@ export function BarraSuperior() {
     </span>
   );
 
+  const minhaConta = (
+    <Link
+      to="/conta"
+      aria-label={`Minha conta (${sessao.nome})`}
+      className={`flex items-center gap-3 rounded-lg hover:bg-barra-ativa ${FOCO}`}
+    >
+      {avatar}
+      {!ehCelular && <span className="text-base font-semibold">{sessao.nome}</span>}
+    </Link>
+  );
+
   if (ehCelular) {
     // Celular: uma linha com o nome do sistema e os botões, e a busca em tela cheia logo abaixo. As
     // abas ficam na barra de baixo (NavegacaoInferior), não aqui.
@@ -106,8 +117,7 @@ export function BarraSuperior() {
           <p className="text-2xl leading-8 font-bold">EstacionaFácil</p>
           <div className="flex items-center">
             {sino}
-            {avatar}
-            <span className="sr-only">{sessao.nome}</span>
+            {minhaConta}
             {botaoSair}
           </div>
         </div>
@@ -125,8 +135,7 @@ export function BarraSuperior() {
           {campoDeBusca}
           {sino}
           <div className="flex items-center gap-3">
-            {avatar}
-            <span className="text-base font-semibold">{sessao.nome}</span>
+            {minhaConta}
             {botaoSair}
           </div>
         </div>

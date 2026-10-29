@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Carregando } from '../components/ui/Carregando';
 import { Entrar } from '../features/auth/Entrar';
+import { MinhaConta } from '../features/conta/MinhaConta';
 import { Despesas } from '../features/despesas/Despesas';
 import { FluxoDeCaixa } from '../features/fluxo-de-caixa/FluxoDeCaixa';
 import { CadastroMensalista } from '../features/mensalistas/CadastroMensalista';
@@ -10,6 +11,7 @@ import { DetalheMensalista } from '../features/mensalistas/DetalheMensalista';
 import { ListaMensalistas } from '../features/mensalistas/ListaMensalistas';
 import { Painel } from '../features/painel/Painel';
 import { Recebimentos } from '../features/recebimentos/Recebimentos';
+import { Usuarios } from '../features/usuarios/Usuarios';
 import { Vencimentos } from '../features/vencimentos/Vencimentos';
 import { definirAoExpirar } from '../lib/api';
 import { useSessao } from '../lib/sessao';
@@ -54,12 +56,14 @@ export function RotasApp() {
             <Route path="/mensalistas/novo" element={<CadastroMensalista />} />
             <Route path="/vencimentos" element={<Vencimentos />} />
             <Route path="/fluxo-de-caixa" element={<FluxoDeCaixa />} />
+            <Route path="/usuarios" element={<Usuarios />} />
           </Route>
 
           <Route path="/mensalistas" element={<ListaMensalistas />} />
           <Route path="/mensalistas/:id" element={<DetalheMensalista />} />
           <Route path="/recebimentos" element={<Recebimentos />} />
           <Route path="/despesas" element={<Despesas />} />
+          <Route path="/conta" element={<MinhaConta />} />
           <Route path="*" element={<IrParaInicio />} />
         </Route>
       </Route>

@@ -19,6 +19,8 @@ interface ContextoSessao {
   expirada: boolean;
   entrar(login: string, senha: string): Promise<Sessao>;
   sair(): Promise<void>;
+  /** Atualiza o nome da sessão depois de salvar em "Minha conta". */
+  atualizarSessao(nova: Sessao): void;
   /** Esquece a sessão local (o servidor já respondeu 401). */
   expirou(): void;
 }
@@ -62,7 +64,7 @@ export function SessaoProvider({ children }: { children: ReactNode }) {
   }, [cliente]);
 
   const valor = useMemo(
-    () => ({ sessao, carregando, expirada, entrar, sair, expirou }),
+    () => ({ sessao, carregando, expirada, entrar, sair, expirou, atualizarSessao: setSessao }),
     [sessao, carregando, expirada, entrar, sair, expirou],
   );
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

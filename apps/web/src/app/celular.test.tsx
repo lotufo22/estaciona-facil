@@ -33,7 +33,12 @@ describe('abasDoCelular', () => {
   it('o Proprietário vê 3 abas fixas e o resto em "Mais"', () => {
     const { principais, mais } = abasDoCelular('proprietario');
     expect(principais.map((a) => a.rotulo)).toEqual(['Painel', 'Mensalistas', 'Recebimentos']);
-    expect(mais.map((a) => a.rotulo)).toEqual(['Vencimentos', 'Despesas', 'Fluxo de caixa']);
+    expect(mais.map((a) => a.rotulo)).toEqual([
+      'Vencimentos',
+      'Despesas',
+      'Fluxo de caixa',
+      'Usuários',
+    ]);
   });
 
   it('o Auxiliar vê as 3 abas dele, sem "Mais"', () => {
@@ -76,7 +81,7 @@ describe('casca no celular — Proprietário', () => {
       within(menu)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Vencimentos', 'Despesas', 'Fluxo de caixa']);
+    ).toEqual(['Vencimentos', 'Despesas', 'Fluxo de caixa', 'Usuários']);
 
     await userEvent.click(within(menu).getByRole('link', { name: 'Vencimentos' }));
     expect(await titulo('Vencimentos')).toBeInTheDocument();
@@ -130,7 +135,7 @@ describe('casca no computador', () => {
     await titulo('Painel');
 
     const abas = screen.getByRole('navigation', { name: 'Abas principais' });
-    expect(within(abas).getAllByRole('link')).toHaveLength(6);
+    expect(within(abas).getAllByRole('link')).toHaveLength(7);
     expect(screen.queryByRole('button', { name: 'Mais' })).not.toBeInTheDocument();
   });
 });
