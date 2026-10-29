@@ -166,7 +166,7 @@ describe('POST /pagamentos', () => {
 
   it('valor inválido: 422 em campos.valor', async () => {
     const { contratoId } = await criarContrato();
-    for (const valor of ['255,00', '0.00', '255.001', '-1.00']) {
+    for (const valor of ['abc', '0.00', '255.001', '-1.00']) {
       const resposta = await pagar(dadosDePagamento(contratoId, { valor }));
       expect(resposta.status).toBe(422);
       expect(resposta.body.erro.campos.valor).toBeTruthy();

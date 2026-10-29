@@ -92,7 +92,7 @@ describe('aba Recebimentos', () => {
 
   it.each([
     ['0.00', 'O valor deve ser maior que zero'],
-    ['255,00', /duas casas decimais/],
+    ['abc', /Informe o valor em reais/],
   ])('valor "%s" mostra erro no campo Valor sem chamar a API', async (valor, mensagem) => {
     const registro = observarPagamentos();
     renderizarApp('/recebimentos?contrato=5', { perfil: 'proprietario' });

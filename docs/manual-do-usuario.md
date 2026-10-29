@@ -74,7 +74,7 @@ categoria e tipo de contrato. Clique no nome para abrir os detalhes.
    - **Vaga** (opcional): `01` a `35` para carro e `M1` a `M14` para moto. Deixe em branco se o cliente
      não tiver vaga fixa.
    - **Tipo de contrato**: mensal ou semanal.
-   - **Valor**: **com ponto e duas casas**, por exemplo `255.00` (não use vírgula).
+   - **Valor**: pode digitar `255`, `255,50` ou `255.50`; o sistema acerta as casas decimais.
    - **Dia do vencimento**: de 1 a 31. Em meses curtos o vencimento cai no último dia do mês (dia 31
      em fevereiro vira 28 ou 29) e volta ao dia certo no mês seguinte.
    - **Início**: a data em que o contrato começa.
@@ -152,7 +152,7 @@ Pontos importantes:
 
 ![Despesas](./manual/capturas/07-despesas.png)
 
-Para lançar uma despesa, preencha **Descrição**, **Valor** (com ponto, por exemplo `86.50`), **Tipo** e
+Para lançar uma despesa, preencha **Descrição**, **Valor** (por exemplo `86,50` ou `86`), **Tipo** e
 **Data**, e clique em **Lançar despesa**.
 
 - **Variável** é uma despesa que acontece uma vez (material de limpeza, conserto).
@@ -220,7 +220,7 @@ Dicas para o celular:
 | "Sua sessão expirou. Entre de novo." | 12 horas sem uso | entre de novo |
 | "Esta placa já tem contrato ativo" | placa repetida | procure o mensalista na lista, ou encerre o contrato antigo |
 | "Esta vaga já está ocupada" | vaga de outro cliente | escolha outra vaga ou encerre o outro contrato |
-| "Informe o valor com duas casas decimais, como 255.00" | valor com vírgula ou casas demais | digite `255.00` (com ponto) |
+| "Informe o valor em reais, como 150 ou 150,50" | letras, ou mais de duas casas depois da vírgula | digite só números, com vírgula ou ponto antes dos centavos |
 | "Contrato não encontrado ou já encerrado" | o contrato foi encerrado | confira nos detalhes do mensalista |
 | "Sem conexão com o servidor" | internet caiu | confira a internet e tente de novo; nada foi duplicado |
 | A primeira abertura do dia demora alguns segundos | o servidor "acordando" | é normal; espere |

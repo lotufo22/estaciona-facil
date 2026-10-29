@@ -44,7 +44,7 @@ describe('mensalistaCriarSchema', () => {
     );
   });
 
-  it.each(['255,00', '0.00', '-5.00', '255.001', '', 'abc'])(
+  it.each(['0.00', '0', '-5.00', '255.001', '', 'abc'])(
     'rejeita o valor %j com erro no campo valor',
     (valor) => {
       expect(camposComErro(mensalistaCriarSchema, { ...mensalistaValido, valor })).toContain(
@@ -140,10 +140,13 @@ describe('pagamentoCriarSchema', () => {
     );
   });
 
-  it('rejeita valor com vírgula', () => {
-    expect(camposComErro(pagamentoCriarSchema, { ...pagamento, valor: '255,00' })).toContain(
-      'valor',
-    );
+  it.each([
+    ['255,00', '255.00'],
+    ['255', '255.00'],
+    ['255,5', '255.50'],
+    ['1.255,00', '1255.00'],
+  ])('aceita o valor %j e guarda %j', (valor, esperado) => {
+    expect(pagamentoCriarSchema.parse({ ...pagamento, valor }).valor).toBe(esperado);
   });
 });
 

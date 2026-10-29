@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Icone, type NomeIcone } from './Icone';
 
 type Tom = 'primario' | 'atencao' | 'positivo';
@@ -21,6 +22,8 @@ interface CartaoKpiProps {
   variacao?: string;
   rodape: string;
   icone?: NomeIcone;
+  /** Tela para onde o cartão leva. Sem isto, o cartão só informa e não mostra a seta. */
+  para?: string;
 }
 
 export function CartaoKpi({
@@ -30,9 +33,10 @@ export function CartaoKpi({
   variacao,
   rodape,
   icone = 'mensalistas',
+  para,
 }: CartaoKpiProps) {
-  return (
-    <article className={`flex flex-col gap-5 rounded-lg p-6 text-white ${FUNDO[tom]}`}>
+  const conteudo = (
+    <>
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-4">
           <span className="grid size-14 shrink-0 place-items-center rounded-lg bg-white/20">
@@ -55,8 +59,24 @@ export function CartaoKpi({
       <hr className="border-white/30" />
       <div className="flex items-center justify-between gap-4">
         <p className="text-base">{rodape}</p>
-        <Icone nome="seta" className="size-5 shrink-0" />
+        {para && <Icone nome="seta" className="size-5 shrink-0" />}
       </div>
+    </>
+  );
+  const classes = `flex flex-col gap-5 rounded-lg p-6 text-white ${FUNDO[tom]}`;
+
+  return (
+    <article>
+      {para ? (
+        <Link
+          to={para}
+          className={`${classes} transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primaria`}
+        >
+          {conteudo}
+        </Link>
+      ) : (
+        <div className={classes}>{conteudo}</div>
+      )}
     </article>
   );
 }

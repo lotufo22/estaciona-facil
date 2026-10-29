@@ -23,6 +23,20 @@ describe('GET /api/saude', () => {
   });
 });
 
+describe('cache das respostas da API', () => {
+  it('nunca guarda em cache e não manda ETag, para não haver 304 sem corpo', async () => {
+    const resposta = await request(app).get('/api/saude');
+    expect(resposta.headers['cache-control']).toBe('no-store');
+    expect(resposta.headers['etag']).toBeUndefined();
+  });
+
+  it('um GET condicional, como o de um navegador com ETag antigo, dá 200 com corpo', async () => {
+    const resposta = await request(app).get('/api/saude').set('If-None-Match', 'W/"b-abc123"');
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toEqual({ status: 'ok' });
+  });
+});
+
 describe('erros no formato da spec', () => {
   it('rota inexistente dá 404 NAO_ENCONTRADO', async () => {
     const resposta = await request(app).get('/api/nao-existe');

@@ -127,14 +127,14 @@ describe('aba Despesas', () => {
     expect(corpos).toHaveLength(0);
   });
 
-  it('descrição vazia e valor "255,00" mostram erro nos campos sem chamar a API', async () => {
+  it('descrição vazia e valor "abc" mostram erro nos campos sem chamar a API', async () => {
     const corpos = observarLancamentos();
     renderizarApp('/despesas', { perfil: 'proprietario' });
     await titulo();
-    await userEvent.type(screen.getByLabelText('Valor'), '255,00');
+    await userEvent.type(screen.getByLabelText('Valor'), 'abc');
     await userEvent.click(lancar());
     expect(await screen.findByText('Descreva a despesa')).toBeInTheDocument();
-    expect(screen.getByLabelText('Valor')).toHaveAccessibleDescription(/duas casas decimais/);
+    expect(screen.getByLabelText('Valor')).toHaveAccessibleDescription(/Informe o valor em reais/);
     expect(corpos).toHaveLength(0);
   });
 

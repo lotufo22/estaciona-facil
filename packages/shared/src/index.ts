@@ -6,7 +6,7 @@ export {
   ultimoDiaDoMes,
 } from './datas';
 export type { TipoContrato } from './datas';
-export { deCentavos, formatarReais, paraCentavos } from './dinheiro';
+export { deCentavos, formatarReais, normalizarValor, paraCentavos } from './dinheiro';
 export { CATEGORIAS, FORMAS_PAGAMENTO, PERFIS, TIPOS_CONTRATO, TIPOS_DESPESA } from './enums';
 export type { Categoria, FormaPagamento, Perfil, TipoDespesa } from './enums';
 export { CODIGOS_ERRO } from './erros';

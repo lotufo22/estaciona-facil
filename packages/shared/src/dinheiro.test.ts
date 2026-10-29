@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deCentavos, formatarReais, paraCentavos } from './dinheiro';
+import { deCentavos, formatarReais, normalizarValor, paraCentavos } from './dinheiro';
 
 describe('dinheiro', () => {
   it('converte texto decimal em centavos inteiros', () => {
@@ -28,5 +28,26 @@ describe('dinheiro', () => {
 
   it('formata valor negativo', () => {
     expect(formatarReais('-5300.00')).toBe('-R$ 5.300,00');
+  });
+
+  describe('normalizarValor', () => {
+    it.each([
+      ['150', '150.00'],
+      ['150,5', '150.50'],
+      ['150,50', '150.50'],
+      ['150.50', '150.50'],
+      ['1.250,00', '1250.00'],
+      ['1250', '1250.00'],
+      [' R$ 80,00 ', '80.00'],
+    ])('aceita %j e devolve %j', (entrada, esperado) => {
+      expect(normalizarValor(entrada)).toBe(esperado);
+    });
+
+    it.each(['', 'abc', '255.001', '1.250', '150,505', '-5', '12,3,4'])(
+      'devolve %j como veio, para a validação recusar',
+      (entrada) => {
+        expect(normalizarValor(entrada)).toBe(entrada);
+      },
+    );
   });
 });

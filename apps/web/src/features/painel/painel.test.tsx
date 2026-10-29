@@ -16,6 +16,16 @@ function kpi(titulo: string) {
 }
 
 describe('aba Painel', () => {
+  it('cada KPI leva à tela dos seus números', async () => {
+    renderizarApp('/painel', { perfil: 'proprietario' });
+    await screen.findByText('Mensalistas ativos');
+    const destino = (titulo: string) => kpi(titulo).getByRole('link').getAttribute('href');
+    expect(destino('Mensalistas ativos')).toBe('/mensalistas');
+    expect(destino('Contratos vencidos')).toBe('/vencimentos?situacao=vencido');
+    expect(destino('A vencer em 7 dias')).toBe('/vencimentos?situacao=a_vencer');
+    expect(destino('Resultado do mês')).toBe('/fluxo-de-caixa');
+  });
+
   it('mostra os 4 KPIs com os valores do mock', async () => {
     renderizarApp('/painel', { perfil: 'proprietario' });
     expect(await screen.findByText('Mensalistas ativos')).toBeInTheDocument();
