@@ -13,6 +13,7 @@ const ABAS_DO_PROPRIETARIO = [
   'Recebimentos',
   'Despesas',
   'Fluxo de caixa',
+  'Usuários',
 ];
 
 function titulo(nome: string) {
@@ -20,7 +21,7 @@ function titulo(nome: string) {
 }
 
 describe('abasDoPerfil e paginaInicial', () => {
-  it('o Proprietário tem as 6 abas, nesta ordem', () => {
+  it('o Proprietário tem as 7 abas, nesta ordem', () => {
     expect(abasDoPerfil('proprietario').map((a) => a.rotulo)).toEqual(ABAS_DO_PROPRIETARIO);
   });
 
@@ -39,7 +40,7 @@ describe('abasDoPerfil e paginaInicial', () => {
 });
 
 describe('casca do app — Proprietário', () => {
-  it('abre em /painel, mostra as 6 abas e marca a ativa', async () => {
+  it('abre em /painel, mostra as 7 abas e marca a ativa', async () => {
     renderizarApp('/', { perfil: 'proprietario' });
     expect(await titulo('Painel')).toBeInTheDocument();
 

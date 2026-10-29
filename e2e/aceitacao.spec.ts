@@ -14,6 +14,7 @@ const ABAS_DO_PROPRIETARIO = [
   'Recebimentos',
   'Despesas',
   'Fluxo de caixa',
+  'Usuários',
 ];
 const ABAS_DO_AUXILIAR = ['Mensalistas', 'Recebimentos', 'Despesas'];
 
@@ -22,7 +23,7 @@ const DIA_DO_VENCIMENTO = String(Math.min(Number(hoje().slice(8, 10)), 28));
 
 let mensalistaId = 0;
 
-test('1. o Proprietário entra, vê o Painel e abre as 6 abas', async ({ page }) => {
+test('1. o Proprietário entra, vê o Painel e abre as 7 abas', async ({ page }) => {
   await entrar(page, 'dono');
   await expect(page).toHaveURL(/\/painel$/);
   await expect(page.getByRole('heading', { name: 'Painel', level: 1 })).toBeVisible();

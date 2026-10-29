@@ -13,7 +13,10 @@ export interface AbaDefinicao {
 const AMBOS: readonly Perfil[] = ['proprietario', 'auxiliar'];
 const SO_PROPRIETARIO: readonly Perfil[] = ['proprietario'];
 
-/** Na ordem da spec §4. O Auxiliar só vê Mensalistas, Recebimentos e Despesas. */
+/**
+ * Na ordem da spec §4, com Usuários no fim. O Auxiliar só vê Mensalistas, Recebimentos e Despesas.
+ * "Minha conta" não é aba: é o link com o nome de quem está logado, na barra de cima.
+ */
 export const ABAS: readonly AbaDefinicao[] = [
   {
     para: '/painel',
@@ -39,6 +42,7 @@ export const ABAS: readonly AbaDefinicao[] = [
   },
   { para: '/despesas', rotulo: 'Despesas', icone: 'despesas', perfis: AMBOS },
   { para: '/fluxo-de-caixa', rotulo: 'Fluxo de caixa', icone: 'fluxo', perfis: SO_PROPRIETARIO },
+  { para: '/usuarios', rotulo: 'Usuários', icone: 'mensalistas', perfis: SO_PROPRIETARIO },
 ];
 
 export function abasDoPerfil(perfil: Perfil): AbaDefinicao[] {

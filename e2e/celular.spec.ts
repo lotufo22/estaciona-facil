@@ -13,6 +13,8 @@ const TELAS_DO_PROPRIETARIO: [string, string][] = [
   ['Recebimentos', '/recebimentos'],
   ['Despesas', '/despesas'],
   ['Fluxo de caixa', '/fluxo-de-caixa'],
+  ['Usuários', '/usuarios'],
+  ['Minha conta', '/conta'],
   ['Novo mensalista', '/mensalistas/novo'],
 ];
 
@@ -34,10 +36,15 @@ test('o Proprietário usa as abas na barra de baixo e o menu Mais', async ({ pag
   const caixa = await abas.boundingBox();
   expect(Math.round((caixa?.y ?? 0) + (caixa?.height ?? 0))).toBe(altura);
 
-  // As outras três abas ficam atrás do "Mais".
+  // As outras quatro abas ficam atrás do "Mais".
   await abas.getByRole('button', { name: 'Mais' }).tap();
   const menu = page.getByRole('list', { name: 'Mais abas' });
-  await expect(menu.getByRole('link')).toHaveText(['Vencimentos', 'Despesas', 'Fluxo de caixa']);
+  await expect(menu.getByRole('link')).toHaveText([
+    'Vencimentos',
+    'Despesas',
+    'Fluxo de caixa',
+    'Usuários',
+  ]);
 
   await menu.getByRole('link', { name: 'Fluxo de caixa' }).tap();
   await expect(page.getByRole('heading', { name: 'Fluxo de caixa', level: 1 })).toBeVisible();

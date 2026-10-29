@@ -13,6 +13,7 @@ import { criarRotasMensalistas } from './rotas/mensalistas';
 import { criarRotaPainel } from './rotas/painel';
 import { criarRotasPagamentos } from './rotas/pagamentos';
 import { criarRotasRecorrencias } from './rotas/recorrencias';
+import { criarRotasConta, criarRotasUsuarios } from './rotas/usuarios';
 import { criarRotaSaude } from './rotas/saude';
 import { criarRotasVencimentos } from './rotas/vencimentos';
 
@@ -53,6 +54,8 @@ export function criarApp(deps: {
   // Antes de qualquer rota: escrita sem o cabeçalho do app é barrada até em rota que não existe.
   api.use(exigirCabecalhoApp);
   api.use('/saude', criarRotaSaude(dependencias));
+  api.use('/usuarios', criarRotasUsuarios(dependencias));
+  api.use('/conta', criarRotasConta(dependencias));
   api.use('/auth', criarRotasAuth(dependencias));
   api.use('/mensalistas', criarRotasMensalistas(dependencias));
   api.use('/contratos', criarRotasContratos(dependencias));

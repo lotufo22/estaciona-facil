@@ -166,3 +166,15 @@ export interface RecorrenciaItem {
 export interface RecorrenciasResposta {
   itens: RecorrenciaItem[];
 }
+
+export interface UsuarioItem {
+  id: number;
+  nome: string;
+  login: string;
+  perfil: Perfil;
+  ativo: boolean;
+}
+
+export interface UsuariosResposta {
+  itens: UsuarioItem[];
+}

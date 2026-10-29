@@ -19,6 +19,7 @@ export const HOJE_MOCK = '2026-10-26';
 export interface UsuarioMock extends Sessao {
   login: string;
   senha: string;
+  ativo: boolean;
 }
 
 /** Mensalista com o contrato atual; `placa` e `telefone` ficam sem máscara, como na API. */
@@ -187,8 +188,22 @@ function criarBanco(): BancoMock {
   return {
     hoje: HOJE_MOCK,
     usuarios: [
-      { id: 1, nome: 'Proprietário', perfil: 'proprietario', login: 'dono', senha: 'teste123' },
-      { id: 2, nome: 'Auxiliar', perfil: 'auxiliar', login: 'auxiliar', senha: 'teste123' },
+      {
+        id: 1,
+        nome: 'Proprietário',
+        perfil: 'proprietario',
+        login: 'dono',
+        senha: 'teste123',
+        ativo: true,
+      },
+      {
+        id: 2,
+        nome: 'Auxiliar',
+        perfil: 'auxiliar',
+        login: 'auxiliar',
+        senha: 'teste123',
+        ativo: true,
+      },
     ],
     sessao: null,
     mensalistas: LINHAS.map(([nome, placa, categoria, vaga, vencimento, valor], i) => ({

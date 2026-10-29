@@ -58,9 +58,53 @@ const codigoVagaSchema = z
 const diaSchema = (mensagem: string) =>
   z.number({ error: mensagem }).int(mensagem).min(1, mensagem).max(31, mensagem);
 
+export const SENHA_MINIMA = 10;
+
+const senhaNovaSchema = z
+  .string()
+  .min(SENHA_MINIMA, `A senha precisa ter pelo menos ${SENHA_MINIMA} caracteres`)
+  .max(128, 'A senha pode ter no máximo 128 caracteres');
+
+const loginNovoSchema = z
+  .string()
+  .transform((l) => l.trim().toLowerCase())
+  .pipe(
+    z
+      .string()
+      .regex(
+        /^[a-z0-9._-]{3,30}$/,
+        'Use de 3 a 30 letras minúsculas, números, ponto, traço ou sublinhado',
+      ),
+  );
+
 export const loginSchema = z.object({
   login: z.string().trim().min(1, 'Informe o usuário'),
   senha: z.string().min(1, 'Informe a senha'),
+});
+
+/** Cadastro de um auxiliar pelo proprietário. Só existe um proprietário: o perfil não se escolhe. */
+export const usuarioCriarSchema = z.object({
+  nome: nomeSchema,
+  login: loginNovoSchema,
+  senha: senhaNovaSchema,
+});
+
+/** O proprietário muda o nome, desativa/reativa ou redefine a senha de um auxiliar. */
+export const usuarioAtualizarSchema = z
+  .object({
+    nome: nomeSchema,
+    ativo: z.boolean({ error: 'Informe se o usuário está ativo' }),
+    senha: senhaNovaSchema,
+  })
+  .partial()
+  .refine((o) => Object.keys(o).length > 0, 'Informe ao menos um campo para atualizar');
+
+/** Cada pessoa troca o próprio nome em "Minha conta". */
+export const contaAtualizarSchema = z.object({ nome: nomeSchema });
+
+export const trocarSenhaSchema = z.object({
+  senhaAtual: z.string().min(1, 'Informe a senha atual'),
+  novaSenha: senhaNovaSchema,
 });
 
 export const mensalistaCriarSchema = z.object({
@@ -158,6 +202,10 @@ export const filtrosCaixaSchema = z
   });
 
 export type LoginEntrada = z.infer<typeof loginSchema>;
+export type UsuarioCriarEntrada = z.infer<typeof usuarioCriarSchema>;
+export type UsuarioAtualizarEntrada = z.infer<typeof usuarioAtualizarSchema>;
+export type ContaAtualizarEntrada = z.infer<typeof contaAtualizarSchema>;
+export type TrocarSenhaEntrada = z.infer<typeof trocarSenhaSchema>;
 export type MensalistaCriarEntrada = z.infer<typeof mensalistaCriarSchema>;
 /** O que o formulário digita, antes das transformações do schema (placa e telefone limpos). */
 export type MensalistaCriarFormulario = z.input<typeof mensalistaCriarSchema>;

@@ -8,6 +8,9 @@ import {
   mensalistaCriarSchema,
   pagamentoCriarSchema,
   renovacaoSchema,
+  trocarSenhaSchema,
+  usuarioAtualizarSchema,
+  usuarioCriarSchema,
 } from './schemas';
 
 const mensalistaValido = {
@@ -195,5 +198,50 @@ describe('loginSchema', () => {
     expect(loginSchema.safeParse({ login: 'dono', senha: 'x' }).success).toBe(true);
     expect(camposComErro(loginSchema, { login: '', senha: 'x' })).toContain('login');
     expect(camposComErro(loginSchema, { login: 'dono', senha: '' })).toContain('senha');
+  });
+});
+
+describe('schemas de usuário', () => {
+  it('usuarioCriarSchema normaliza o login e exige senha de 10 caracteres', () => {
+    const ok = usuarioCriarSchema.parse({
+      nome: 'Carlos Souza',
+      login: '  Carlos.S ',
+      senha: 'senha-longa-1',
+    });
+    expect(ok.login).toBe('carlos.s');
+    expect(
+      camposComErro(usuarioCriarSchema, { nome: 'Carlos Souza', login: 'carlos', senha: 'curta' }),
+    ).toEqual(['senha']);
+  });
+
+  it.each(['ab', 'a b', 'carlos!', 'x'.repeat(31), ''])('rejeita o login %j', (login) => {
+    expect(
+      camposComErro(usuarioCriarSchema, { nome: 'Carlos Souza', login, senha: 'senha-longa-1' }),
+    ).toContain('login');
+  });
+
+  it('usuarioCriarSchema ignora um perfil enviado a mais', () => {
+    const r = usuarioCriarSchema.parse({
+      nome: 'Carlos Souza',
+      login: 'carlos',
+      senha: 'senha-longa-1',
+      perfil: 'proprietario',
+    });
+    expect(r).not.toHaveProperty('perfil');
+  });
+
+  it('usuarioAtualizarSchema pede ao menos um campo', () => {
+    expect(usuarioAtualizarSchema.safeParse({}).success).toBe(false);
+    expect(usuarioAtualizarSchema.parse({ ativo: false })).toEqual({ ativo: false });
+  });
+
+  it('trocarSenhaSchema exige a senha atual e uma nova de 10 caracteres', () => {
+    expect(
+      trocarSenhaSchema.safeParse({ senhaAtual: 'x', novaSenha: 'senha-longa-1' }).success,
+    ).toBe(true);
+    expect(camposComErro(trocarSenhaSchema, { senhaAtual: '', novaSenha: 'curta' })).toEqual([
+      'senhaAtual',
+      'novaSenha',
+    ]);
   });
 });

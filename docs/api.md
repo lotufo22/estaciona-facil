@@ -62,6 +62,11 @@ Erro inesperado vira `500 ERRO_INTERNO` sem detalhes internos.
 | `POST /auth/login` | Entra. Corpo `{ login, senha }`. Devolve `{ id, nome, perfil }` e o cookie de sessão | público | 200, 401, 422, 429 |
 | `POST /auth/logout` | Encerra a sessão | todos | 204 |
 | `GET /auth/me` | Usuário e perfil da sessão | todos | 200, 401 |
+| `GET /usuarios` | Lista os usuários (sem senha): `{ itens: [{ id, nome, login, perfil, ativo }] }` | Prop. | 200, 403 |
+| `POST /usuarios` | Cadastra um **auxiliar**. Corpo: `nome`, `login` (3 a 30: minúsculas, números, `.` `-` `_`), `senha` (10 a 128). O perfil enviado é ignorado: só existe um proprietário | Prop. | 201, 403, 409 `LOGIN_EM_USO`, 422 |
+| `PATCH /usuarios/:id` | Muda `nome`, `ativo` e/ou `senha` de um auxiliar. Redefinir a senha ou desativar encerra as sessões dele. O proprietário não é alterado por aqui | Prop. | 200, 403, 404, 422 |
+| `PATCH /conta` | Muda o próprio `nome`. Devolve `{ id, nome, perfil }` | todos | 200, 401, 422 |
+| `POST /conta/senha` | Troca a própria senha. Corpo: `senhaAtual`, `novaSenha`. Mantém esta sessão e encerra as outras do mesmo usuário | todos | 204, 401, 422 (`senhaAtual` não confere) |
 
 Limite de **5 tentativas a cada 15 minutos** por login e IP (contadas no banco); senhas com `argon2id`.
 

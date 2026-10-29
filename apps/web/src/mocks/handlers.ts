@@ -10,8 +10,13 @@ import {
   pagamentoCriarSchema,
   paraCentavos,
   proximoVencimento,
+  contaAtualizarSchema,
   recorrenciaAtualizarSchema,
   renovacaoSchema,
+  trocarSenhaSchema,
+  usuarioAtualizarSchema,
+  usuarioCriarSchema,
+  type UsuarioItem,
   type CaixaResposta,
   type CodigoErro,
   type FiltrosCaixa,
@@ -257,7 +262,7 @@ export const handlers = [
       return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
     }
     const usuario = bancoMock.usuarios.find(
-      (u) => u.login === entrada.data.login && u.senha === entrada.data.senha,
+      (u) => u.ativo && u.login === entrada.data.login && u.senha === entrada.data.senha,
     );
     if (!usuario) return erro(401, 'CREDENCIAIS_INVALIDAS', 'Usuário ou senha incorretos.');
     bancoMock.sessao = { id: usuario.id, nome: usuario.nome, perfil: usuario.perfil };
@@ -272,6 +277,101 @@ export const handlers = [
   http.get('/api/auth/me', () =>
     bancoMock.sessao ? HttpResponse.json(bancoMock.sessao) : naoAutenticado(),
   ),
+
+  http.get('/api/usuarios', () => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const itens = bancoMock.usuarios
+      .map(({ id, nome, login, perfil, ativo }): UsuarioItem => ({
+        id,
+        nome,
+        login,
+        perfil,
+        ativo,
+      }))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+    return HttpResponse.json({ itens });
+  }),
+
+  http.post('/api/usuarios', async ({ request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const entrada = usuarioCriarSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    if (bancoMock.usuarios.some((u) => u.login === entrada.data.login)) {
+      return erro(409, 'LOGIN_EM_USO', 'Este login já está em uso.', {
+        login: 'Este login já está em uso',
+      });
+    }
+    const novo = {
+      id: Math.max(0, ...bancoMock.usuarios.map((u) => u.id)) + 1,
+      nome: entrada.data.nome,
+      login: entrada.data.login,
+      senha: entrada.data.senha,
+      perfil: 'auxiliar' as const,
+      ativo: true,
+    };
+    bancoMock.usuarios.push(novo);
+    const { id, nome, login, perfil, ativo } = novo;
+    return HttpResponse.json({ id, nome, login, perfil, ativo }, { status: 201 });
+  }),
+
+  http.patch('/api/usuarios/:id', async ({ params, request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const alvo = bancoMock.usuarios.find((u) => u.id === Number(params.id));
+    if (!alvo) return naoEncontrado('Usuário não encontrado.');
+    if (alvo.perfil !== 'auxiliar') {
+      return erro(
+        403,
+        'SEM_PERMISSAO',
+        'O proprietário altera os próprios dados em "Minha conta".',
+      );
+    }
+    const entrada = usuarioAtualizarSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    if (entrada.data.nome !== undefined) alvo.nome = entrada.data.nome;
+    if (entrada.data.ativo !== undefined) alvo.ativo = entrada.data.ativo;
+    if (entrada.data.senha !== undefined) alvo.senha = entrada.data.senha;
+    const { id, nome, login, perfil, ativo } = alvo;
+    return HttpResponse.json({ id, nome, login, perfil, ativo });
+  }),
+
+  http.patch('/api/conta', async ({ request }) => {
+    const bloqueio = exigir();
+    if (bloqueio) return bloqueio;
+    const entrada = contaAtualizarSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    const eu = bancoMock.usuarios.find((u) => u.id === bancoMock.sessao?.id);
+    if (!eu || !bancoMock.sessao) return naoAutenticado();
+    eu.nome = entrada.data.nome;
+    bancoMock.sessao = { id: eu.id, nome: eu.nome, perfil: eu.perfil };
+    return HttpResponse.json(bancoMock.sessao);
+  }),
+
+  http.post('/api/conta/senha', async ({ request }) => {
+    const bloqueio = exigir();
+    if (bloqueio) return bloqueio;
+    const entrada = trocarSenhaSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    const eu = bancoMock.usuarios.find((u) => u.id === bancoMock.sessao?.id);
+    if (!eu) return naoAutenticado();
+    if (eu.senha !== entrada.data.senhaAtual) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', {
+        senhaAtual: 'A senha atual não confere',
+      });
+    }
+    eu.senha = entrada.data.novaSenha;
+    return new HttpResponse(null, { status: 204 });
+  }),
 
   http.get(
     '/api/vencimentos',

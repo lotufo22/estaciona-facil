@@ -1,6 +1,8 @@
 import argon2 from 'argon2';
 
-export const TAMANHO_MINIMO_DA_SENHA = 10;
+import { SENHA_MINIMA } from '@estacionafacil/shared';
+
+export const TAMANHO_MINIMO_DA_SENHA = SENHA_MINIMA;
 
 /** Hash argon2id (com sal aleatório): a mesma senha gera hashes diferentes. */
 export function hashSenha(senha: string): Promise<string> {
