@@ -75,7 +75,7 @@ function FormularioEdicao({
       telefone: formatarTelefone(detalhe.telefone),
       placa: formatarPlaca(detalhe.placa),
       vaga: detalhe.contrato.vaga,
-      valor: detalhe.contrato.valor,
+      valor: detalhe.contrato.valor.replace('.', ','),
     },
   });
 
@@ -113,7 +113,7 @@ function FormularioEdicao({
         <Campo
           rotulo="Valor"
           inputMode="decimal"
-          ajuda="Com ponto e duas casas, por exemplo 255.00"
+          ajuda="Pode usar vírgula, por exemplo 150 ou 150,50"
           erro={errors.valor?.message}
           {...register('valor')}
         />

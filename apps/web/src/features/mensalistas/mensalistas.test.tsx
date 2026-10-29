@@ -184,14 +184,16 @@ describe('cadastro de mensalista', () => {
     );
   });
 
-  it('valor "255,00" mostra erro no campo Valor sem chamar a API', async () => {
+  it('valor "abc" mostra erro no campo Valor sem chamar a API', async () => {
     const chamadas = contarChamadas('post', '/api/mensalistas');
     renderizarApp('/mensalistas/novo', { perfil: 'proprietario' });
     await titulo('Novo mensalista');
-    await preencherCadastro({ Valor: '255,00' });
+    await preencherCadastro({ Valor: 'abc' });
     await userEvent.click(screen.getByRole('button', { name: 'Cadastrar mensalista' }));
     await waitFor(() =>
-      expect(screen.getByLabelText('Valor')).toHaveAccessibleDescription(/duas casas decimais/),
+      expect(screen.getByLabelText('Valor')).toHaveAccessibleDescription(
+        /Informe o valor em reais/,
+      ),
     );
     expect(chamadas.total).toBe(0);
   });

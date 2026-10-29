@@ -125,6 +125,31 @@ describe('CartaoKpi', () => {
     expect(screen.getByText('R$ 885,00 em aberto')).toBeInTheDocument();
   });
 
+  it('vira um link para a tela indicada, com a seta, quando recebe "para"', () => {
+    render(
+      <MemoryRouter>
+        <CartaoKpi
+          tom="atencao"
+          titulo="Contratos vencidos"
+          valor="4"
+          rodape="em aberto"
+          para="/vencimentos?situacao=vencido"
+        />
+      </MemoryRouter>,
+    );
+    const link = screen.getByRole('link', { name: /Contratos vencidos/ });
+    expect(link).toHaveAttribute('href', '/vencimentos?situacao=vencido');
+  });
+
+  it('sem "para" não é link e não mostra a seta', () => {
+    const { container } = render(
+      <CartaoKpi tom="primario" titulo="Mensalistas ativos" valor="52" rodape="no total" />,
+    );
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    // só o ícone do cabeçalho; a seta de "leva a outra tela" não aparece
+    expect(container.querySelectorAll('svg')).toHaveLength(1);
+  });
+
   it('funciona sem selo de variação', () => {
     render(<CartaoKpi tom="primario" titulo="Mensalistas ativos" valor="52" rodape="no total" />);
     expect(screen.getByText('52')).toBeInTheDocument();

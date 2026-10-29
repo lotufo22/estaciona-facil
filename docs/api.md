@@ -8,7 +8,9 @@ API **realmente** faz.
 ## Convenções
 
 - **Dinheiro** sempre em texto decimal com duas casas: `"255.00"`. Nunca número de ponto flutuante.
-  `"255,00"`, `"0.00"`, negativo e mais de duas casas dão **422** no campo `valor`.
+  Na entrada, a API também aceita como a pessoa digita (`"255"`, `"255,5"`, `"255,00"`, `"1.255,00"`) e
+  normaliza para `"255.00"`. `"0.00"`, negativo e mais de duas casas dão **422** no campo `valor`.
+  As respostas saem sempre com `Cache-Control: no-store` e sem `ETag`.
 - **Datas** no formato `AAAA-MM-DD`, no fuso `America/Sao_Paulo`.
 - **Placa** é normalizada antes de qualquer comparação (`abc-1d23`, `ABC1D23` e `ABC 1D23` são a mesma).
 - **Situação do contrato** é calculada, nunca gravada: `vencido` se o vencimento já passou, `a_vencer` se

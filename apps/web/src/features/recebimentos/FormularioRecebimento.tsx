@@ -121,7 +121,7 @@ export function FormularioRecebimento({
         <Campo
           rotulo="Valor"
           inputMode="decimal"
-          ajuda="Com ponto e duas casas, por exemplo 255.00"
+          ajuda="Pode usar vírgula, por exemplo 150 ou 150,50"
           erro={errors.valor?.message}
           {...register('valor')}
         />

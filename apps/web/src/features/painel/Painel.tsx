@@ -44,6 +44,7 @@ export function Painel() {
               tom="primario"
               icone="mensalistas"
               titulo="Mensalistas ativos"
+              para="/mensalistas"
               valor={String(data.mensalistasAtivos)}
               rodape={`${data.novosNoMes} novos no mês`}
             />
@@ -51,6 +52,7 @@ export function Painel() {
               tom="atencao"
               icone="alerta"
               titulo="Contratos vencidos"
+              para="/vencimentos?situacao=vencido"
               valor={String(data.vencidos.quantidade)}
               rodape={`${formatarReais(data.vencidos.total)} em aberto`}
             />
@@ -58,6 +60,7 @@ export function Painel() {
               tom="primario"
               icone="vencimentos"
               titulo="A vencer em 7 dias"
+              para="/vencimentos?situacao=a_vencer"
               valor={String(data.aVencer.quantidade)}
               rodape={`${formatarReais(data.aVencer.total)} a receber`}
             />
@@ -65,6 +68,7 @@ export function Painel() {
               tom="positivo"
               icone="fluxo"
               titulo="Resultado do mês"
+              para="/fluxo-de-caixa"
               valor={formatarReais(data.resultadoDoMes.resultado)}
               variacao={formatarVariacao(data.resultadoDoMes.variacao)}
               rodape={`Receitas ${formatarReais(data.resultadoDoMes.receitas)} · Despesas ${formatarReais(data.resultadoDoMes.despesas)}`}

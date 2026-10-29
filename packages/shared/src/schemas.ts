@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ultimoDiaDoMes } from './datas';
-import { paraCentavos } from './dinheiro';
+import { normalizarValor, paraCentavos } from './dinheiro';
 import { CATEGORIAS, FORMAS_PAGAMENTO, TIPOS_CONTRATO, TIPOS_DESPESA } from './enums';
 import { normalizarPlaca } from './placa';
 
@@ -20,8 +20,16 @@ function dataExiste(texto: string): boolean {
 // só converte quando o formato já está certo (paraCentavos lança em texto inválido).
 const valorSchema = z
   .string()
-  .regex(FORMATO_VALOR, 'Informe o valor com duas casas decimais, como 255.00')
-  .refine((v) => !FORMATO_VALOR.test(v) || paraCentavos(v) > 0, 'O valor deve ser maior que zero');
+  .transform(normalizarValor)
+  .pipe(
+    z
+      .string()
+      .regex(FORMATO_VALOR, 'Informe o valor em reais, como 150 ou 150,50')
+      .refine(
+        (v) => !FORMATO_VALOR.test(v) || paraCentavos(v) > 0,
+        'O valor deve ser maior que zero',
+      ),
+  );
 
 const dataSchema = z.string().refine(dataExiste, 'Data inválida. Use o formato AAAA-MM-DD');
 

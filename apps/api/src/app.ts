@@ -37,8 +37,15 @@ export function criarApp(deps: {
 
   const app = express();
   if (deps.confiarNoProxy) app.set('trust proxy', 1);
+  // Sem ETag: o navegador revalidaria e a resposta viria como 304 sem corpo, que o front não trata.
+  app.set('etag', false);
   registrarDependencias(app, dependencias);
   app.use(helmet());
+  // Dados de cobrança e de sessão: nada fica guardado em cache do navegador nem do proxy.
+  app.use((_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
   app.use(express.json({ limit: '100kb' }));
   app.use(cookieParser());
 
