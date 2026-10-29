@@ -56,17 +56,17 @@ export function CartaoKpi({
           )}
         </div>
       </div>
-      <hr className="border-white/30" />
+      <hr className="mt-auto border-white/30" />
       <div className="flex items-center justify-between gap-4">
         <p className="text-base">{rodape}</p>
         {para && <Icone nome="seta" className="size-5 shrink-0" />}
       </div>
     </>
   );
-  const classes = `flex flex-col gap-5 rounded-lg p-6 text-white ${FUNDO[tom]}`;
+  const classes = `flex h-full flex-col gap-5 rounded-lg p-6 text-white ${FUNDO[tom]}`;
 
   return (
-    <article>
+    <article className="h-full">
       {para ? (
         <Link
           to={para}

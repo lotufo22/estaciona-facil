@@ -267,6 +267,27 @@ describe('detalhe do mensalista', () => {
     expect(screen.queryByRole('button', { name: 'Salvar alterações' })).not.toBeInTheDocument();
   });
 
+  it('editar dados de quem não tem vaga abre o formulário e salva sem mexer na vaga', async () => {
+    const mensalista = bancoMock.mensalistas.find((m) => m.id === 1);
+    if (!mensalista) throw new Error('mensalista 1 não existe no mock');
+    mensalista.vaga = null;
+
+    renderizarApp('/mensalistas/1', { perfil: 'proprietario' });
+    await titulo('Carlos Mendes');
+    await userEvent.click(screen.getByRole('button', { name: 'Editar dados' }));
+    expect(await screen.findByLabelText('Vaga')).toHaveValue('');
+
+    const valor = screen.getByLabelText('Valor');
+    await userEvent.clear(valor);
+    await userEvent.type(valor, '450');
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Salvar alterações' })).not.toBeInTheDocument(),
+    );
+    expect(mensalista.valor).toBe('450.00');
+    expect(mensalista.vaga).toBeNull();
+  });
+
   it('editar a placa para uma já ativa mostra o erro sob o campo Placa', async () => {
     renderizarApp('/mensalistas/1', { perfil: 'proprietario' });
     await titulo('Carlos Mendes');
