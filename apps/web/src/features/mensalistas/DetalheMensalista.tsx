@@ -74,7 +74,7 @@ function FormularioEdicao({
     defaultValues: {
       telefone: formatarTelefone(detalhe.telefone),
       placa: formatarPlaca(detalhe.placa),
-      vaga: detalhe.contrato.vaga,
+      vaga: detalhe.contrato.vaga ?? '',
       valor: detalhe.contrato.valor.replace('.', ','),
     },
   });
@@ -108,7 +108,9 @@ function FormularioEdicao({
           rotulo="Vaga"
           ajuda="Deixe em branco se o cliente não tiver vaga fixa"
           erro={errors.vaga?.message}
-          {...register('vaga', { setValueAs: (v: string) => (v.trim() === '' ? null : v) })}
+          {...register('vaga', {
+            setValueAs: (v: string | null) => (v == null || v.trim() === '' ? null : v),
+          })}
         />
         <Campo
           rotulo="Valor"

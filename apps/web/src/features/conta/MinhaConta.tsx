@@ -62,11 +62,14 @@ function FormularioNome() {
         Perfil: <strong>{sessao ? PERFIL[sessao.perfil] : ''}</strong>
       </p>
       <Campo rotulo="Nome" autoComplete="name" erro={errors.nome?.message} {...register('nome')} />
-      {erroGeral && <MensagemErro mensagem={erroGeral} />}
-      {salvo && <Aviso texto="Nome atualizado." />}
-      <Botao type="submit" disabled={isSubmitting}>
-        Salvar nome
-      </Botao>
+      {/* Fica no pé do cartão: os dois botões alinham, mesmo com campos de alturas diferentes. */}
+      <div className="mt-auto flex flex-col gap-4">
+        {erroGeral && <MensagemErro mensagem={erroGeral} />}
+        {salvo && <Aviso texto="Nome atualizado." />}
+        <Botao type="submit" disabled={isSubmitting}>
+          Salvar nome
+        </Botao>
+      </div>
     </form>
   );
 }
@@ -120,11 +123,14 @@ function FormularioSenha() {
         erro={errors.novaSenha?.message}
         {...register('novaSenha')}
       />
-      {erroGeral && <MensagemErro mensagem={erroGeral} />}
-      {salvo && <Aviso texto="Senha trocada." />}
-      <Botao type="submit" disabled={isSubmitting}>
-        Trocar senha
-      </Botao>
+      {/* Fica no pé do cartão: os dois botões alinham, mesmo com campos de alturas diferentes. */}
+      <div className="mt-auto flex flex-col gap-4">
+        {erroGeral && <MensagemErro mensagem={erroGeral} />}
+        {salvo && <Aviso texto="Senha trocada." />}
+        <Botao type="submit" disabled={isSubmitting}>
+          Trocar senha
+        </Botao>
+      </div>
     </form>
   );
 }

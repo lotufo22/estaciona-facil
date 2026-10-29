@@ -146,6 +146,13 @@ const DESPESAS_FIXAS = [
   { descricao: 'Conta de água', valor: '135.00', dia: 15 },
 ];
 
+/** "AAAA-MM" de `n` meses antes de `hoje`. Por mês de verdade: voltar "30 dias" repetiria o mês nos dias 29 a 31. */
+export function mesesAtras(hoje: string, n: number): string {
+  const total = Number(hoje.slice(0, 4)) * 12 + (Number(hoje.slice(5, 7)) - 1) - n;
+  const ano = Math.floor(total / 12);
+  return `${ano}-${String((total % 12) + 1).padStart(2, '0')}`;
+}
+
 export async function semearDemonstracao(prisma: PrismaClient): Promise<void> {
   const hoje = hojeEmSaoPaulo();
   const data = (texto: string) => new Date(`${texto}T00:00:00.000Z`);
@@ -206,8 +213,8 @@ export async function semearDemonstracao(prisma: PrismaClient): Promise<void> {
       data: { descricao: fixa.descricao, valor: fixa.valor, diaDoMes: fixa.dia },
     });
     for (let mes = MESES_DE_HISTORICO; mes >= 0; mes -= 1) {
-      const dia = adicionarDias(hoje, -30 * mes);
-      const lancadaEm = `${dia.slice(0, 7)}-${String(fixa.dia).padStart(2, '0')}`;
+      const anoMes = mesesAtras(hoje, mes);
+      const lancadaEm = `${anoMes}-${String(fixa.dia).padStart(2, '0')}`;
       if (lancadaEm > hoje) continue;
       await prisma.despesa.create({
         data: {
@@ -216,7 +223,7 @@ export async function semearDemonstracao(prisma: PrismaClient): Promise<void> {
           tipo: 'fixa',
           data: data(lancadaEm),
           recorrenciaId: recorrencia.id,
-          competencia: data(`${dia.slice(0, 7)}-01`),
+          competencia: data(`${anoMes}-01`),
         },
       });
     }
