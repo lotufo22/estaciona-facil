@@ -1,6 +1,6 @@
 # Handoff — EstacionaFácil
 
-Atualizado em 27/10/2026. Referência: `main` no commit `8f305b5` mais a Tarefa 18 (Netlify, backup, migrações em CI e documentação), que foi acrescentada depois por este PR. Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
+Atualizado em 01/11/2026. Referência: `main` no commit `1b94fec` (PR #33), que inclui a Tarefa 18 (Netlify, backup, migrações em CI e documentação) e, depois dela, Usuários, Minha conta e correções de edição e layout. Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
 
 ## Contexto e stack
 
@@ -34,6 +34,7 @@ Monorepo com npm workspaces. Fluxo: navegador → `/api` na mesma origem → Exp
 ## O que já existe
 
 - Autenticação e autorização nos dois perfis.
+- Aba **Usuários** (só proprietário): cadastro de auxiliares, alteração de nome, ativação e redefinição de senha. Desativar ou redefinir senha encerra as sessões do auxiliar; só existe um proprietário. **Minha conta** (ambos os perfis, pelo nome no alto): troca de nome e de senha.
 - Cadastro/edição de mensalistas, veículo e contrato (com turno diurno/noturno); renovação, encerramento e histórico.
 - Recebimentos com comprovante e idempotência.
 - Despesas variáveis/fixas e recorrências com pausa/retomada.
@@ -51,10 +52,10 @@ Todas as rotas usam o prefixo `/api`.
 | Acesso | Operações |
 | --- | --- |
 | Público | `GET /saude` (consulta o banco) e `POST /auth/login` |
-| Ambos os perfis autenticados | Sessão/logout; consulta de mensalistas/detalhes; registro e consulta de pagamentos/comprovantes; lançamento e consulta de despesas; consulta de recorrências |
-| Somente proprietário | Cadastro/edição de mensalistas; renovação/encerramento; painel, vencimentos e caixa; pausa/retomada de recorrências |
+| Ambos os perfis autenticados | Sessão/logout; Minha conta (`PATCH /conta`, `POST /conta/senha`); consulta de mensalistas/detalhes; registro e consulta de pagamentos/comprovantes; lançamento e consulta de despesas; consulta de recorrências |
+| Somente proprietário | Gestão de auxiliares (`/usuarios`); cadastro/edição de mensalistas; renovação/encerramento; painel, vencimentos e caixa; pausa/retomada de recorrências |
 
-O proprietário inicia no Painel e vê seis abas. O auxiliar inicia em Recebimentos e vê Mensalistas, Recebimentos e Despesas. A matriz é exercitada em `apps/api/test/permissoes.test.ts`; esconder abas não substitui autorização.
+O proprietário inicia no Painel e vê sete abas (com Usuários). O auxiliar inicia em Recebimentos e vê Mensalistas, Recebimentos e Despesas. A matriz é exercitada em `apps/api/test/permissoes.test.ts`; esconder abas não substitui autorização.
 
 Senhas usam Argon2id. Sessões ficam no PostgreSQL, com hash do token e expiração renovável de 12 horas sem uso. Cookie `estaciona_sessao`: `HttpOnly`, `Secure`, `SameSite=Lax`. Escritas, inclusive login, exigem `X-Estaciona-App: 1`.
 
@@ -168,4 +169,4 @@ A spec prevê publicação manual após CI, aceitação, backup/restauração e 
 
 Ao retomar, conferir código, histórico e `git status`. Não foram executados testes locais nesta análise: checkout sem `node_modules` e WSL com Node 20, enquanto o CI usa Node 22. Consultar o CI do PR destes documentos para a validação automatizada da entrega.
 
-Verificações da Tarefa 18 (27/10/2026, em máquina local com Node 24 e PostgreSQL 18): lint, tipos, testes (shared 56, web 195, API 256), build do front, `npm run funcoes` e E2E (14) passaram. As funções foram também empacotadas com o `@netlify/zip-it-and-ship-it` e executadas a partir do zip contra o banco, e a restauração do backup foi conferida tabela a tabela. O CI do PR (Node 22, PostgreSQL 17) é a confirmação independente; nada disso substitui a validação com o proprietário.
+Verificações da Tarefa 18 (27/10/2026; as contagens são dessa data e não foram refeitas após Usuários e Minha conta, que têm testes próprios em `usuarios.test.tsx`, `conta.test.tsx` e `usuarios.test.ts`, em máquina local com Node 24 e PostgreSQL 18): lint, tipos, testes (shared 56, web 195, API 256), build do front, `npm run funcoes` e E2E (14) passaram. As funções foram também empacotadas com o `@netlify/zip-it-and-ship-it` e executadas a partir do zip contra o banco, e a restauração do backup foi conferida tabela a tabela. O CI do PR (Node 22, PostgreSQL 17) é a confirmação independente; nada disso substitui a validação com o proprietário.
