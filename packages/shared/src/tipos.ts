@@ -1,5 +1,5 @@
 import type { TipoContrato } from './datas';
-import type { Categoria, FormaPagamento, Perfil, TipoDespesa } from './enums';
+import type { Categoria, FormaPagamento, Perfil, TipoDespesa, Turno } from './enums';
 import type { Situacao } from './situacao';
 
 export interface Sessao {
@@ -16,6 +16,7 @@ export interface MensalistaItem {
   placa: string;
   categoria: Categoria;
   vaga: string | null;
+  turno: Turno;
   vencimento: string;
   valor: string;
   situacao: Situacao;
@@ -107,6 +108,7 @@ export interface ContratoDetalhe {
   inicio: string;
   vencimento: string;
   vaga: string | null;
+  turno: Turno;
   status: 'ativo' | 'encerrado';
   encerradoEm: string | null;
   /** Situação calculada; só faz sentido com o contrato ativo. */

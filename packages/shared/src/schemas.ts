@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ultimoDiaDoMes } from './datas';
 import { normalizarValor, paraCentavos } from './dinheiro';
-import { CATEGORIAS, FORMAS_PAGAMENTO, TIPOS_CONTRATO, TIPOS_DESPESA } from './enums';
+import { CATEGORIAS, FORMAS_PAGAMENTO, TIPOS_CONTRATO, TIPOS_DESPESA, TURNOS } from './enums';
 import { normalizarPlaca } from './placa';
 
 const FORMATO_VALOR = /^\d+\.\d{2}$/;
@@ -54,6 +54,8 @@ const codigoVagaSchema = z
   .trim()
   .min(1, 'Informe o código da vaga')
   .max(10, 'O código da vaga pode ter no máximo 10 caracteres');
+
+const turnoSchema = z.enum(TURNOS, { error: 'Escolha diurno ou noturno' });
 
 const diaSchema = (mensagem: string) =>
   z.number({ error: mensagem }).int(mensagem).min(1, mensagem).max(31, mensagem);
@@ -119,6 +121,7 @@ export const mensalistaCriarSchema = z.object({
     .optional()
     .transform((v) => (v ? v : undefined)),
   tipo: z.enum(TIPOS_CONTRATO, { error: 'Escolha mensal ou semanal' }),
+  turno: turnoSchema.default('diurno'),
   valor: valorSchema,
   diaVencimento: diaSchema('O dia do vencimento deve ser de 1 a 31'),
   inicio: dataSchema,
@@ -129,6 +132,7 @@ export const mensalistaAtualizarSchema = z
     telefone: telefoneSchema,
     placa: placaSchema,
     vaga: codigoVagaSchema.nullable(),
+    turno: turnoSchema,
     valor: valorSchema,
   })
   .partial()
