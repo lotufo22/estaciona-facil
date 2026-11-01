@@ -28,6 +28,7 @@ import {
   type PagamentosResposta,
   type PainelResposta,
   type ResumoSituacao,
+  type Turno,
   type Situacao,
   type VencimentosResposta,
 } from '@estacionafacil/shared';
@@ -207,17 +208,25 @@ const naoEncontrado = (mensagem = 'Mensalista não encontrado.') =>
   erro(404, 'NAO_ENCONTRADO', mensagem);
 const contratoEncerrado = () => erro(409, 'CONTRATO_ENCERRADO', 'Este contrato já foi encerrado.');
 
-/** Conflito de placa ou vaga com outro contrato ativo; null quando está livre. */
-function conflito(placa: string | undefined, vaga: string | null | undefined, ignorarId?: number) {
+/** Conflito de placa, ou de vaga no mesmo turno, com outro contrato ativo; null quando está livre. */
+function conflito(
+  placa: string | undefined,
+  vaga: string | null | undefined,
+  turno: Turno,
+  ignorarId?: number,
+) {
   const outros = bancoMock.mensalistas.filter((m) => m.status === 'ativo' && m.id !== ignorarId);
   if (placa && outros.some((m) => m.placa === placa)) {
     return erro(409, 'PLACA_JA_CADASTRADA', 'Esta placa já tem contrato ativo.', {
       placa: 'Esta placa já tem contrato ativo',
     });
   }
-  if (vaga && outros.some((m) => m.vaga?.toLowerCase() === vaga.toLowerCase())) {
-    return erro(409, 'VAGA_OCUPADA', 'Esta vaga já está ocupada.', {
-      vaga: 'Esta vaga já está ocupada',
+  if (
+    vaga &&
+    outros.some((m) => m.turno === turno && m.vaga?.toLowerCase() === vaga.toLowerCase())
+  ) {
+    return erro(409, 'VAGA_OCUPADA', 'Esta vaga já está ocupada neste turno.', {
+      vaga: 'Esta vaga já está ocupada neste turno',
     });
   }
   return null;
@@ -241,6 +250,7 @@ function buscarMensalistas(url: URL) {
     .filter((m) => !parametro('situacao') || m.situacao === parametro('situacao'))
     .filter((m) => !parametro('categoria') || m.categoria === parametro('categoria'))
     .filter((m) => !parametro('tipo') || tipos.get(m.id) === parametro('tipo'))
+    .filter((m) => !parametro('turno') || m.turno === parametro('turno'))
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 
   return {
@@ -393,7 +403,7 @@ export const handlers = [
       return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
     }
     const dados = entrada.data;
-    const recusado = conflito(dados.placa, dados.vaga);
+    const recusado = conflito(dados.placa, dados.vaga, dados.turno);
     if (recusado) return recusado;
 
     const id = Math.max(0, ...bancoMock.mensalistas.map((m) => m.id)) + 1;
@@ -405,6 +415,7 @@ export const handlers = [
       placa: dados.placa,
       categoria: dados.categoria,
       vaga: dados.vaga ?? null,
+      turno: dados.turno,
       vencimento:
         dados.tipo === 'semanal'
           ? adicionarDias(dados.inicio, 7)
@@ -446,11 +457,19 @@ export const handlers = [
     }
     if (m.status === 'encerrado') return contratoEncerrado();
     const dados = entrada.data;
-    const recusado = conflito(dados.placa, dados.vaga, m.id);
+    // Como na API: mudar só o turno também confere a vaga que o contrato já tem.
+    const vagaDeDestino =
+      dados.vaga !== undefined
+        ? dados.vaga
+        : dados.turno !== undefined && dados.turno !== m.turno
+          ? m.vaga
+          : undefined;
+    const recusado = conflito(dados.placa, vagaDeDestino, dados.turno ?? m.turno, m.id);
     if (recusado) return recusado;
     if (dados.telefone !== undefined) m.telefone = dados.telefone;
     if (dados.placa !== undefined) m.placa = dados.placa;
     if (dados.vaga !== undefined) m.vaga = dados.vaga;
+    if (dados.turno !== undefined) m.turno = dados.turno;
     if (dados.valor !== undefined) m.valor = dados.valor;
     return HttpResponse.json(montarDetalhe(m));
   }),

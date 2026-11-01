@@ -16,6 +16,7 @@ import { Selecao } from '../../components/ui/Selecao';
 import { aplicarErroDeApi } from '../../lib/formularios';
 import { hoje } from '../../lib/hoje';
 import { useCriarMensalista } from './api';
+import { OPCOES_TURNO } from './turnos';
 
 const CAMPOS = [
   'nome',
@@ -24,6 +25,7 @@ const CAMPOS = [
   'categoria',
   'vaga',
   'tipo',
+  'turno',
   'valor',
   'diaVencimento',
   'inicio',
@@ -49,7 +51,7 @@ export function CadastroMensalista() {
     formState: { errors, isSubmitting },
   } = useForm<MensalistaCriarFormulario, unknown, MensalistaCriarEntrada>({
     resolver: zodResolver(mensalistaCriarSchema),
-    defaultValues: { categoria: 'carro', tipo: 'mensal', inicio: hoje() },
+    defaultValues: { categoria: 'carro', tipo: 'mensal', turno: 'diurno', inicio: hoje() },
   });
 
   async function enviar(dados: MensalistaCriarEntrada) {
@@ -110,6 +112,13 @@ export function CadastroMensalista() {
             ajuda="Opcional. Deixe em branco se o cliente não tiver vaga fixa"
             erro={errors.vaga?.message}
             {...register('vaga')}
+          />
+          <Selecao
+            rotulo="Turno"
+            opcoes={OPCOES_TURNO}
+            ajuda="Um diurno e um noturno podem usar a mesma vaga"
+            erro={errors.turno?.message}
+            {...register('turno')}
           />
           <Selecao
             rotulo="Tipo de contrato"

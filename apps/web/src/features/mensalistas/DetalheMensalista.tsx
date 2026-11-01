@@ -20,6 +20,7 @@ import { EstadoVazio } from '../../components/ui/EstadoVazio';
 import { EtiquetaSituacao } from '../../components/ui/EtiquetaSituacao';
 import { LinkBotao } from '../../components/ui/LinkBotao';
 import { MensagemErro } from '../../components/ui/MensagemErro';
+import { Selecao } from '../../components/ui/Selecao';
 import { Tabela } from '../../components/ui/Tabela';
 import { ErroApiCliente } from '../../lib/api';
 import { formatarData, formatarTelefone } from '../../lib/formatar';
@@ -32,6 +33,7 @@ import {
   useRenovarContrato,
 } from './api';
 import { DialogoEncerrar } from './DialogoEncerrar';
+import { NOME_DO_TURNO, OPCOES_TURNO } from './turnos';
 
 const NOME_DO_EVENTO: Record<EventoHistorico, string> = {
   criado: 'Contrato criado',
@@ -43,7 +45,7 @@ const NOME_DO_EVENTO: Record<EventoHistorico, string> = {
 const TIPO_DO_CONTRATO = { mensal: 'Mensal', semanal: 'Semanal' } as const;
 const CATEGORIA = { carro: 'Carro', moto: 'Moto' } as const;
 
-const CAMPOS_EDICAO = ['telefone', 'placa', 'vaga', 'valor'] as const;
+const CAMPOS_EDICAO = ['telefone', 'placa', 'vaga', 'turno', 'valor'] as const;
 const CAMPOS_RENOVACAO = ['motivo', 'meses'] as const;
 
 function Dado({ rotulo, children }: { rotulo: string; children: ReactNode }) {
@@ -75,6 +77,7 @@ function FormularioEdicao({
       telefone: formatarTelefone(detalhe.telefone),
       placa: formatarPlaca(detalhe.placa),
       vaga: detalhe.contrato.vaga ?? '',
+      turno: detalhe.contrato.turno,
       valor: detalhe.contrato.valor.replace('.', ','),
     },
   });
@@ -111,6 +114,12 @@ function FormularioEdicao({
           {...register('vaga', {
             setValueAs: (v: string | null) => (v == null || v.trim() === '' ? null : v),
           })}
+        />
+        <Selecao
+          rotulo="Turno"
+          opcoes={OPCOES_TURNO}
+          erro={errors.turno?.message}
+          {...register('turno')}
         />
         <Campo
           rotulo="Valor"
@@ -244,6 +253,7 @@ function ConteudoDoDetalhe({ detalhe }: { detalhe: MensalistaDetalhe }) {
           <Dado rotulo="Placa">{formatarPlaca(detalhe.placa)}</Dado>
           <Dado rotulo="Categoria">{CATEGORIA[detalhe.categoria]}</Dado>
           <Dado rotulo="Vaga">{contrato.vaga ?? '—'}</Dado>
+          <Dado rotulo="Turno">{NOME_DO_TURNO[contrato.turno]}</Dado>
           <Dado rotulo="Valor">{formatarReais(contrato.valor)}</Dado>
           <Dado rotulo="Dia do vencimento">{contrato.diaVencimento}</Dado>
           <Dado rotulo="Início">{formatarData(contrato.inicio)}</Dado>

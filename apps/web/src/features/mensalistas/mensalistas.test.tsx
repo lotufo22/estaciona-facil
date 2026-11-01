@@ -88,6 +88,25 @@ describe('lista de Mensalistas', () => {
     expect(screen.getByText('Rita Souza')).toBeInTheDocument();
   });
 
+  it('mostra o turno em texto e o filtro de turno lista só os noturnos', async () => {
+    const rita = bancoMock.mensalistas.find((m) => m.nome === 'Rita Souza');
+    if (!rita) throw new Error('Rita Souza não existe no mock');
+    rita.turno = 'noturno';
+
+    renderizarApp('/mensalistas', { perfil: 'proprietario' });
+    await screen.findByText('Carlos Mendes');
+    expect(
+      within(screen.getByText('Carlos Mendes').closest('tr')!).getByText('Diurno'),
+    ).toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText('Turno'), 'Noturno');
+    await waitFor(() => expect(screen.queryByText('Carlos Mendes')).not.toBeInTheDocument());
+    expect(linhasDaTabela()).toHaveLength(1);
+    const linha = screen.getByText('Rita Souza').closest('tr');
+    if (!linha) throw new Error('Linha não encontrada');
+    expect(within(linha).getByText('Noturno')).toBeInTheDocument();
+  });
+
   it('divide em páginas de 10', async () => {
     renderizarApp('/mensalistas', { perfil: 'proprietario' });
     await screen.findByText('Carlos Mendes');
@@ -179,7 +198,35 @@ describe('cadastro de mensalista', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Cadastrar mensalista' }));
     await waitFor(() =>
       expect(screen.getByLabelText('Vaga')).toHaveAccessibleDescription(
-        'Esta vaga já está ocupada',
+        'Esta vaga já está ocupada neste turno',
+      ),
+    );
+  });
+
+  it('o turno começa em Diurno e um noturno cadastra na vaga de um diurno', async () => {
+    renderizarApp('/mensalistas/novo', { perfil: 'proprietario' });
+    await titulo('Novo mensalista');
+    expect(screen.getByLabelText('Turno')).toHaveValue('diurno');
+    await preencherCadastro({ Vaga: '07' });
+    await userEvent.selectOptions(screen.getByLabelText('Turno'), 'noturno');
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar mensalista' }));
+    expect(await titulo('Maria Teste')).toBeInTheDocument();
+    expect(screen.getByText('Noturno')).toBeInTheDocument();
+  });
+
+  it('dois noturnos na mesma vaga: erro sob o campo Vaga', async () => {
+    const carlos = bancoMock.mensalistas.find((m) => m.id === 1);
+    if (!carlos) throw new Error('mensalista 1 não existe no mock');
+    carlos.turno = 'noturno';
+
+    renderizarApp('/mensalistas/novo', { perfil: 'proprietario' });
+    await titulo('Novo mensalista');
+    await preencherCadastro({ Vaga: '07' });
+    await userEvent.selectOptions(screen.getByLabelText('Turno'), 'noturno');
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar mensalista' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('Vaga')).toHaveAccessibleDescription(
+        'Esta vaga já está ocupada neste turno',
       ),
     );
   });
@@ -286,6 +333,21 @@ describe('detalhe do mensalista', () => {
     );
     expect(mensalista.valor).toBe('450.00');
     expect(mensalista.vaga).toBeNull();
+  });
+
+  it('mostra o turno no detalhe e permite mudar para noturno', async () => {
+    renderizarApp('/mensalistas/1', { perfil: 'proprietario' });
+    await titulo('Carlos Mendes');
+    expect(screen.getByText('Diurno')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Editar dados' }));
+    expect(screen.getByLabelText('Turno')).toHaveValue('diurno');
+    await userEvent.selectOptions(screen.getByLabelText('Turno'), 'noturno');
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Salvar alterações' })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText('Noturno')).toBeInTheDocument();
+    expect(bancoMock.mensalistas.find((m) => m.id === 1)?.turno).toBe('noturno');
   });
 
   it('editar a placa para uma já ativa mostra o erro sob o campo Placa', async () => {

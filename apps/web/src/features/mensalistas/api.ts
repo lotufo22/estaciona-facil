@@ -7,6 +7,7 @@ import type {
   RenovacaoEntrada,
   Situacao,
   TipoContrato,
+  Turno,
 } from '@estacionafacil/shared';
 import {
   keepPreviousData,
@@ -22,6 +23,7 @@ export interface FiltrosMensalistas {
   situacao?: Situacao;
   categoria?: Categoria;
   tipo?: TipoContrato;
+  turno?: Turno;
   pagina?: number;
   /** Só o item deste contrato ativo (a tela Recebimentos abre com `?contrato=`). */
   contrato?: number;
