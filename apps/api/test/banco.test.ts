@@ -49,6 +49,64 @@ describe('um contrato ativo por placa e por vaga', () => {
     );
   });
 
+  /** Outro mensalista com veículo próprio, para disputar a vaga de um cenário. */
+  async function outroCliente(placa: string) {
+    const mensalista = await prisma.mensalista.create({
+      data: { nome: 'Carlos Mendes', telefone: '12988880000' },
+    });
+    const veiculo = await prisma.veiculo.create({
+      data: { mensalistaId: mensalista.id, placa, categoria: 'carro' },
+    });
+    return { mensalistaId: mensalista.id, veiculoId: veiculo.id };
+  }
+
+  it('um diurno e um noturno podem ocupar a mesma vaga', async () => {
+    const diurno = await criarCenario(prisma, { placa: 'AAA1A11', vaga: '07' });
+    await prisma.contrato.create({ data: dadosDeContrato(diurno) });
+    const noturno = { ...(await outroCliente('BBB2B22')), vagaId: diurno.vagaId };
+    const criado = await prisma.contrato.create({
+      data: dadosDeContrato(noturno, { turno: 'noturno' }),
+    });
+    expect(criado.turno).toBe('noturno');
+  });
+
+  it('dois noturnos ativos na mesma vaga violam a unicidade', async () => {
+    const primeiro = await criarCenario(prisma, { placa: 'AAA1A11', vaga: '07' });
+    await prisma.contrato.create({ data: dadosDeContrato(primeiro, { turno: 'noturno' }) });
+    const segundo = { ...(await outroCliente('BBB2B22')), vagaId: primeiro.vagaId };
+    await violacaoDe(
+      'contratos_um_ativo_por_vaga',
+      prisma.contrato.create({ data: dadosDeContrato(segundo, { turno: 'noturno' }) }),
+    );
+  });
+
+  it('encerrar o diurno não afeta o noturno e libera o turno diurno da vaga', async () => {
+    const diurno = await criarCenario(prisma, { placa: 'AAA1A11', vaga: '07' });
+    const contratoDiurno = await prisma.contrato.create({ data: dadosDeContrato(diurno) });
+    const noturno = { ...(await outroCliente('BBB2B22')), vagaId: diurno.vagaId };
+    const contratoNoturno = await prisma.contrato.create({
+      data: dadosDeContrato(noturno, { turno: 'noturno' }),
+    });
+    await prisma.contrato.update({
+      where: { id: contratoDiurno.id },
+      data: { status: 'encerrado', encerradoEm: new Date() },
+    });
+    expect(
+      (await prisma.contrato.findUniqueOrThrow({ where: { id: contratoNoturno.id } })).status,
+    ).toBe('ativo');
+
+    const novoDiurno = { ...(await outroCliente('CCC3C33')), vagaId: diurno.vagaId };
+    await expect(
+      prisma.contrato.create({ data: dadosDeContrato(novoDiurno) }),
+    ).resolves.toBeTruthy();
+  });
+
+  it('contrato criado sem turno é diurno', async () => {
+    const cenario = await criarCenario(prisma);
+    const criado = await prisma.contrato.create({ data: dadosDeContrato(cenario) });
+    expect(criado.turno).toBe('diurno');
+  });
+
   it('encerrar o primeiro contrato libera a placa e a vaga para o segundo', async () => {
     const cenario = await criarCenario(prisma, { vaga: '07' });
     const primeiro = await prisma.contrato.create({ data: dadosDeContrato(cenario) });
