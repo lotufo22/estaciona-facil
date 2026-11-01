@@ -13,6 +13,7 @@ import {
   type MensalistaItem,
   type Situacao,
   type TipoContrato,
+  type Turno,
 } from '@estacionafacil/shared';
 import { ErroHttp } from '../erros';
 import type { PrismaClient } from '../prisma';
@@ -37,8 +38,8 @@ const erroPlaca = () =>
     placa: 'Esta placa já tem contrato ativo',
   });
 const erroVagaOcupada = () =>
-  new ErroHttp(409, 'VAGA_OCUPADA', 'Esta vaga já está ocupada.', {
-    vaga: 'Esta vaga já está ocupada',
+  new ErroHttp(409, 'VAGA_OCUPADA', 'Esta vaga já está ocupada neste turno.', {
+    vaga: 'Esta vaga já está ocupada neste turno',
   });
 const erroVagaInvalida = (mensagem: string) =>
   new ErroHttp(422, 'DADOS_INVALIDOS', 'Confira os campos.', { vaga: mensagem });
@@ -59,11 +60,15 @@ function traduzirViolacao(erro: unknown): never {
   throw erro;
 }
 
-/** Vaga pelo código (sem diferenciar maiúsculas), conferindo existência, categoria e ocupação. */
+/**
+ * Vaga pelo código (sem diferenciar maiúsculas), conferindo existência, categoria e ocupação
+ * no turno: um diurno e um noturno podem dividir a mesma vaga.
+ */
 async function vagaLivre(
   tx: Transacao,
   codigo: string,
   categoria: Categoria,
+  turno: Turno,
   contratoAtualId?: number,
 ) {
   const vaga = await tx.vaga.findFirst({
@@ -76,6 +81,7 @@ async function vagaLivre(
   const ocupante = await tx.contrato.findFirst({
     where: {
       vagaId: vaga.id,
+      turno,
       status: 'ativo',
       ...(contratoAtualId ? { id: { not: contratoAtualId } } : {}),
     },
@@ -98,7 +104,9 @@ export async function criarMensalista(
       });
       if (existente && existente.contratos.length > 0) throw erroPlaca();
 
-      const vaga = dados.vaga ? await vagaLivre(tx, dados.vaga, dados.categoria) : null;
+      const vaga = dados.vaga
+        ? await vagaLivre(tx, dados.vaga, dados.categoria, dados.turno)
+        : null;
       const mensalista = await tx.mensalista.create({
         data: { nome: dados.nome, telefone: dados.telefone },
       });
@@ -126,6 +134,7 @@ export async function criarMensalista(
           veiculoId: veiculo.id,
           vagaId: vaga?.id ?? null,
           tipo: dados.tipo,
+          turno: dados.turno,
           valor: dados.valor,
           diaVencimento: dados.diaVencimento,
           inicio: paraData(dados.inicio),
@@ -147,6 +156,7 @@ export interface FiltrosLista {
   situacao?: Situacao;
   categoria?: Categoria;
   tipo?: TipoContrato;
+  turno?: Turno;
   contrato?: number;
   pagina: number;
 }
@@ -159,13 +169,14 @@ export interface FiltrosLista {
 export async function itensAtivos(
   prisma: PrismaClient,
   hoje: string,
-  filtros: { tipo?: TipoContrato; categoria?: Categoria; contrato?: number } = {},
+  filtros: { tipo?: TipoContrato; categoria?: Categoria; turno?: Turno; contrato?: number } = {},
 ): Promise<MensalistaItem[]> {
   const contratos = await prisma.contrato.findMany({
     where: {
       status: 'ativo',
       mensalista: { arquivadoEm: null },
       ...(filtros.tipo ? { tipo: filtros.tipo } : {}),
+      ...(filtros.turno ? { turno: filtros.turno } : {}),
       ...(filtros.contrato ? { id: filtros.contrato } : {}),
       ...(filtros.categoria ? { veiculo: { categoria: filtros.categoria } } : {}),
     },
@@ -179,6 +190,7 @@ export async function itensAtivos(
     placa: c.veiculo.placa,
     categoria: c.veiculo.categoria,
     vaga: c.vaga?.codigo ?? null,
+    turno: c.turno,
     vencimento: deData(c.vencimento),
     valor: c.valor.toFixed(2),
     situacao: situacaoDoContrato(deData(c.vencimento), hoje),
@@ -246,6 +258,7 @@ export async function detalheDoMensalista(
     inicio: deData(contrato.inicio),
     vencimento: deData(contrato.vencimento),
     vaga: contrato.vaga?.codigo ?? null,
+    turno: contrato.turno,
     status: contrato.status,
     encerradoEm: contrato.encerradoEm ? hojeEmSaoPaulo(contrato.encerradoEm) : null,
     situacao: situacaoDoContrato(deData(contrato.vencimento), hojeEmSaoPaulo(agora)),
@@ -295,13 +308,22 @@ export async function atualizarMensalista(
           data: { telefone: dados.telefone },
         });
       }
-      const mudancas: { vagaId?: number | null; valor?: string } = {};
-      if (dados.vaga !== undefined) {
+      const mudancas: { vagaId?: number | null; turno?: Turno; valor?: string } = {};
+      const turno = dados.turno ?? contrato.turno;
+      // Mudar só o turno também exige que a vaga atual esteja livre no turno de destino.
+      const codigoDaVaga =
+        dados.vaga !== undefined
+          ? dados.vaga
+          : dados.turno !== undefined && dados.turno !== contrato.turno
+            ? (contrato.vaga?.codigo ?? null)
+            : undefined;
+      if (codigoDaVaga !== undefined) {
         mudancas.vagaId =
-          dados.vaga === null
+          codigoDaVaga === null
             ? null
-            : (await vagaLivre(tx, dados.vaga, veiculo.categoria, contrato.id)).id;
+            : (await vagaLivre(tx, codigoDaVaga, veiculo.categoria, turno, contrato.id)).id;
       }
+      if (dados.turno !== undefined) mudancas.turno = dados.turno;
       if (dados.valor !== undefined) mudancas.valor = dados.valor;
       if (Object.keys(mudancas).length > 0) {
         await tx.contrato.update({ where: { id: contrato.id }, data: mudancas });

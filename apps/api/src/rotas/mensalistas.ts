@@ -1,11 +1,13 @@
 import {
   CATEGORIAS,
   TIPOS_CONTRATO,
+  TURNOS,
   mensalistaAtualizarSchema,
   mensalistaCriarSchema,
   type Categoria,
   type Situacao,
   type TipoContrato,
+  type Turno,
 } from '@estacionafacil/shared';
 import { Router, type Request } from 'express';
 import type { Dependencias } from '../dependencias';
@@ -67,6 +69,7 @@ function filtrosDaConsulta(req: Request): FiltrosLista {
   const situacao = escolha<Situacao>(req, 'situacao', SITUACOES);
   const categoria = escolha<Categoria>(req, 'categoria', CATEGORIAS);
   const tipo = escolha<TipoContrato>(req, 'tipo', TIPOS_CONTRATO);
+  const turno = escolha<Turno>(req, 'turno', TURNOS);
   const contrato = inteiro(req, 'contrato');
   return {
     pagina: inteiro(req, 'pagina') ?? 1,
@@ -74,6 +77,7 @@ function filtrosDaConsulta(req: Request): FiltrosLista {
     ...(situacao ? { situacao } : {}),
     ...(categoria ? { categoria } : {}),
     ...(tipo ? { tipo } : {}),
+    ...(turno ? { turno } : {}),
     ...(contrato ? { contrato } : {}),
   };
 }
