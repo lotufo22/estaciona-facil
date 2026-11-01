@@ -281,3 +281,125 @@ describe('PATCH /mensalistas/:id', () => {
     expect(resposta.body.erro.codigo).toBe('CONTRATO_ENCERRADO');
   });
 });
+
+describe('turno do contrato', () => {
+  const alterar = (id: number, corpo: Record<string, unknown>) =>
+    request(app).patch(`/api/mensalistas/${id}`).set(CABECALHO).set('Cookie', dono).send(corpo);
+  const turnoNoBanco = async (contratoId: number) =>
+    (await prisma.contrato.findUniqueOrThrow({ where: { id: contratoId } })).turno;
+
+  it('um noturno entra na vaga de um diurno', async () => {
+    expect((await criar(mensalistaValido())).status).toBe(201);
+    const resposta = await criar(mensalistaValido({ placa: 'XYZ9K88', turno: 'noturno' }));
+    expect(resposta.status).toBe(201);
+    expect(await turnoNoBanco(resposta.body.contratoId)).toBe('noturno');
+  });
+
+  it('dois noturnos na mesma vaga: 409 VAGA_OCUPADA com campos.vaga', async () => {
+    await criar(mensalistaValido({ turno: 'noturno' }));
+    const resposta = await criar(mensalistaValido({ placa: 'XYZ9K88', turno: 'noturno' }));
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro.codigo).toBe('VAGA_OCUPADA');
+    expect(resposta.body.erro.campos.vaga).toContain('neste turno');
+  });
+
+  it('sem turno o contrato é diurno e o detalhe devolve o turno', async () => {
+    const { mensalistaId, contratoId } = (await criar(mensalistaValido())).body;
+    expect(await turnoNoBanco(contratoId)).toBe('diurno');
+    const detalhe = await request(app)
+      .get(`/api/mensalistas/${mensalistaId}`)
+      .set('Cookie', auxiliar);
+    expect(detalhe.body.contrato.turno).toBe('diurno');
+  });
+
+  it('código da vaga em outra caixa continua sendo a mesma vaga, por turno', async () => {
+    await criar(mensalistaValido({ turno: 'noturno' }));
+    const resposta = await criar(
+      mensalistaValido({ placa: 'XYZ9K88', vaga: 'c01', turno: 'noturno' }),
+    );
+    expect(resposta.status).toBe(409);
+    const diurno = await criar(mensalistaValido({ placa: 'XYZ9K88', vaga: 'c01' }));
+    expect(diurno.status).toBe(201);
+  });
+
+  it('vários noturnos sem vaga convivem', async () => {
+    const um = await criar(mensalistaValido({ vaga: '', turno: 'noturno' }));
+    const outro = await criar(mensalistaValido({ placa: 'XYZ9K88', vaga: '', turno: 'noturno' }));
+    expect([um.status, outro.status]).toEqual([201, 201]);
+  });
+
+  it('dois cadastros simultâneos do mesmo turno na mesma vaga: um 201 e um 409', async () => {
+    const [a, b] = await Promise.all([
+      criar(mensalistaValido({ turno: 'noturno' })),
+      criar(mensalistaValido({ placa: 'XYZ9K88', turno: 'noturno' })),
+    ]);
+    expect([a.status, b.status].sort()).toEqual([201, 409]);
+  });
+
+  it('mudar só o turno para um turno em que a vaga está ocupada: 409 e nada muda', async () => {
+    await criar(mensalistaValido({ turno: 'noturno' }));
+    const { mensalistaId, contratoId } = (await criar(mensalistaValido({ placa: 'XYZ9K88' }))).body;
+    const resposta = await alterar(mensalistaId, { turno: 'noturno' });
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro.codigo).toBe('VAGA_OCUPADA');
+    expect(await turnoNoBanco(contratoId)).toBe('diurno');
+  });
+
+  it('mudar o turno para um turno em que a vaga está livre funciona', async () => {
+    const { mensalistaId } = (await criar(mensalistaValido())).body;
+    const resposta = await alterar(mensalistaId, { turno: 'noturno' });
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.contrato).toMatchObject({ turno: 'noturno', vaga: 'C01' });
+  });
+
+  it('o formulário envia vaga e turno juntos: ocupada no turno novo é 409, livre é 200', async () => {
+    await criar(mensalistaValido({ turno: 'noturno' }));
+    const { mensalistaId, contratoId } = (await criar(mensalistaValido({ placa: 'XYZ9K88' }))).body;
+    const recusado = await alterar(mensalistaId, { vaga: 'C01', turno: 'noturno' });
+    expect(recusado.status).toBe(409);
+    expect(recusado.body.erro.codigo).toBe('VAGA_OCUPADA');
+    expect(await turnoNoBanco(contratoId)).toBe('diurno');
+
+    // Mesma vaga e turno que o contrato já tem: o próprio contrato não conta como ocupante.
+    expect((await alterar(mensalistaId, { vaga: 'C01', turno: 'diurno' })).status).toBe(200);
+    // Vaga livre no turno de destino.
+    const livre = await alterar(mensalistaId, { vaga: 'C02', turno: 'noturno' });
+    expect(livre.status).toBe(200);
+    expect(livre.body.contrato).toMatchObject({ vaga: 'C02', turno: 'noturno' });
+  });
+
+  it('duas edições simultâneas para a mesma vaga e turno: uma 200 e uma 409', async () => {
+    const a = (await criar(mensalistaValido({ vaga: '' }))).body.mensalistaId;
+    const b = (await criar(mensalistaValido({ placa: 'XYZ9K88', vaga: '' }))).body.mensalistaId;
+    const [um, outro] = await Promise.all([
+      alterar(a, { vaga: 'C01', turno: 'noturno' }),
+      alterar(b, { vaga: 'C01', turno: 'noturno' }),
+    ]);
+    expect([um.status, outro.status].sort()).toEqual([200, 409]);
+  });
+
+  it('mudar o turno de um contrato sem vaga funciona', async () => {
+    const { mensalistaId } = (await criar(mensalistaValido({ vaga: '' }))).body;
+    const resposta = await alterar(mensalistaId, { turno: 'noturno' });
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.contrato.turno).toBe('noturno');
+  });
+
+  it('editar outro campo não mexe no turno', async () => {
+    const { mensalistaId } = (await criar(mensalistaValido({ turno: 'noturno' }))).body;
+    const resposta = await alterar(mensalistaId, { valor: '100.00' });
+    expect(resposta.body.contrato.turno).toBe('noturno');
+  });
+
+  it('GET ?turno= filtra e cada item traz o turno; valor inválido: 422', async () => {
+    await criar(mensalistaValido());
+    await criar(mensalistaValido({ placa: 'XYZ9K88', turno: 'noturno' }));
+    const noturnos = await listar('?turno=noturno');
+    expect(noturnos.body.total).toBe(1);
+    expect(noturnos.body.itens[0]).toMatchObject({ placa: 'XYZ9K88', turno: 'noturno' });
+    expect((await listar('?turno=diurno')).body.itens[0].turno).toBe('diurno');
+    const invalido = await listar('?turno=integral');
+    expect(invalido.status).toBe(422);
+    expect(invalido.body.erro.campos.turno).toBeTruthy();
+  });
+});

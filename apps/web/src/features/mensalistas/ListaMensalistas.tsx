@@ -4,6 +4,7 @@ import {
   type Categoria,
   type Situacao,
   type TipoContrato,
+  type Turno,
 } from '@estacionafacil/shared';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -20,6 +21,7 @@ import { Tabela } from '../../components/ui/Tabela';
 import { formatarData } from '../../lib/formatar';
 import { useSessao } from '../../lib/sessao';
 import { useMensalistas } from './api';
+import { NOME_DO_TURNO, OPCOES_TURNO } from './turnos';
 
 const ESPERA_DA_BUSCA_MS = 300;
 
@@ -40,6 +42,8 @@ const OPCOES_TIPO = [
   { valor: 'semanal', texto: 'Semanal' },
 ];
 
+const OPCOES_FILTRO_TURNO = [{ valor: '', texto: 'Todos' }, ...OPCOES_TURNO];
+
 const NOME_DA_CATEGORIA: Record<Categoria, string> = { carro: 'Carro', moto: 'Moto' };
 
 export function ListaMensalistas() {
@@ -51,6 +55,7 @@ export function ListaMensalistas() {
   const [situacao, setSituacao] = useState<Situacao | ''>('');
   const [categoria, setCategoria] = useState<Categoria | ''>('');
   const [tipo, setTipo] = useState<TipoContrato | ''>('');
+  const [turno, setTurno] = useState<Turno | ''>('');
   const [pagina, setPagina] = useState(1);
 
   // Espera o usuário parar de digitar antes de consultar a API.
@@ -67,10 +72,11 @@ export function ListaMensalistas() {
     situacao: situacao || undefined,
     categoria: categoria || undefined,
     tipo: tipo || undefined,
+    turno: turno || undefined,
     pagina,
   });
 
-  const semFiltros = !buscaAplicada && !situacao && !categoria && !tipo;
+  const semFiltros = !buscaAplicada && !situacao && !categoria && !tipo && !turno;
   const novo = ehProprietario ? (
     <LinkBotao to="/mensalistas/novo">Novo mensalista</LinkBotao>
   ) : undefined;
@@ -95,7 +101,7 @@ export function ListaMensalistas() {
 
       <section
         aria-label="Filtros"
-        className="grid grid-cols-2 gap-4 rounded-lg border border-borda bg-superficie p-4 sm:p-6 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-4 rounded-lg border border-borda bg-superficie p-4 sm:p-6 xl:grid-cols-5"
       >
         {/* No celular a busca ocupa a linha toda e os seletores ficam dois a dois (menos rolagem). */}
         <div className="col-span-2 xl:col-span-1">
@@ -123,6 +129,12 @@ export function ListaMensalistas() {
           opcoes={OPCOES_TIPO}
           value={tipo}
           onChange={(e) => mudarFiltro(setTipo)(e.target.value as TipoContrato | '')}
+        />
+        <Selecao
+          rotulo="Turno"
+          opcoes={OPCOES_FILTRO_TURNO}
+          value={turno}
+          onChange={(e) => mudarFiltro(setTurno)(e.target.value as Turno | '')}
         />
       </section>
 
@@ -164,7 +176,16 @@ export function ListaMensalistas() {
         <section className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6">
           <Tabela
             legenda="Mensalistas"
-            cabecalhos={['Nome', 'Placa', 'Categoria', 'Vaga', 'Vencimento', 'Valor', 'Situação']}
+            cabecalhos={[
+              'Nome',
+              'Placa',
+              'Categoria',
+              'Vaga',
+              'Turno',
+              'Vencimento',
+              'Valor',
+              'Situação',
+            ]}
           >
             {data.itens.map((m) => (
               <tr key={m.id}>
@@ -179,6 +200,7 @@ export function ListaMensalistas() {
                 <td className="px-2 py-3">{formatarPlaca(m.placa)}</td>
                 <td className="px-2 py-3">{NOME_DA_CATEGORIA[m.categoria]}</td>
                 <td className="px-2 py-3">{m.vaga ?? '—'}</td>
+                <td className="px-2 py-3">{NOME_DO_TURNO[m.turno]}</td>
                 <td className="px-2 py-3">{formatarData(m.vencimento)}</td>
                 <td className="px-2 py-3 font-semibold">{formatarReais(m.valor)}</td>
                 <td className="px-2 py-3">

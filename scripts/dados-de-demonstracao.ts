@@ -1,10 +1,10 @@
-import { adicionarDias, hojeEmSaoPaulo } from '@estacionafacil/shared';
+import { adicionarDias, hojeEmSaoPaulo, type Turno } from '@estacionafacil/shared';
 import type { PrismaClient } from '../apps/api/src/prisma';
 
 /**
  * Dados de demonstração para as capturas de tela do manual e para ver o sistema "vivo".
  * Tudo é calculado a partir de `hoje`, então a situação de cada contrato é sempre a mesma
- * (3 vencidos, 3 a vencer, 6 em dia), qualquer que seja o dia em que o script rode.
+ * (3 vencidos, 3 a vencer, 7 em dia), qualquer que seja o dia em que o script rode.
  *
  * Só ACRESCENTA dados: espera que as vagas e o usuário `dono` já existam (o preparo do banco do
  * e2e cuida disso). Nunca roda contra o banco de produção: quem chama é o `e2e/preparar-banco.ts`,
@@ -18,6 +18,8 @@ interface Cliente {
   placa: string;
   categoria: 'carro' | 'moto';
   vaga: string;
+  /** Padrão: diurno. */
+  turno?: Turno;
   tipo?: 'mensal' | 'semanal';
   valor: string;
   /** Dias de hoje até o vencimento; negativo = já venceu. */
@@ -135,6 +137,17 @@ const CLIENTES: Cliente[] = [
     vence: 28,
     forma: 'pix',
   },
+  // Noturno na vaga da Joana Prado (diurna): a mesma vaga numerada atende os dois turnos.
+  {
+    nome: 'Rogério Tavares',
+    placa: 'KLM3P45',
+    categoria: 'carro',
+    vaga: '01',
+    turno: 'noturno',
+    valor: '100.00',
+    vence: 20,
+    forma: 'pix',
+  },
 ];
 
 /** Pagamentos dos últimos meses de cada cliente: alimentam os gráficos do Painel e do Fluxo de caixa. */
@@ -174,6 +187,7 @@ export async function semearDemonstracao(prisma: PrismaClient): Promise<void> {
         veiculoId: veiculo.id,
         vagaId: vaga.id,
         tipo: c.tipo ?? 'mensal',
+        turno: c.turno ?? 'diurno',
         valor: c.valor,
         diaVencimento: Number(vencimento.slice(8, 10)),
         inicio: data(adicionarDias(hoje, -30 * (MESES_DE_HISTORICO + 1))),

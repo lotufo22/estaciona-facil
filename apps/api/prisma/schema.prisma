@@ -1,7 +1,7 @@
 // Esquema da Fase 1 (spec, seção 5). Dinheiro sempre em NUMERIC(12,2); datas de negócio em DATE.
 //
 // O que o Prisma não expressa fica em SQL na migração, e não aparece aqui:
-// - no máximo um contrato ativo por veículo (placa) e por vaga (índices únicos parciais);
+// - no máximo um contrato ativo por veículo (placa) e por vaga e turno (índices únicos parciais);
 // - CHECK de valor > 0 e de dia do mês entre 1 e 31;
 // - ENABLE ROW LEVEL SECURITY em todas as tabelas, sem nenhuma política.
 
@@ -33,6 +33,13 @@ enum TipoContrato {
   semanal
 
   @@map("tipo_contrato")
+}
+
+enum Turno {
+  diurno
+  noturno
+
+  @@map("turno")
 }
 
 enum StatusContrato {
@@ -146,6 +153,7 @@ model Contrato {
   veiculoId     Int                 @map("veiculo_id")
   vagaId        Int?                @map("vaga_id")
   tipo          TipoContrato
+  turno         Turno               @default(diurno)
   valor         Decimal             @db.Decimal(12, 2)
   diaVencimento Int                 @map("dia_vencimento") @db.SmallInt
   inicio        DateTime            @db.Date

@@ -77,6 +77,43 @@ test('2. cadastra um mensalista; placa repetida e vaga ocupada mostram o erro no
   await expect(page.getByText('Outra Pessoa')).toHaveCount(0);
 });
 
+test('2b. um noturno entra na vaga do diurno; um segundo noturno na mesma vaga é recusado', async ({
+  page,
+}) => {
+  await entrar(page, 'dono');
+  const cadastrarNoturno = async (nome: string, placa: string) => {
+    await page.goto('/mensalistas/novo');
+    await page.getByLabel('Nome', { exact: true }).fill(nome);
+    await page.getByLabel('Telefone', { exact: true }).fill('(12) 99999-0000');
+    await page.getByLabel('Placa', { exact: true }).fill(placa);
+    await page.getByLabel('Categoria', { exact: true }).selectOption('carro');
+    await page.getByLabel('Vaga', { exact: true }).fill('01');
+    await page.getByLabel('Turno', { exact: true }).selectOption('Noturno');
+    await page.getByLabel('Tipo de contrato', { exact: true }).selectOption('mensal');
+    await page.getByLabel('Valor', { exact: true }).fill('100.00');
+    await page.getByLabel('Dia do vencimento', { exact: true }).fill(DIA_DO_VENCIMENTO);
+    await page.getByRole('button', { name: 'Cadastrar mensalista' }).click();
+  };
+
+  // A vaga 01 é da Maria (diurno): o noturno entra sem erro.
+  await cadastrarNoturno('Rui Noturno', 'DEF-2E34');
+  await expect(page).toHaveURL(/\/mensalistas\/\d+$/);
+  await expect(page.getByRole('heading', { name: 'Rui Noturno', level: 1 })).toBeVisible();
+  await expect(page.getByText('Noturno', { exact: true })).toBeVisible();
+
+  // Outro noturno na mesma vaga: o erro aparece no campo Vaga.
+  await cadastrarNoturno('Outro Noturno', 'GHI-3F45');
+  await expect(page.getByLabel('Vaga', { exact: true })).toHaveAccessibleDescription(
+    /ocupada neste turno/,
+  );
+
+  // O filtro de turno da lista mostra só o noturno.
+  await page.goto('/mensalistas');
+  await page.getByLabel('Turno', { exact: true }).selectOption('Noturno');
+  await expect(page.getByRole('link', { name: 'Rui Noturno' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Maria Teste' })).toHaveCount(0);
+});
+
 test('3 e 4. o recebimento avança o vencimento e emite o comprovante; clique duplo não duplica', async ({
   page,
 }) => {

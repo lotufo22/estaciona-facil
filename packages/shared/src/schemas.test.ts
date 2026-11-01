@@ -41,6 +41,22 @@ describe('mensalistaCriarSchema', () => {
     expect(resultado.valor).toBe('255.00');
   });
 
+  it('sem turno, o contrato é diurno', () => {
+    expect(mensalistaCriarSchema.parse(mensalistaValido).turno).toBe('diurno');
+  });
+
+  it('mantém o turno noturno', () => {
+    expect(mensalistaCriarSchema.parse({ ...mensalistaValido, turno: 'noturno' }).turno).toBe(
+      'noturno',
+    );
+  });
+
+  it('rejeita turno desconhecido com mensagem em português', () => {
+    const resultado = mensalistaCriarSchema.safeParse({ ...mensalistaValido, turno: 'integral' });
+    expect(resultado.success).toBe(false);
+    expect(resultado.error?.issues[0]?.message).toBe('Escolha diurno ou noturno');
+  });
+
   it('aceita a placa no formato antigo', () => {
     expect(mensalistaCriarSchema.parse({ ...mensalistaValido, placa: 'abc-1234' }).placa).toBe(
       'ABC1234',
@@ -102,6 +118,15 @@ describe('mensalistaAtualizarSchema', () => {
     expect(mensalistaAtualizarSchema.parse({ telefone: '(12) 3333-4444' })).toEqual({
       telefone: '1233334444',
     });
+  });
+
+  it('troca só o turno e não inventa turno quando ele não é enviado', () => {
+    expect(mensalistaAtualizarSchema.parse({ turno: 'noturno' })).toEqual({ turno: 'noturno' });
+    expect(mensalistaAtualizarSchema.parse({ valor: '100' })).toEqual({ valor: '100.00' });
+  });
+
+  it('rejeita turno desconhecido na atualização', () => {
+    expect(camposComErro(mensalistaAtualizarSchema, { turno: 'x' })).toContain('turno');
   });
 
   it('permite remover a vaga com null', () => {

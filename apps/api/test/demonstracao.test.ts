@@ -1,5 +1,13 @@
-import { describe, expect, it } from 'vitest';
-import { mesesAtras } from '../../../scripts/dados-de-demonstracao';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { mesesAtras, semearDemonstracao } from '../../../scripts/dados-de-demonstracao';
+import { semearVagas } from '../prisma/seed';
+import { criarUsuario } from '../src/autenticacao/usuarios';
+import { criarAppDeTeste } from './ajudantes';
+
+const { prisma, limparBanco, encerrar } = criarAppDeTeste();
+
+beforeEach(limparBanco);
+afterAll(encerrar);
 
 describe('mesesAtras (dados de demonstração)', () => {
   it('volta por mês de verdade, atravessando o ano', () => {
@@ -16,4 +24,26 @@ describe('mesesAtras (dados de demonstração)', () => {
       expect(new Set(meses).size).toBe(meses.length);
     },
   );
+});
+
+describe('semearDemonstracao', () => {
+  it('inclui um noturno que divide a vaga com um diurno', async () => {
+    await semearVagas(prisma);
+    await criarUsuario(prisma, {
+      nome: 'Dono',
+      login: 'dono',
+      senha: 'senha-de-teste-123',
+      perfil: 'proprietario',
+    });
+    await semearDemonstracao(prisma);
+
+    const noturnos = await prisma.contrato.findMany({
+      where: { turno: 'noturno', status: 'ativo' },
+    });
+    expect(noturnos).toHaveLength(1);
+    const diurno = await prisma.contrato.findFirst({
+      where: { vagaId: noturnos[0]?.vagaId ?? -1, turno: 'diurno', status: 'ativo' },
+    });
+    expect(diurno).not.toBeNull();
+  });
 });
