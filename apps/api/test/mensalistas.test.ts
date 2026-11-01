@@ -352,6 +352,32 @@ describe('turno do contrato', () => {
     expect(resposta.body.contrato).toMatchObject({ turno: 'noturno', vaga: 'C01' });
   });
 
+  it('o formulário envia vaga e turno juntos: ocupada no turno novo é 409, livre é 200', async () => {
+    await criar(mensalistaValido({ turno: 'noturno' }));
+    const { mensalistaId, contratoId } = (await criar(mensalistaValido({ placa: 'XYZ9K88' }))).body;
+    const recusado = await alterar(mensalistaId, { vaga: 'C01', turno: 'noturno' });
+    expect(recusado.status).toBe(409);
+    expect(recusado.body.erro.codigo).toBe('VAGA_OCUPADA');
+    expect(await turnoNoBanco(contratoId)).toBe('diurno');
+
+    // Mesma vaga e turno que o contrato já tem: o próprio contrato não conta como ocupante.
+    expect((await alterar(mensalistaId, { vaga: 'C01', turno: 'diurno' })).status).toBe(200);
+    // Vaga livre no turno de destino.
+    const livre = await alterar(mensalistaId, { vaga: 'C02', turno: 'noturno' });
+    expect(livre.status).toBe(200);
+    expect(livre.body.contrato).toMatchObject({ vaga: 'C02', turno: 'noturno' });
+  });
+
+  it('duas edições simultâneas para a mesma vaga e turno: uma 200 e uma 409', async () => {
+    const a = (await criar(mensalistaValido({ vaga: '' }))).body.mensalistaId;
+    const b = (await criar(mensalistaValido({ placa: 'XYZ9K88', vaga: '' }))).body.mensalistaId;
+    const [um, outro] = await Promise.all([
+      alterar(a, { vaga: 'C01', turno: 'noturno' }),
+      alterar(b, { vaga: 'C01', turno: 'noturno' }),
+    ]);
+    expect([um.status, outro.status].sort()).toEqual([200, 409]);
+  });
+
   it('mudar o turno de um contrato sem vaga funciona', async () => {
     const { mensalistaId } = (await criar(mensalistaValido({ vaga: '' }))).body;
     const resposta = await alterar(mensalistaId, { turno: 'noturno' });
