@@ -45,7 +45,7 @@ Erro inesperado vira `500 ERRO_INTERNO` sem detalhes internos.
 | `SEM_PERMISSAO` | 403 | perfil sem acesso à rota |
 | `NAO_ENCONTRADO` | 404 | recurso ou rota inexistente |
 | `PLACA_JA_CADASTRADA` | 409 | a placa já tem contrato ativo |
-| `VAGA_OCUPADA` | 409 | a vaga já tem contrato ativo |
+| `VAGA_OCUPADA` | 409 | a vaga já tem contrato ativo **no mesmo turno** |
 | `CONTRATO_ENCERRADO` | 409 | pagar, renovar, editar ou encerrar um contrato já encerrado |
 | `CHAVE_IDEMPOTENCIA_AUSENTE` | 400 | `POST /pagamentos` sem `Idempotency-Key` |
 | `MUITAS_TENTATIVAS` | 429 | 5 falhas de login em 15 minutos (traz `Retry-After`) |
@@ -74,15 +74,15 @@ Limite de **5 tentativas a cada 15 minutos** por login e IP (contadas no banco);
 
 | Rota | O que faz | Quem | Respostas |
 |---|---|---|---|
-| `GET /mensalistas` | Contratos ativos. Filtros: `busca` (nome ou placa), `situacao`, `categoria`, `tipo`, `contrato`, `pagina` (10 por página) | todos | 200, 422 |
-| `POST /mensalistas` | Cadastra cliente, veículo e contrato numa transação. Corpo: `nome`, `telefone`, `placa`, `categoria`, `vaga?`, `tipo`, `valor`, `diaVencimento`, `inicio`. Devolve `{ mensalistaId, contratoId }` | Prop. | 201, 409, 422 |
+| `GET /mensalistas` | Contratos ativos. Filtros: `busca` (nome ou placa), `situacao`, `categoria`, `tipo`, `turno` (`diurno` ou `noturno`), `contrato`, `pagina` (10 por página). Cada item traz `turno` | todos | 200, 422 |
+| `POST /mensalistas` | Cadastra cliente, veículo e contrato numa transação. Corpo: `nome`, `telefone`, `placa`, `categoria`, `vaga?`, `turno?` (`diurno` ou `noturno`; padrão `diurno`), `tipo`, `valor`, `diaVencimento`, `inicio`. Devolve `{ mensalistaId, contratoId }` | Prop. | 201, 409, 422 |
 | `GET /mensalistas/:id` | Dados, contrato atual e histórico (do mais recente ao mais antigo) | todos | 200, 404 |
-| `PATCH /mensalistas/:id` | Atualiza `telefone`, `placa`, `vaga` (`null` tira da vaga) e `valor`. Devolve o detalhe | Prop. | 200, 404, 409, 422 |
+| `PATCH /mensalistas/:id` | Atualiza `telefone`, `placa`, `vaga` (`null` tira da vaga), `turno` e `valor`. Mudar o turno confere se a vaga do contrato está livre no turno de destino (`409 VAGA_OCUPADA`). Devolve o detalhe | Prop. | 200, 404, 409, 422 |
 | `POST /contratos/:id/renovacao` | Estende o vencimento em `meses` (1 a 12), sem pagamento, com `motivo` obrigatório | Prop. | 200, 404, 409, 422 |
 | `POST /contratos/:id/encerramento` | Encerra o contrato e libera a vaga e a placa | Prop. | 200, 404, 409 |
 
-Só existe **um contrato ativo por placa e por vaga** (garantido por índices únicos no banco). Encerrar libera
-ambas para um novo contrato. A vaga precisa existir e ser da mesma categoria do veículo (`422` em `campos.vaga`).
+Só existe **um contrato ativo por placa** e **um por vaga e turno** (garantido por índices únicos no banco): um
+diurno e um noturno podem usar a mesma vaga. Encerrar libera a placa e a vaga naquele turno para um novo contrato. A vaga precisa existir e ser da mesma categoria do veículo (`422` em `campos.vaga`).
 
 ### Pagamentos
 

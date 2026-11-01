@@ -245,6 +245,14 @@ ou noite): não dá para listar, contar nem relatar por turno.
 
 **Sugestão.** É o item "vaga por turno" da Fase 2. Se os noturnos são cerca de um terço da carteira, vale
 antecipar pelo menos o **campo de turno** no contrato.
+
+**Como ficou (01/11/2026).** O contrato ganhou o **turno** (diurno ou noturno) e a regra passou a ser um
+contrato ativo por **vaga e turno**: o noturno pode usar a vaga numerada de um diurno. A lista e o detalhe
+mostram o turno, e a lista filtra por ele. Ainda **não** há contagem por turno no painel, valor sugerido
+por turno (item 16) nem limite de vagas por turno.
+
+**Pergunta nova.** Existe cliente que usa o **mesmo carro de dia e de noite**? Como é cobrado? Hoje ele seria
+um contrato diurno com o valor combinado à mão; se for comum, um turno "integral" entra na Fase 2.
 **Resposta:** ____________________
 
 ## 14. Avaliações dos clientes: ele respondeu "Sim"

@@ -60,9 +60,9 @@ atraso; clique nele para ver quais.
 
 ![Lista de mensalistas](./manual/capturas/03-mensalistas.png)
 
-A lista mostra nome, placa, vaga, vencimento, valor e a **situação**. Use **Buscar por nome ou placa**
+A lista mostra nome, placa, vaga, turno, vencimento, valor e a **situação**. Use **Buscar por nome ou placa**
 (a placa pode ser digitada de qualquer jeito: `abc1d23`, `ABC-1D23`…) e os filtros de situação,
-categoria e tipo de contrato. Clique no nome para abrir os detalhes.
+categoria, turno e tipo de contrato. Clique no nome para abrir os detalhes.
 
 ### Cadastrar um mensalista (Proprietário)
 
@@ -75,6 +75,7 @@ categoria e tipo de contrato. Clique no nome para abrir os detalhes.
    - **Categoria**: carro ou moto.
    - **Vaga** (opcional): `01` a `35` para carro e `M1` a `M14` para moto. Deixe em branco se o cliente
      não tiver vaga fixa.
+   - **Turno**: diurno ou noturno. Um cliente diurno e um noturno **podem usar a mesma vaga**.
    - **Tipo de contrato**: mensal ou semanal.
    - **Valor**: pode digitar `255`, `255,50` ou `255.50`; o sistema acerta as casas decimais.
    - **Dia do vencimento**: de 1 a 31. Em meses curtos o vencimento cai no último dia do mês (dia 31
@@ -85,7 +86,8 @@ categoria e tipo de contrato. Clique no nome para abrir os detalhes.
 O sistema avisa, **no próprio campo**, se algo estiver errado:
 
 - *"Esta placa já tem contrato ativo"*: já existe um contrato valendo para essa placa.
-- *"Esta vaga já está ocupada"*: outro cliente ativo está nessa vaga.
+- *"Esta vaga já está ocupada neste turno"*: outro cliente ativo está nessa vaga **no mesmo turno**.
+  O mesmo número de vaga pode receber um diurno e um noturno.
 - Vaga de moto para carro (ou o contrário), ou vaga que não existe, também são recusadas.
 
 ### Detalhes de um mensalista
@@ -95,7 +97,7 @@ O sistema avisa, **no próprio campo**, se algo estiver errado:
 Mostra os dados, o próximo vencimento, a situação e o **histórico** (quando o contrato foi criado,
 renovado, pago ou encerrado, e por quem). Para o Proprietário há três botões:
 
-- **Editar dados:** muda telefone, placa, vaga e valor.
+- **Editar dados:** muda telefone, placa, vaga, turno e valor.
 - **Renovar contrato:** estende o vencimento **sem receber pagamento** (por exemplo, um mês de cortesia).
   Informe os **meses** e o **Motivo**; o motivo fica no histórico. Para receber dinheiro, use Recebimentos.
 - **Encerrar contrato:** o cliente deixou de ser mensalista. Pede confirmação. A **vaga e a placa ficam
@@ -242,7 +244,7 @@ Dicas para o celular:
 | "Muitas tentativas" | 5 erros em 15 minutos | espere 15 minutos |
 | "Sua sessão expirou. Entre de novo." | 12 horas sem uso | entre de novo |
 | "Esta placa já tem contrato ativo" | placa repetida | procure o mensalista na lista, ou encerre o contrato antigo |
-| "Esta vaga já está ocupada" | vaga de outro cliente | escolha outra vaga ou encerre o outro contrato |
+| "Esta vaga já está ocupada neste turno" | vaga de outro cliente no mesmo turno | escolha outra vaga, outro turno ou encerre o outro contrato |
 | "Informe o valor em reais, como 150 ou 150,50" | letras, ou mais de duas casas depois da vírgula | digite só números, com vírgula ou ponto antes dos centavos |
 | "Contrato não encontrado ou já encerrado" | o contrato foi encerrado | confira nos detalhes do mensalista |
 | "Sem conexão com o servidor" | internet caiu | confira a internet e tente de novo; nada foi duplicado |

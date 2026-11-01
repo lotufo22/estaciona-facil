@@ -101,7 +101,7 @@ Valem mesmo que a API tenha um defeito.
 
 - Dinheiro em `NUMERIC(12,2)`, nunca ponto flutuante.
 - No máximo um contrato **ativo** por placa.
-- No máximo um contrato **ativo** por vaga (na Fase 2, por vaga e turno).
+- No máximo um contrato **ativo** por vaga e turno (turno `diurno`/`noturno`, antecipado da Fase 2 em 01/11/2026; ver `2026-11-01-mensalista-noturno-turno-design.md`).
 - Encerrar contrato e arquivar mensalista são lógicos, nunca apagam dados.
 - Cada despesa gerada por recorrência é única por recorrência e mês (a geração é segura de repetir).
 

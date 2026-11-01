@@ -66,6 +66,8 @@ contagem real de mensalistas ainda precisa ser confirmada.*
 - **Mensalista noturno na mesma vaga de um diurno:** o sistema permite **um** contrato ativo por vaga, então
   o segundo seria recusado com "vaga ocupada". O jeito de contornar hoje é cadastrar o noturno **sem vaga**,
   mas assim não há como registrar o **turno** nem relatar por turno. Isso é o item de "vaga por turno" da Fase 2.
+  *Atualização de 01/11/2026:* o contrato passou a ter turno e o noturno já pode usar a vaga de um diurno;
+  falta a validação com o proprietário.
 - **Valores:** hoje o valor é digitado à mão. Os valores acima podem virar sugestão automática por categoria
   e turno.
 - **Fila de espera:** o sistema não tem. É uma necessidade nova.
@@ -215,6 +217,6 @@ vencimento. Não tem *entrada* nem *saída*, porque o mensalista paga uma mensal
 | Cobrança pelo WhatsApp com mensagem pronta | ❌ não existe |
 | Fila de espera de mensalistas | ❌ não existe |
 | Entrada e saída, cálculo por hora cheia e comprovante de estacionamento | ❌ Fase 2 |
-| Mensalista noturno na mesma vaga (turno) | ❌ Fase 2 |
+| Mensalista noturno na mesma vaga (turno) | ✅ turno no contrato (01/11/2026); falta validar com o proprietário |
 | Consulta por foto da placa | ❌ não existe |
 | Avaliações e satisfação dos clientes | ❌ fora do escopo (a confirmar) |

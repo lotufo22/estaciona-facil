@@ -34,7 +34,7 @@ Monorepo com npm workspaces. Fluxo: navegador → `/api` na mesma origem → Exp
 ## O que já existe
 
 - Autenticação e autorização nos dois perfis.
-- Cadastro/edição de mensalistas, veículo e contrato; renovação, encerramento e histórico.
+- Cadastro/edição de mensalistas, veículo e contrato (com turno diurno/noturno); renovação, encerramento e histórico.
 - Recebimentos com comprovante e idempotência.
 - Despesas variáveis/fixas e recorrências com pausa/retomada.
 - Serviço `gerarDespesasRecorrentes`, idempotente por competência, chamado pela função agendada `gerar-despesas` (`03:00 UTC`, em `netlify.toml`). **Só roda em deploy publicado, e nada foi publicado.**
@@ -69,7 +69,7 @@ Login admite cinco falhas por par login/IP em quinze minutos; não há limite po
 5. `POST /pagamentos` exige `Idempotency-Key`. Pagamento, vencimento e histórico são atômicos; há lock `FOR UPDATE`. Replay devolve o pagamento existente sem duplicar receita; `novoVencimento` corresponde ao vencimento atual do contrato, podendo mudar após outro pagamento.
 6. Renovação estende sem receita, exige proprietário e motivo. Hoje recebe `meses` e avança em meses mesmo em contrato semanal; confirmar intenção antes de alterar.
 7. Caixa usa datas de recebimento/despesa. Filtros de tipo de contrato/categoria afetam somente receitas e tornam `resultado` nulo.
-8. Encerramento preserva histórico e libera ocupação. Índices únicos parciais limitam um contrato ativo por veículo e por vaga.
+8. Encerramento preserva histórico e libera ocupação. Índices únicos parciais limitam um contrato ativo por veículo e um por vaga **e turno** (`diurno`/`noturno`): um noturno pode dividir a vaga de um diurno. Não existe turno integral; quem usa o mesmo carro de dia e de noite é um contrato só (hoje um diurno com valor combinado).
 9. Despesa fixa cria lançamento inicial e recorrência numa transação. Recorrência/competência é única. A geração recupera atraso dentro do mês recebido, sem recompor automaticamente todos os meses anteriores.
 10. A migração inicial contém SQL manual: índices parciais, `CHECK`s e RLS sem políticas em todas as tabelas. Revisar novas migrações e habilitar RLS em novas tabelas. RLS não substitui autorização da API.
 
@@ -150,7 +150,7 @@ A **Tarefa 18** está implementada, mas **nada foi implantado**:
 3. `migrar.yml` (manual, por ambiente) e `backup.yml` (noturno: `pg_dump`, criptografia com gpg e envio a um armazenamento S3 privado). A restauração foi testada **em PostgreSQL local**, com resultado em `docs/guia-de-instalacao.md` (seção 9); falta repetir com um backup real e no Supabase.
 4. CI com build e E2E.
 5. Manual do usuário, guia de instalação, README e `docs/api.md` atualizados; os diagramas UML ganharam uma nota, mas **não foram redesenhados**. O Documento de Visão 2.0 continua pendente. O diagrama exportado do esquema (RNF04) está em `docs/modelo-de-dados.md`.
-6. Falta a validação com o proprietário, incluindo regras de negócio e renovação semanal. As respostas dele (questionário e segunda rodada) estão em `docs/respostas-do-proprietario.md`; as suposições, limitações e perguntas abertas estão em `docs/decisoes-para-o-proprietario.md`. **Três pontos pedem atenção antes de mostrar o sistema a ele:** (a) ele disse que o **vermelho não pode aparecer**; a equipe trocou o vermelho por **bordô `#550000`** (fundo `#F2E9E9`) em "em atraso" e nos erros, mas bordô ainda é um tom escuro de vermelho e **falta ele confirmar em tela**; (b) ele está **sem computador** e usa o **celular**: o celular (até 639 px) agora tem cabeçalho compacto, abas na barra de baixo com "Mais" e tabelas em cartões (`useEhCelular`, `NavegacaoInferior`, `Tabela`), coberto por testes de 390 px, mas **falta testar em aparelho real**; (c) o mensalista noturno usa a mesma vaga de um diurno, o que a regra "um contrato ativo por vaga" não comporta. A dependência de internet foi respondida: há internet, e a nuvem está confirmada.
+6. Falta a validação com o proprietário, incluindo regras de negócio e renovação semanal. As respostas dele (questionário e segunda rodada) estão em `docs/respostas-do-proprietario.md`; as suposições, limitações e perguntas abertas estão em `docs/decisoes-para-o-proprietario.md`. **Três pontos pedem atenção antes de mostrar o sistema a ele:** (a) ele disse que o **vermelho não pode aparecer**; a equipe trocou o vermelho por **bordô `#550000`** (fundo `#F2E9E9`) em "em atraso" e nos erros, mas bordô ainda é um tom escuro de vermelho e **falta ele confirmar em tela**; (b) ele está **sem computador** e usa o **celular**: o celular (até 639 px) agora tem cabeçalho compacto, abas na barra de baixo com "Mais" e tabelas em cartões (`useEhCelular`, `NavegacaoInferior`, `Tabela`), coberto por testes de 390 px, mas **falta testar em aparelho real**; (c) o mensalista noturno agora pode dividir a vaga de um diurno (turno no contrato, unicidade por vaga e turno), mas **falta o proprietário confirmar** e responder se existe cliente que usa o mesmo carro nos dois turnos e como é cobrado (item 13 de `docs/decisoes-para-o-proprietario.md`); as capturas do manual ainda não mostram o turno. A dependência de internet foi respondida: há internet, e a nuvem está confirmada.
 
 Pontos de atenção:
 
