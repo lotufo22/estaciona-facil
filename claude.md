@@ -26,9 +26,10 @@ Este arquivo foi solicitado como `claude.md`. Ferramentas que exijam `CLAUDE.md`
 - Situação calculada: vencido antes de hoje; a vencer de hoje até sete dias; em dia depois. Não persistir.
 - Pagamento avança a partir do vencimento atual: um mês ou sete dias. Preservar transação, histórico, lock e `Idempotency-Key`. Replay não cria receita; devolve pagamento existente e vencimento atual do contrato.
 - Renovação é sem receita, exclusiva do proprietário, com motivo. O código atual avança em meses inclusive para semanal; confirmar intenção antes de mudar.
-- Encerramento lógico preserva histórico. Respeitar unicidade de contrato ativo por veículo/vaga.
+- Encerramento lógico preserva histórico. Respeitar unicidade de contrato ativo por veículo e por vaga **e turno** (`diurno`/`noturno`: um noturno pode dividir a vaga de um diurno).
 - Caixa usa regime de caixa; filtro de categoria/tipo afeta receitas e oculta resultado (`null`).
-- Recorrências únicas por competência; limitar dia ao fim do mês. Geração cobre o mês recebido; o agendamento diário é a função `gerar-despesas` (Netlify), ainda não implantada.
+- Estorno (só proprietário, com motivo) de recebimento e despesa: nada é apagado, o lançamento fica marcado e **sai de todas as somas** (caixa, Painel, totais). Do recebimento só o mais recente ainda válido do contrato; o vencimento volta com `vencimentoAnterior`. A regra segue a opção A do item 1 de `docs/decisoes-para-o-proprietario.md`, ainda sem resposta do proprietário.
+- Recorrências únicas por competência; limitar dia ao fim do mês. Geração cobre o mês recebido; o agendamento diário é a função `gerar-despesas` (Netlify), que só roda em deploy publicado (produção) e ainda não foi publicada.
 
 ## Segurança e banco
 
@@ -80,6 +81,8 @@ Para mudanças funcionais, executar verificações pertinentes e cobertura da re
 
 Criar branch de tarefa (`docs/`, `feature/`, `fix/`), Conventional Commits e PR para `main`, conforme CONTRIBUTING. Incluir somente mudanças solicitadas. Conferir diff/checks antes do merge e respeitar proteções do GitHub e autorização do usuário.
 
-A Task 18 do [plano](docs/superpowers/plans/2026-10-26-estacionafacil-fase1.md) (Netlify, agendador, migrações em CI, backup criptografado, restauração e documentação) está **implementada, mas nada foi implantado**. Não afirmar que Netlify, Supabase ou o backup já estão no ar, e não executar deploy nem os workflows de migração e backup contra produção sem autorização do usuário; merge não é autorização. Próximas etapas: validação com o proprietário e o roteiro de publicação do [guia de instalação](docs/guia-de-instalacao.md), seção 7.
+A Task 18 do [plano](docs/superpowers/plans/2026-10-26-estacionafacil-fase1.md) (Netlify, agendador, migrações em CI, backup criptografado, restauração e documentação) está **implementada**. Só a **homologação** foi implantada (02/11/2026): site `estaciona-facil-homolog` na Netlify e projeto `estaciona_facil` no Supabase, por deploy não produtivo com alias (procedimento no [guia de instalação](docs/guia-de-instalacao.md), seção 7). **Produção, backup noturno e armazenamento do backup ainda não existem**: não afirmar o contrário.
+
+Deploy, migração e os workflows `migrar.yml` e `backup.yml` só com autorização explícita do usuário **para o ambiente indicado**: a de homologação não vale para produção, e merge não é autorização. O workflow de migração travou no pooler em 02/11/2026; usar a opção B do guia (da máquina do usuário). Nunca pedir nem escrever URLs de banco, senhas ou tokens no chat, no repositório ou na documentação. Próximas etapas: validação com o proprietário e o roteiro de publicação do guia, seção 7.
 
 Atualizar o handoff após trabalho relevante, distinguindo implementação, testes executados e validação com o proprietário.
