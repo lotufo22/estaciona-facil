@@ -307,6 +307,82 @@ describe('segurança no Supabase (RLS)', () => {
   });
 });
 
+describe('estorno', () => {
+  async function cenarioComPagamento() {
+    const usuario = await prisma.usuario.create({
+      data: { nome: 'Dono', login: 'dono', senhaHash: 'x', perfil: 'proprietario' },
+    });
+    const cenario = await criarCenario(prisma);
+    const contrato = await prisma.contrato.create({ data: dadosDeContrato(cenario) });
+    const pagamento = await prisma.pagamento.create({
+      data: {
+        contratoId: contrato.id,
+        valor: '255.00',
+        forma: 'pix',
+        pagoEm: new Date('2026-10-05'),
+        mesReferencia: new Date('2026-10-01'),
+        registradoPor: usuario.id,
+        chaveIdempotencia: 'chave-1',
+      },
+    });
+    const despesa = await prisma.despesa.create({
+      data: { descricao: 'Luz', valor: '480.00', tipo: 'variavel', data: new Date('2026-10-12') },
+    });
+    return { usuario, contrato, pagamento, despesa };
+  }
+
+  it('pagamento e despesa nascem sem estorno', async () => {
+    const { pagamento, despesa } = await cenarioComPagamento();
+    expect([pagamento.estornadoEm, pagamento.estornadoPor, pagamento.motivoEstorno]).toEqual([
+      null,
+      null,
+      null,
+    ]);
+    expect([despesa.estornadoEm, despesa.estornadoPor, despesa.motivoEstorno]).toEqual([
+      null,
+      null,
+      null,
+    ]);
+  });
+
+  it('preencher só parte dos campos de estorno viola o CHECK', async () => {
+    const { pagamento, despesa } = await cenarioComPagamento();
+    // SQL direto: com o Prisma, a mensagem de validação repetiria o nome da restrição escrito no teste.
+    await violacaoDe(
+      'pagamentos_estorno_completo',
+      prisma.$executeRawUnsafe(
+        `UPDATE pagamentos SET estornado_em = now() WHERE id = ${pagamento.id}`,
+      ),
+    );
+    await violacaoDe(
+      'despesas_estorno_completo',
+      prisma.$executeRawUnsafe(
+        `UPDATE despesas SET motivo_estorno = 'Engano' WHERE id = ${despesa.id}`,
+      ),
+    );
+  });
+
+  it('os três campos juntos são aceitos', async () => {
+    const { usuario, pagamento, despesa } = await cenarioComPagamento();
+    const dados = { estornadoEm: new Date(), estornadoPor: usuario.id, motivoEstorno: 'Engano' };
+    await expect(
+      prisma.pagamento.update({ where: { id: pagamento.id }, data: dados }),
+    ).resolves.toBeTruthy();
+    await expect(
+      prisma.despesa.update({ where: { id: despesa.id }, data: dados }),
+    ).resolves.toBeTruthy();
+  });
+
+  it('o histórico aceita o evento estornado', async () => {
+    const { contrato } = await cenarioComPagamento();
+    await expect(
+      prisma.historicoContrato.create({
+        data: { contratoId: contrato.id, evento: 'estornado', em: new Date() },
+      }),
+    ).resolves.toBeTruthy();
+  });
+});
+
 describe('seed das vagas', () => {
   it('cria as 49 vagas: 35 de carro e 14 de moto', async () => {
     const criadas = await semearVagas(prisma);

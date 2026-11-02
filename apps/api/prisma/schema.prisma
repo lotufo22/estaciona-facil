@@ -2,7 +2,7 @@
 //
 // O que o Prisma não expressa fica em SQL na migração, e não aparece aqui:
 // - no máximo um contrato ativo por veículo (placa) e por vaga e turno (índices únicos parciais);
-// - CHECK de valor > 0 e de dia do mês entre 1 e 31;
+// - CHECK de valor > 0 e de dia do mês entre 1 e 31, e das três colunas de estorno (todas nulas ou todas preenchidas);
 // - ENABLE ROW LEVEL SECURITY em todas as tabelas, sem nenhuma política.
 
 generator client {
@@ -69,22 +69,25 @@ enum EventoHistorico {
   criado
   renovado
   pagamento
+  estornado
   encerrado
 
   @@map("evento_historico")
 }
 
 model Usuario {
-  id         Int                 @id @default(autoincrement())
-  nome       String
-  login      String              @unique
-  senhaHash  String              @map("senha_hash")
-  perfil     Perfil
-  ativo      Boolean             @default(true)
-  sessoes    Sessao[]
-  pagamentos Pagamento[]
-  despesas   Despesa[]
-  historico  HistoricoContrato[]
+  id                   Int                 @id @default(autoincrement())
+  nome                 String
+  login                String              @unique
+  senhaHash            String              @map("senha_hash")
+  perfil               Perfil
+  ativo                Boolean             @default(true)
+  sessoes              Sessao[]
+  pagamentos           Pagamento[]
+  despesas             Despesa[]
+  pagamentosEstornados Pagamento[]         @relation("PagamentoEstornadoPor")
+  despesasEstornadas   Despesa[]           @relation("DespesaEstornadaPor")
+  historico            HistoricoContrato[]
 
   @@map("usuarios")
 }
@@ -183,8 +186,13 @@ model Pagamento {
   registradoPor     Int            @map("registrado_por")
   /// Idempotency-Key do envio: repetir a chave não registra o pagamento de novo.
   chaveIdempotencia String         @unique @map("chave_idempotencia")
+  /// Estorno: o lançamento não é apagado. As três colunas vêm juntas (CHECK no banco).
+  estornadoEm       DateTime?      @map("estornado_em") @db.Timestamptz(3)
+  estornadoPor      Int?           @map("estornado_por")
+  motivoEstorno     String?        @map("motivo_estorno")
   contrato          Contrato       @relation(fields: [contratoId], references: [id])
   usuario           Usuario        @relation(fields: [registradoPor], references: [id])
+  usuarioEstorno    Usuario?       @relation("PagamentoEstornadoPor", fields: [estornadoPor], references: [id])
 
   @@index([contratoId])
   @@index([pagoEm])
@@ -203,19 +211,24 @@ model RecorrenciaDespesa {
 }
 
 model Despesa {
-  id            Int                 @id @default(autoincrement())
-  descricao     String
-  valor         Decimal             @db.Decimal(12, 2)
-  tipo          TipoDespesa
-  data          DateTime            @db.Date
+  id             Int                 @id @default(autoincrement())
+  descricao      String
+  valor          Decimal             @db.Decimal(12, 2)
+  tipo           TipoDespesa
+  data           DateTime            @db.Date
   /// Nulo nos lançamentos gerados pela recorrência (não há usuário envolvido).
-  registradoPor Int?                @map("registrado_por")
-  recorrenciaId Int?                @map("recorrencia_id")
+  registradoPor  Int?                @map("registrado_por")
+  recorrenciaId  Int?                @map("recorrencia_id")
   /// Primeiro dia do mês que a despesa gerada cobre. Com a recorrência, é único:
   /// gerar duas vezes no mesmo mês não duplica o lançamento.
-  competencia   DateTime?           @db.Date
-  usuario       Usuario?            @relation(fields: [registradoPor], references: [id])
-  recorrencia   RecorrenciaDespesa? @relation(fields: [recorrenciaId], references: [id])
+  competencia    DateTime?           @db.Date
+  /// Estorno: a despesa não é apagada. As três colunas vêm juntas (CHECK no banco).
+  estornadoEm    DateTime?           @map("estornado_em") @db.Timestamptz(3)
+  estornadoPor   Int?                @map("estornado_por")
+  motivoEstorno  String?             @map("motivo_estorno")
+  usuario        Usuario?            @relation(fields: [registradoPor], references: [id])
+  usuarioEstorno Usuario?            @relation("DespesaEstornadaPor", fields: [estornadoPor], references: [id])
+  recorrencia    RecorrenciaDespesa? @relation(fields: [recorrenciaId], references: [id])
 
   @@unique([recorrenciaId, competencia])
   @@index([data])
