@@ -63,11 +63,8 @@ test('nenhuma tela rola para o lado e o cabeçalho não ocupa metade da tela', a
     const { janela, conteudo } = await larguraDaPagina(page);
     expect(conteudo, `${titulo} rola para o lado`).toBeLessThanOrEqual(janela + 1);
 
-    // A faixa de cima (nome, botões e busca) cabe em menos de um quarto da tela.
-    const faixa = await page
-      .getByRole('search')
-      .locator('xpath=ancestor::div[contains(@class,"bg-barra")][1]')
-      .boundingBox();
+    // A faixa de cima (marca, botões e busca) cabe em menos de um quarto da tela.
+    const faixa = await page.getByRole('banner').boundingBox();
     expect(faixa?.height ?? 0, `${titulo}: cabeçalho muito alto`).toBeLessThan(altura / 4);
   }
 });
