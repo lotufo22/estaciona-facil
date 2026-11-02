@@ -99,3 +99,20 @@ export function criarEventoCriado(prisma: PrismaClient, contratoId: number, em: 
     data: { contratoId, evento: 'criado', em: new Date(`${em}T15:00:00Z`) },
   });
 }
+
+/** Marca um pagamento ou uma despesa como estornado direto no banco (sem passar pela API). */
+export async function estornarDireto(
+  prisma: PrismaClient,
+  tipo: 'pagamento' | 'despesa',
+  id: number,
+  motivo = 'Lançado por engano',
+) {
+  const usuario = await prisma.usuario.findUniqueOrThrow({ where: { login: 'proprietario' } });
+  const dados = {
+    estornadoEm: new Date('2026-10-26T15:00:00Z'),
+    estornadoPor: usuario.id,
+    motivoEstorno: motivo,
+  };
+  if (tipo === 'pagamento') await prisma.pagamento.update({ where: { id }, data: dados });
+  else await prisma.despesa.update({ where: { id }, data: dados });
+}

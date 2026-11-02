@@ -5,6 +5,7 @@ import {
   criarContratoDireto,
   criarDespesaDireta,
   criarPagamentoDireto,
+  estornarDireto,
   limparMovimento,
 } from './ajudantesConsultas';
 import { entrarComo, semearBasico } from './ajudantesRotas';
@@ -146,5 +147,37 @@ describe('GET /caixa', () => {
   it('Auxiliar: 403; sem login: 401', async () => {
     expect((await consultar(OUTUBRO, auxiliar)).status).toBe(403);
     expect((await request(app).get(`/api/caixa?${OUTUBRO}`)).status).toBe(401);
+  });
+});
+
+describe('GET /caixa com estornos', () => {
+  it('recebimento e despesa estornados não entram nas somas do período', async () => {
+    const ana = await prisma.contrato.findFirstOrThrow({ where: { tipo: 'mensal' } });
+    const extra = await criarPagamentoDireto(prisma, ana.id, {
+      valor: '1000.00',
+      pagoEm: '2026-10-08',
+    });
+    const gasto = await criarDespesaDireta(prisma, { valor: '700.00', data: '2026-10-09' });
+    expect((await consultar(OUTUBRO)).body.receitas).toBe('1630.00');
+
+    await estornarDireto(prisma, 'pagamento', extra.id);
+    await estornarDireto(prisma, 'despesa', gasto.id);
+    const resposta = await consultar(OUTUBRO);
+    expect(resposta.body).toMatchObject({
+      receitas: '630.00',
+      despesas: '5930.00',
+      resultado: '-5300.00',
+    });
+  });
+
+  it('o estorno de um recebimento de data passada tira o valor do mês certo', async () => {
+    const ana = await prisma.contrato.findFirstOrThrow({ where: { tipo: 'mensal' } });
+    const setembro = await criarPagamentoDireto(prisma, ana.id, {
+      valor: '50.00',
+      pagoEm: '2026-09-10',
+    });
+    await estornarDireto(prisma, 'pagamento', setembro.id);
+    expect((await consultar('de=2026-09-01&ate=2026-09-30')).body.receitas).toBe('99.00');
+    expect((await consultar(OUTUBRO)).body.receitas).toBe('630.00');
   });
 });

@@ -184,3 +184,49 @@ describe('GET /recorrencias', () => {
     expect(resposta.body.itens[0].ativa).toBe(false);
   });
 });
+
+const estornarDespesaRota = (
+  id: number,
+  corpo: Record<string, unknown> = { motivo: 'Lançada duas vezes' },
+  cookie = dono,
+) =>
+  request(app).post(`/api/despesas/${id}/estorno`).set(CABECALHO).set('Cookie', cookie).send(corpo);
+
+describe('POST /despesas/:id/estorno', () => {
+  it('estorna a despesa: fica marcada, sai do total e continua na lista', async () => {
+    const { body: a } = await lancar(variavel({ valor: '45.90' }));
+    const { body: b } = await lancar(
+      variavel({ valor: '100.00', descricao: 'Lançada duas vezes' }),
+    );
+    const resposta = await estornarDespesaRota(b.despesaId);
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toMatchObject({
+      id: b.despesaId,
+      estornado: true,
+      estornadoEm: '2026-11-05',
+      motivoEstorno: 'Lançada duas vezes',
+    });
+    const lista = await listar();
+    expect(lista.body.itens).toHaveLength(2);
+    expect(lista.body.total).toBe('45.90');
+    const intacta = lista.body.itens.find((i: { id: number }) => i.id === a.despesaId);
+    expect(intacta.estornado).toBe(false);
+  });
+
+  it('estornar de novo: 409 JA_ESTORNADO', async () => {
+    const { body } = await lancar(variavel());
+    await estornarDespesaRota(body.despesaId);
+    const resposta = await estornarDespesaRota(body.despesaId);
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro.codigo).toBe('JA_ESTORNADO');
+  });
+
+  it('Auxiliar: 403; inexistente: 404; motivo curto: 422', async () => {
+    const { body } = await lancar(variavel());
+    expect((await estornarDespesaRota(body.despesaId, undefined, auxiliar)).status).toBe(403);
+    expect((await estornarDespesaRota(99999)).status).toBe(404);
+    const curto = await estornarDespesaRota(body.despesaId, { motivo: 'ab' });
+    expect(curto.status).toBe(422);
+    expect(curto.body.erro.campos.motivo).toBeTruthy();
+  });
+});

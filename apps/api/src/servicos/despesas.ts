@@ -1,12 +1,58 @@
 import {
   deCentavos,
+  hojeEmSaoPaulo,
   paraCentavos,
   type DespesaEntrada,
+  type DespesaItem,
   type DespesasResposta,
   type TipoDespesa,
 } from '@estacionafacil/shared';
+import { ErroHttp } from '../erros';
 import type { PrismaClient } from '../prisma';
 import { deData, paraData } from './mensalistas';
+
+type DespesaComUsuario = NonNullable<Awaited<ReturnType<PrismaClient['despesa']['findFirst']>>> & {
+  usuario: { nome: string } | null;
+};
+
+function paraItem(d: DespesaComUsuario): DespesaItem {
+  return {
+    id: d.id,
+    descricao: d.descricao,
+    valor: d.valor.toFixed(2),
+    tipo: d.tipo,
+    data: deData(d.data),
+    registradoPor: d.usuario?.nome ?? null,
+    recorrenciaId: d.recorrenciaId,
+    estornado: d.estornadoEm !== null,
+    estornadoEm: d.estornadoEm ? hojeEmSaoPaulo(d.estornadoEm) : null,
+    motivoEstorno: d.motivoEstorno,
+  };
+}
+
+/**
+ * Estorna a despesa: ela continua na lista, marcada, mas sai das somas. A despesa fixa já gerada
+ * mantém a `competencia`, então a geração mensal não a cria de novo.
+ */
+export async function estornarDespesa(
+  prisma: PrismaClient,
+  id: number,
+  motivo: string,
+  usuarioId: number,
+  agora: Date = new Date(),
+): Promise<DespesaItem> {
+  return prisma.$transaction(async (tx) => {
+    // Atualização condicional: de dois estornos simultâneos, só um encontra `estornadoEm` nulo.
+    const { count } = await tx.despesa.updateMany({
+      where: { id, estornadoEm: null },
+      data: { estornadoEm: agora, estornadoPor: usuarioId, motivoEstorno: motivo },
+    });
+    const despesa = await tx.despesa.findUnique({ where: { id }, include: { usuario: true } });
+    if (!despesa) throw new ErroHttp(404, 'NAO_ENCONTRADO', 'Despesa não encontrada.');
+    if (count === 0) throw new ErroHttp(409, 'JA_ESTORNADO', 'Esta despesa já foi estornada.');
+    return paraItem(despesa);
+  });
+}
 
 /**
  * Lança uma despesa. A fixa nasce com a recorrência que a repete nos meses seguintes, e o
@@ -67,15 +113,9 @@ export async function listarDespesas(
     orderBy: [{ data: 'desc' }, { id: 'desc' }],
     include: { usuario: true },
   });
-  const itens = despesas.map((d) => ({
-    id: d.id,
-    descricao: d.descricao,
-    valor: d.valor.toFixed(2),
-    tipo: d.tipo,
-    data: deData(d.data),
-    registradoPor: d.usuario?.nome ?? null,
-    recorrenciaId: d.recorrenciaId,
-  }));
-  const total = itens.reduce((soma, i) => soma + paraCentavos(i.valor), 0);
+  const itens = despesas.map(paraItem);
+  const total = itens
+    .filter((i) => !i.estornado)
+    .reduce((soma, i) => soma + paraCentavos(i.valor), 0);
   return { itens, total: deCentavos(total) };
 }

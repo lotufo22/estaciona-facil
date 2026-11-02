@@ -1,5 +1,6 @@
 import {
   FORMAS_PAGAMENTO,
+  estornoSchema,
   pagamentoCriarSchema,
   type FormaPagamento,
 } from '@estacionafacil/shared';
@@ -7,7 +8,13 @@ import { Router, type Request } from 'express';
 import type { Dependencias } from '../dependencias';
 import { ErroHttp } from '../erros';
 import { exigirLogin } from '../middlewares/exigirLogin';
-import { comprovante, listarPagamentos, registrarPagamento } from '../servicos/pagamentos';
+import { exigirPerfil } from '../middlewares/exigirPerfil';
+import {
+  comprovante,
+  estornarPagamento,
+  listarPagamentos,
+  registrarPagamento,
+} from '../servicos/pagamentos';
 import { validar } from '../validacao';
 import { idDaRota } from './mensalistas';
 
@@ -79,6 +86,13 @@ export function criarRotasPagamentos({ prisma, agora }: Dependencias): Router {
 
   rota.get('/:id', async (req, res) => {
     res.json(await comprovante(prisma, idDaRota(req)));
+  });
+
+  /** Só o Proprietário corrige um lançamento: estorno com motivo, sem apagar nada. */
+  rota.post('/:id/estorno', exigirPerfil('proprietario'), async (req, res) => {
+    const id = idDaRota(req);
+    const { motivo } = validar(estornoSchema, req.body);
+    res.json(await estornarPagamento(prisma, id, motivo, req.usuario!.id, agora()));
   });
 
   return rota;
