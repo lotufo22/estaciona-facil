@@ -25,7 +25,7 @@ respostas, e o item 3 já foi respondido por elas.
 | 8 | Cor do resultado negativo no Painel | Baixa | trivial |
 | 9 | Arquivar mensalistas antigos | Baixa | funcionalidade nova |
 | 10 | Custo e riscos da hospedagem em produção | Na entrega | decisão |
-| 11 | **Sem vermelho:** cor de "em atraso" e dos erros | ✅ bordô aplicado; **falta ele confirmar** | feita |
+| 11 | **Sem vermelho:** cor de "em atraso" e dos erros | ✅ ocre escuro aplicado em 02/11/2026 (antes, bordô); **falta ele confirmar** | feita |
 | 12 | Celular como aparelho principal | ✅ melhorado; **falta testar em aparelho real** | feita |
 | 13 | Mensalista noturno e vaga compartilhada (turno) | **Alta** | grande (Fase 2) |
 | 14 | Avaliações dos clientes: ele respondeu "Sim" | Média | decisão |
@@ -200,7 +200,9 @@ sininho, gráfico, mensagens de erro e campos inválidos). O contraste do bordô
 pode", e só ele sabe se o bordô passa. **Mostrar em tela** (o Painel e a aba Vencimentos) antes de dar o assunto
 por resolvido.
 
-**Pergunta que sobra.** O bordô é aceitável? Se não, qual cor ele aceita no lugar?
+**Atualização (02/11/2026).** O redesign do frontend trocou o bordô por um **ocre escuro `#67502c`** (fundo `#f6efe4`) em "em atraso" e nos erros, também sem vermelho; a decisão veio da equipe, e a aprovação do proprietário continua pendente.
+
+**Pergunta que sobra.** A cor (hoje ocre escuro; antes, bordô) é aceitável? Se não, qual cor ele aceita no lugar?
 
 **Se ele não aceitar, as alternativas.** A situação **já aparece sempre em texto**, então a cor é reforço, não
 a única informação.

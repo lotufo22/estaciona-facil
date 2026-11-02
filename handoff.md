@@ -1,10 +1,10 @@
-﻿# Handoff — EstacionaFácil
+# Handoff — EstacionaFácil
 
-Atualizado em 02/11/2026, após a reformulação local do frontend na branch `feature/frontend-profissional`. A homologação já publicada é anterior a esta reformulação; estas mudanças não foram implantadas. Base de referência: `main` com a Tarefa 18 (Netlify, backup, migrações em CI e documentação), Usuários e Minha conta, o turno no contrato (PR #35), o relatório e a apresentação da Atividade 2 (PR #36) e o estorno de recebimentos e despesas com a data do recebimento (02/11/2026). Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
+Atualizado em 02/11/2026, com a reformulação do frontend (PR #40) mesclada e **publicada na homologação** (deploy da `main` no commit `acd4b44`, sem mudança de API nem de migração). A produção não recebeu nada. Base de referência: `main` com a Tarefa 18 (Netlify, backup, migrações em CI e documentação), Usuários e Minha conta, o turno no contrato (PR #35), o relatório e a apresentação da Atividade 2 (PR #36) e o estorno de recebimentos e despesas com a data do recebimento (02/11/2026). Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
 
-## Frontend reformulado — entrega local de 02/11/2026
+## Frontend reformulado — mesclado e na homologação (02/11/2026)
 
-Implementado na branch `feature/frontend-profissional`. O envio desta branch ao GitHub não representa merge nem publicação do frontend:
+Implementado por outro colaborador na branch `feature/frontend-profissional` e mesclado na `main` pelo PR #40, depois da validação abaixo e de um ajuste do teste E2E de celular, que localizava o cabeçalho pela classe antiga `bg-barra` (agora usa o papel `banner`). Publicado na homologação pelo procedimento da seção 7 do guia de instalação:
 
 - Login em duas colunas no computador, com planta ilustrativa do estacionamento; formulário simples em celulares. Inclui mostrar/ocultar senha e feedback durante o envio.
 - Navegação lateral no computador, cabeçalho claro com busca e conta; no celular, cabeçalho compacto, menu inferior e menu Mais por perfil. A lateral tem rolagem própria em telas baixas.
@@ -21,24 +21,18 @@ Até 639 px: sem lateral, navegação fixa inferior com área segura do aparelho
 ### Validação desta revisão
 
 - Node 24.22.2, executado temporariamente por `npx --yes --package=node@24 -- ...` no WSL; dependências instaladas por `npm ci`. O Node 20.18 original da máquina é incompatível com as engines atuais.
-- `npm test -w @estacionafacil/web -- --maxWorkers=4`: **237 testes passaram**, em 15 arquivos, incluindo os testes de contraste dos tokens.
+- `npm test -w @estacionafacil/web -- --maxWorkers=4`: **237 testes passaram** nessa rodada, em 15 arquivos, incluindo os testes de contraste dos tokens (a versão mesclada tem 244 testes web, e o CI do PR passou: lint, tipos, testes, build e E2E de aceitação e celular).
 - `npm run build -w @estacionafacil/web`, `npx eslint apps/web/src` e `git diff --check`: aprovados. O build mantém o aviso de bundle acima de 500 kB; a divisão do JavaScript em chunks permanece como melhoria futura.
 - Playwright com Edge headless e MSW: **72 combinações de tela/largura passaram**, sem overflow horizontal nem erro de execução JavaScript. Foram nove telas (`/painel`, `/mensalistas`, `/vencimentos`, `/recebimentos`, `/despesas`, `/fluxo-de-caixa`, `/usuarios`, `/conta`, `/mensalistas/novo`) nas larguras **320, 360, 390, 414, 640, 768, 1024 e 1440 px**.
 - Capturas de login, painel e telas móveis foram inspecionadas. Os arquivos de conferência e roteiros exploratórios ficaram temporariamente fora do repositório; não foram regravadas as imagens do manual.
 - Toque em navegador emulado: **360×800, 390×844 e 844×390 (paisagem)** aprovados; login, busca por Carlos e nova busca por Joana já na lista, acesso a Usuários, logout e login do auxiliar com somente três destinos. Os testes de navegador usaram redução de movimento; transições também foram inspecionadas em capturas anteriores.
 - Não foram executados nesta revisão os testes da API nem o E2E que recria o PostgreSQL. A conferência de navegador acima usou exclusivamente dados fictícios; não comprova integração com banco nem teste em aparelho físico/Safari.
 
-### Como abrir esta cópia local
+### Como ver a interface com dados de exemplo
 
-No projeto `/home/fesbxdev/projects/unitau/estaciona-facil`, iniciar:
+Na raiz do projeto, `npm run dev:mocks -w @estacionafacil/web`. A interface fica em `http://localhost:5173`. Credenciais exclusivamente fictícias, só dos mocks: `dono` ou `auxiliar`, senha `teste123`. Os mocks estão em memória: atualizar o documento reinicia a sessão e os dados; entrar novamente e navegar pelos links internos para manter o contexto. Para acessar de um celular na mesma rede, usar o endereço LAN da máquina que expõe o Vite (`--host 0.0.0.0`) e verificar o firewall; `localhost` no celular aponta para o próprio aparelho. O acesso de celular físico não foi configurado nesta revisão.
 
-```bash
-npx --yes --package=node@24 -- npm run dev:mocks -w @estacionafacil/web -- --host 0.0.0.0
-```
-
-A interface fica em `http://localhost:5173`. Credenciais exclusivamente fictícias: `dono` ou `auxiliar`, senha `teste123`. O servidor local foi deixado em execução ao final da sessão. Os mocks estão em memória: atualizar o documento reinicia a sessão/dados; entrar novamente e navegar pelos links internos para manter o contexto. Para acessar de um celular na mesma rede, usar o endereço LAN da máquina que expõe o Vite e verificar o encaminhamento de rede/firewall do WSL; `localhost` no celular aponta para o próprio aparelho. Acesso de celular físico nesta rede não foi configurado nesta revisão.
-
-As capturas versionadas do manual e os tokens da spec ainda retratam o design anterior. Atualizá-los no próximo ciclo de documentação/aceitação, usando o procedimento de capturas com banco descartável. A homologação e a produção não receberam este redesign.
+As capturas versionadas do manual e os tokens da spec ainda retratam o design anterior. Atualizá-los no próximo ciclo de documentação/aceitação, usando o procedimento de capturas com banco descartável. A homologação recebeu este redesign em 02/11/2026; a produção não.
 
 ## Novas logos e paleta — integração de 02/11/2026
 
