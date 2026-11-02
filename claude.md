@@ -1,4 +1,4 @@
-﻿# Instruções — EstacionaFácil
+# Instruções — EstacionaFácil
 
 ## Começar
 

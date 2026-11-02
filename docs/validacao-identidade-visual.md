@@ -1,4 +1,4 @@
-﻿# Validação da identidade visual — EstacionaFácil
+# Validação da identidade visual — EstacionaFácil
 
 Data: 02/11/2026. A validação inicial dos arquivos de `docs/img` está registrada abaixo. Após autorização do usuário, a identidade foi aplicada ao frontend; veja a seção de implementação ao final. Os arquivos originais foram preservados.
 

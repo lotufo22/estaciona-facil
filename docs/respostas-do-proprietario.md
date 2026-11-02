@@ -210,7 +210,7 @@ vencimento. Não tem *entrada* nem *saída*, porque o mensalista paga uma mensal
 | Vencimentos, Painel e Fluxo de caixa, com filtros | ✅ Fase 1 |
 | Consulta da situação pela placa digitada | ✅ Fase 1 |
 | Funcionar bem no celular | 🟡 abas embaixo, cabeçalho compacto e listas em cartões (27/10/2026); falta testar em aparelho real |
-| Cores sem vermelho | 🟡 trocado por bordô (`#550000`); falta ele confirmar |
+| Cores sem vermelho | 🟡 trocado por bordô (`#550000`) em 27/10 e, no redesign de 02/11/2026, por ocre escuro (`#67502c`); falta ele confirmar |
 | Nome Tanaga no sistema e no comprovante | ❌ pendente (decisão) |
 | Valores padrão por categoria e turno | ❌ não existe |
 | Pagar vários meses de uma vez; corrigir lançamento errado | ❌ não existe |
