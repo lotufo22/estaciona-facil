@@ -31,6 +31,10 @@ export interface PagamentoItem {
   valor: string;
   forma: FormaPagamento;
   pagoEm: string;
+  estornado: boolean;
+  /** Data do estorno, AAAA-MM-DD; null enquanto o recebimento vale. */
+  estornadoEm: string | null;
+  motivoEstorno: string | null;
 }
 
 export interface ResumoSituacao {
@@ -88,7 +92,7 @@ export interface ListaMensalistasResposta {
   porPagina: number;
 }
 
-export type EventoHistorico = 'criado' | 'renovado' | 'pagamento' | 'encerrado';
+export type EventoHistorico = 'criado' | 'renovado' | 'pagamento' | 'estornado' | 'encerrado';
 
 export interface HistoricoItem {
   id: number;
@@ -138,6 +142,12 @@ export interface RegistroPagamentoResposta {
   novoVencimento: string;
 }
 
+/** Resposta do estorno de um recebimento: o item marcado e o vencimento que o contrato recuperou. */
+export interface EstornoPagamentoResposta {
+  pagamento: PagamentoItem;
+  novoVencimento: string;
+}
+
 export interface DespesaItem {
   id: number;
   descricao: string;
@@ -149,6 +159,10 @@ export interface DespesaItem {
   registradoPor: string | null;
   /** Preenchido quando o lançamento veio de uma despesa fixa. */
   recorrenciaId: number | null;
+  estornado: boolean;
+  /** Data do estorno, AAAA-MM-DD; null enquanto a despesa vale. */
+  estornadoEm: string | null;
+  motivoEstorno: string | null;
 }
 
 export interface DespesasResposta {

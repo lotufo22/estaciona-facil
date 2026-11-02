@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ZodType } from 'zod';
 import {
   despesaCriarSchema,
+  estornoSchema,
   filtrosCaixaSchema,
   loginSchema,
   mensalistaAtualizarSchema,
@@ -268,5 +269,25 @@ describe('schemas de usuário', () => {
       'senhaAtual',
       'novaSenha',
     ]);
+  });
+});
+
+describe('estornoSchema', () => {
+  it('aceita o motivo e apara os espaços', () => {
+    expect(estornoSchema.parse({ motivo: '  Valor digitado errado  ' })).toEqual({
+      motivo: 'Valor digitado errado',
+    });
+  });
+
+  it('exige um motivo de pelo menos 3 letras', () => {
+    const r = estornoSchema.safeParse({ motivo: 'ab' });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0]?.message).toBe('Explique o motivo do estorno');
+  });
+
+  it('limita o motivo a 200 letras', () => {
+    const r = estornoSchema.safeParse({ motivo: 'a'.repeat(201) });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0]?.message).toBe('O motivo pode ter no máximo 200 letras');
   });
 });

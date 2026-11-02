@@ -4,6 +4,7 @@ export {
   hojeEmSaoPaulo,
   proximoVencimento,
   ultimoDiaDoMes,
+  vencimentoAnterior,
 } from './datas';
 export type { TipoContrato } from './datas';
 export { deCentavos, formatarReais, normalizarValor, paraCentavos } from './dinheiro';
@@ -21,6 +22,7 @@ export type { CodigoErro, ErroApi } from './erros';
 export { formatarPlaca, normalizarPlaca } from './placa';
 export {
   despesaCriarSchema,
+  estornoSchema,
   filtrosCaixaSchema,
   loginSchema,
   SENHA_MINIMA,
@@ -40,6 +42,7 @@ export type {
   UsuarioAtualizarEntrada,
   UsuarioCriarEntrada,
   DespesaEntrada,
+  EstornoEntrada,
   FiltrosCaixa,
   LoginEntrada,
   MensalistaAtualizarEntrada,
@@ -56,6 +59,7 @@ export type {
   ContratoDetalhe,
   DespesaItem,
   DespesasResposta,
+  EstornoPagamentoResposta,
   EventoHistorico,
   HistoricoItem,
   ListaMensalistasResposta,

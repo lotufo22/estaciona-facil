@@ -47,6 +47,23 @@ export function proximoVencimento(
   return montar(anoAlvo, mesAlvo, Math.min(diaVencimento, ultimoDiaDoMes(anoAlvo, mesAlvo)));
 }
 
+/**
+ * Inversa de `proximoVencimento`: o vencimento de antes de um pagamento (ou de uma renovação de
+ * um passo). Mensal: mês anterior, no `diaVencimento` limitado ao último dia daquele mês.
+ * Semanal: 7 dias antes.
+ */
+export function vencimentoAnterior(
+  vencimentoAtual: string,
+  tipo: TipoContrato,
+  diaVencimento: number,
+): string {
+  if (tipo === 'semanal') return adicionarDias(vencimentoAtual, -7);
+  const { ano, mes } = partes(vencimentoAtual);
+  const anoAlvo = mes === 1 ? ano - 1 : ano;
+  const mesAlvo = mes === 1 ? 12 : mes - 1;
+  return montar(anoAlvo, mesAlvo, Math.min(diaVencimento, ultimoDiaDoMes(anoAlvo, mesAlvo)));
+}
+
 /** Data de hoje (AAAA-MM-DD) no fuso America/Sao_Paulo. */
 export function hojeEmSaoPaulo(agora: Date = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', {
