@@ -6,6 +6,7 @@ export type { CampoProps } from './Campo';
 export { CartaoKpi } from './CartaoKpi';
 export { Carregando } from './Carregando';
 export { EstadoVazio } from './EstadoVazio';
+export { EtiquetaEstorno } from './EtiquetaEstorno';
 export { EtiquetaSituacao } from './EtiquetaSituacao';
 export { Icone } from './Icone';
 export { LinkBotao } from './LinkBotao';

@@ -3,6 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { delay, http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { bancoMock } from '../../mocks/banco';
 import { erro } from '../../mocks/handlers';
 import { servidor } from '../../mocks/servidor';
 import { renderizarApp } from '../../test/renderizarApp';
@@ -298,5 +299,131 @@ describe('aba Recebimentos', () => {
     falhando = false;
     await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }));
     expect(await lancamentosDoDia().findByText('Carlos Mendes')).toBeInTheDocument();
+  });
+});
+
+/** Conta as chamadas ao estorno e deixa o mock padrão responder. */
+function contarEstornos() {
+  const contagem = { total: 0 };
+  servidor.use(
+    http.post('/api/pagamentos/:id/estorno', () => {
+      contagem.total += 1;
+      return undefined;
+    }),
+  );
+  return contagem;
+}
+
+describe('estorno de recebimento', () => {
+  it('o Proprietário vê "Estornar" nos lançamentos; o Auxiliar não vê', async () => {
+    renderizarApp('/recebimentos', { perfil: 'proprietario' });
+    await titulo();
+    expect(
+      await lancamentosDoDia().findByRole('button', { name: /Estornar recebimento/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('o Auxiliar não vê o botão Estornar', async () => {
+    renderizarApp('/recebimentos', { perfil: 'auxiliar' });
+    await titulo();
+    expect(await lancamentosDoDia().findByText('Carlos Mendes')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Estornar/ })).not.toBeInTheDocument();
+  });
+
+  it('confirmar sem motivo pede o motivo e não chama a API', async () => {
+    const chamadas = contarEstornos();
+    renderizarApp('/recebimentos', { perfil: 'proprietario' });
+    await titulo();
+    await userEvent.click(
+      await lancamentosDoDia().findByRole('button', { name: /Estornar recebimento/ }),
+    );
+    const dialogo = await screen.findByRole('dialog', { name: 'Estornar recebimento?' });
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Sim, estornar' }));
+    expect(await within(dialogo).findByText('Explique o motivo do estorno')).toBeInTheDocument();
+    expect(chamadas.total).toBe(0);
+  });
+
+  it('estornar com motivo marca "Estornado", tira o valor do total e o comprovante avisa', async () => {
+    renderizarApp('/recebimentos', { perfil: 'proprietario' });
+    await titulo();
+    await userEvent.click(
+      await lancamentosDoDia().findByRole('button', { name: /Estornar recebimento/ }),
+    );
+    const dialogo = await screen.findByRole('dialog', { name: 'Estornar recebimento?' });
+    await userEvent.type(within(dialogo).getByLabelText('Motivo'), 'Valor digitado errado');
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Sim, estornar' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(await lancamentosDoDia().findByText('Estornado')).toBeInTheDocument();
+    expect(lancamentosDoDia().getByText(`Total do dia: ${reais('0.00')}`)).toBeInTheDocument();
+    expect(
+      lancamentosDoDia().queryByRole('button', { name: /Estornar recebimento/ }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(lancamentosDoDia().getByRole('button', { name: /Ver comprovante/ }));
+    const comprovante = await screen.findByRole('region', { name: 'Comprovante de recebimento' });
+    expect(within(comprovante).getByText('Recebimento estornado')).toBeInTheDocument();
+    expect(within(comprovante).getByText(/Valor digitado errado/)).toBeInTheDocument();
+  });
+
+  it('estornar um recebimento que não é o mais recente mostra o erro no diálogo', async () => {
+    bancoMock.recebimentos.unshift({
+      id: 101,
+      numero: 101,
+      mensalista: 'Carlos Mendes',
+      placa: 'FGH4J56',
+      valor: '255.00',
+      forma: 'pix',
+      pagoEm: '2026-10-26',
+      estornado: false,
+      estornadoEm: null,
+      motivoEstorno: null,
+    });
+    renderizarApp('/recebimentos', { perfil: 'proprietario' });
+    await titulo();
+    await userEvent.click(
+      await lancamentosDoDia().findByRole('button', { name: 'Estornar recebimento 100' }),
+    );
+    const dialogo = await screen.findByRole('dialog', { name: 'Estornar recebimento?' });
+    await userEvent.type(within(dialogo).getByLabelText('Motivo'), 'Valor digitado errado');
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Sim, estornar' }));
+    expect(
+      await within(dialogo).findByText(/Estorne primeiro o recebimento nº 101/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+});
+
+describe('data do recebimento', () => {
+  it('o campo começa em hoje, não aceita data futura (max) e a data informada vai para a API', async () => {
+    const registro = observarPagamentos();
+    renderizarApp('/recebimentos?contrato=5', { perfil: 'proprietario' });
+    await titulo();
+    const data = await screen.findByLabelText('Data do recebimento');
+    expect(data).toHaveValue('2026-10-26');
+    expect(data).toHaveAttribute('max', '2026-10-26');
+
+    await waitFor(() => expect(screen.getByLabelText('Valor')).toHaveValue('255.00'));
+    await userEvent.clear(data);
+    await userEvent.type(data, '2026-10-20');
+    await userEvent.click(confirmar());
+    const comprovante = await screen.findByRole('region', { name: 'Comprovante de recebimento' });
+    expect(within(comprovante).getByText('20/10/2026')).toBeInTheDocument();
+    expect((registro.corpos[0] as { pagoEm: string }).pagoEm).toBe('2026-10-20');
+  });
+
+  it('uma data futura mostra o erro sob o campo e não chama a API', async () => {
+    const registro = observarPagamentos();
+    renderizarApp('/recebimentos?contrato=5', { perfil: 'proprietario' });
+    await titulo();
+    const data = await screen.findByLabelText('Data do recebimento');
+    await waitFor(() => expect(screen.getByLabelText('Valor')).toHaveValue('255.00'));
+    await userEvent.clear(data);
+    await userEvent.type(data, '2026-10-27');
+    await userEvent.click(confirmar());
+    await waitFor(() =>
+      expect(data).toHaveAccessibleDescription('A data do recebimento não pode ser futura'),
+    );
+    expect(registro.chaves).toHaveLength(0);
   });
 });

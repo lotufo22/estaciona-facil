@@ -39,6 +39,7 @@ const NOME_DO_EVENTO: Record<EventoHistorico, string> = {
   criado: 'Contrato criado',
   renovado: 'Contrato renovado',
   pagamento: 'Pagamento',
+  estornado: 'Recebimento estornado',
   encerrado: 'Contrato encerrado',
 };
 

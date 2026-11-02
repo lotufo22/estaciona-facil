@@ -7,7 +7,7 @@ import {
 } from '@estacionafacil/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useState } from 'react';
-import { useForm, type Resolver } from 'react-hook-form';
+import { useForm, type Resolver, type ResolverResult } from 'react-hook-form';
 import { Botao } from '../../components/ui/Botao';
 import { Campo } from '../../components/ui/Campo';
 import { MensagemErro } from '../../components/ui/MensagemErro';
@@ -19,13 +19,23 @@ import { useRegistrarPagamento } from './api';
 import { NOME_DA_FORMA } from './Comprovante';
 import { SeletorMensalista } from './SeletorMensalista';
 
-const CAMPOS = ['contratoId', 'valor', 'forma'] as const;
+const CAMPOS = ['contratoId', 'valor', 'forma', 'pagoEm'] as const;
 const OPCOES_FORMA = FORMAS_PAGAMENTO.map((f) => ({ valor: f, texto: NOME_DA_FORMA[f] }));
-const VALORES_INICIAIS = { forma: 'pix', valor: '' } as const;
+const valoresIniciais = () => ({ forma: 'pix', valor: '', pagoEm: hoje() }) as const;
 
-/** A data do recebimento é sempre hoje: entra na validação, sem campo na tela. */
-const resolver: Resolver<PagamentoEntrada> = (valores, contexto, opcoes) =>
-  zodResolver(pagamentoCriarSchema)({ ...valores, pagoEm: hoje() }, contexto, opcoes);
+/** O schema valida o formato; a regra "não pode ser futura" depende do dia de hoje e fica aqui. */
+const resolver: Resolver<PagamentoEntrada> = async (valores, contexto, opcoes) => {
+  const resultado = await zodResolver(pagamentoCriarSchema)(valores, contexto, opcoes);
+  const futura = typeof valores.pagoEm === 'string' && valores.pagoEm > hoje();
+  if (!futura || 'pagoEm' in resultado.errors) return resultado;
+  return {
+    values: {},
+    errors: {
+      ...resultado.errors,
+      pagoEm: { type: 'validate', message: 'A data do recebimento não pode ser futura' },
+    },
+  } as ResolverResult<PagamentoEntrada>;
+};
 
 interface FormularioRecebimentoProps {
   /** Contrato que veio na URL (`?contrato=`); preenche o mensalista ao abrir a tela. */
@@ -59,7 +69,7 @@ export function FormularioRecebimento({
     setValue,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<PagamentoEntrada>({ resolver, defaultValues: VALORES_INICIAIS });
+  } = useForm<PagamentoEntrada>({ resolver, defaultValues: valoresIniciais() });
 
   // Escolher o mensalista preenche o contrato e a mensalidade (que o usuário ainda pode ajustar).
   const contratoEscolhido = escolhido?.contratoId;
@@ -74,7 +84,7 @@ export function FormularioRecebimento({
     setEscolhidoNaBusca(null);
     setErroGeral(null);
     aoLimparContrato();
-    reset(VALORES_INICIAIS);
+    reset(valoresIniciais());
   }
 
   async function enviar(dados: PagamentoEntrada) {
@@ -86,7 +96,7 @@ export function FormularioRecebimento({
       const resposta = await registrar.mutateAsync(dados);
       setEscolhidoNaBusca(null);
       aoLimparContrato();
-      reset(VALORES_INICIAIS);
+      reset(valoresIniciais());
       aoRegistrar(resposta);
     } catch (erro) {
       setErroGeral(aplicarErroDeApi(erro, setError, CAMPOS));
@@ -124,6 +134,14 @@ export function FormularioRecebimento({
           ajuda="Pode usar vírgula, por exemplo 150 ou 150,50"
           erro={errors.valor?.message}
           {...register('valor')}
+        />
+        <Campo
+          rotulo="Data do recebimento"
+          type="date"
+          max={hoje()}
+          ajuda="Hoje, ou o dia em que o dinheiro entrou"
+          erro={errors.pagoEm?.message}
+          {...register('pagoEm')}
         />
       </div>
 

@@ -78,7 +78,9 @@ const LINHAS: Linha[] = [
   ['Patrícia Gomes', 'RIO4A56', 'carro', '28', '2026-11-18', '255.00'],
 ];
 
-const RECEBIMENTOS: Omit<PagamentoItem, 'id' | 'numero'>[] = [
+type SemEstorno = 'estornado' | 'estornadoEm' | 'motivoEstorno';
+
+const RECEBIMENTOS: Omit<PagamentoItem, 'id' | 'numero' | SemEstorno>[] = [
   {
     mensalista: 'Carlos Mendes',
     placa: 'FGH4J56',
@@ -135,7 +137,7 @@ const SERIE_MENSAL: SerieMensalItem[] = [
 ];
 
 // Despesas de outubro de 2026 somam R$ 7.980,00; as três fixas têm recorrência.
-const DESPESAS: Omit<DespesaItem, 'id'>[] = [
+const DESPESAS: Omit<DespesaItem, 'id' | SemEstorno>[] = [
   {
     descricao: 'Aluguel',
     valor: '5500.00',
@@ -226,10 +228,23 @@ function criarBanco(): BancoMock {
         { id: i + 1, evento: 'criado', em: '2026-01-10', detalhes: null, usuario: 'Proprietário' },
       ],
     })),
-    recebimentos: RECEBIMENTOS.map((r, i) => ({ ...r, id: 100 - i, numero: 100 - i })),
+    recebimentos: RECEBIMENTOS.map((r, i) => ({
+      ...r,
+      id: 100 - i,
+      numero: 100 - i,
+      estornado: false,
+      estornadoEm: null,
+      motivoEstorno: null,
+    })),
     serieMensal: SERIE_MENSAL.map((m) => ({ ...m })),
     pagamentosPorChave: new Map(),
-    despesas: DESPESAS.map((d, i) => ({ ...d, id: i + 1 })),
+    despesas: DESPESAS.map((d, i) => ({
+      ...d,
+      id: i + 1,
+      estornado: false,
+      estornadoEm: null,
+      motivoEstorno: null,
+    })),
     recorrencias: RECORRENCIAS.map((r) => ({ ...r })),
   };
 }

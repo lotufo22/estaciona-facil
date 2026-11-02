@@ -1,21 +1,35 @@
-import { formatarReais } from '@estacionafacil/shared';
+import { formatarReais, type DespesaItem } from '@estacionafacil/shared';
+import { useState } from 'react';
 import { CabecalhoPagina } from '../../app/CabecalhoPagina';
+import { DialogoEstorno } from '../../components/DialogoEstorno';
 import { Botao } from '../../components/ui/Botao';
 import { Carregando } from '../../components/ui/Carregando';
 import { EstadoVazio } from '../../components/ui/EstadoVazio';
+import { EtiquetaEstorno } from '../../components/ui/EtiquetaEstorno';
 import { MensagemErro } from '../../components/ui/MensagemErro';
 import { Tabela } from '../../components/ui/Tabela';
 import { formatarData } from '../../lib/formatar';
 import { hoje } from '../../lib/hoje';
 import { mesDe } from '../../lib/periodo';
 import { useSessao } from '../../lib/sessao';
-import { useAlternarRecorrencia, useDespesas, useRecorrencias } from './api';
+import { useAlternarRecorrencia, useDespesas, useEstornarDespesa, useRecorrencias } from './api';
 import { FormularioDespesa } from './FormularioDespesa';
 
 const NOME_DO_TIPO = { fixa: 'Fixa', variavel: 'Variável' } as const;
 
-function DespesasDoMes({ de, ate }: { de: string; ate: string }) {
+function DespesasDoMes({
+  de,
+  ate,
+  podeEstornar,
+}: {
+  de: string;
+  ate: string;
+  podeEstornar: boolean;
+}) {
   const consulta = useDespesas({ de, ate });
+  const estornar = useEstornarDespesa();
+  const [paraEstornar, setParaEstornar] = useState<DespesaItem | null>(null);
+  const cabecalhos = ['Data', 'Descrição', 'Tipo', 'Valor', ...(podeEstornar ? ['Ação'] : [])];
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6">
       <h2 className="text-xl font-bold">Despesas do mês</h2>
@@ -38,13 +52,33 @@ function DespesasDoMes({ de, ate }: { de: string; ate: string }) {
       )}
       {consulta.data && consulta.data.itens.length > 0 && (
         <>
-          <Tabela legenda="Despesas do mês" cabecalhos={['Data', 'Descrição', 'Tipo', 'Valor']}>
+          <Tabela legenda="Despesas do mês" cabecalhos={cabecalhos}>
             {consulta.data.itens.map((d) => (
               <tr key={d.id}>
                 <td className="px-2 py-3">{formatarData(d.data)}</td>
                 <td className="px-2 py-3 font-semibold">{d.descricao}</td>
                 <td className="px-2 py-3">{NOME_DO_TIPO[d.tipo]}</td>
-                <td className="px-2 py-3 font-semibold">{formatarReais(d.valor)}</td>
+                <td className="px-2 py-3 font-semibold">
+                  <div className="flex flex-col items-start gap-1">
+                    <span className={d.estornado ? 'line-through' : undefined}>
+                      {formatarReais(d.valor)}
+                    </span>
+                    {d.estornado && <EtiquetaEstorno feminino />}
+                  </div>
+                </td>
+                {podeEstornar && (
+                  <td className="px-2 py-3">
+                    {!d.estornado && (
+                      <Botao
+                        variante="secundario"
+                        aria-label={`Estornar despesa ${d.descricao}`}
+                        onClick={() => setParaEstornar(d)}
+                      >
+                        Estornar
+                      </Botao>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </Tabela>
@@ -52,6 +86,17 @@ function DespesasDoMes({ de, ate }: { de: string; ate: string }) {
             {`Total do mês: ${formatarReais(consulta.data.total)}`}
           </p>
         </>
+      )}
+      {paraEstornar && (
+        <DialogoEstorno
+          titulo="Estornar despesa?"
+          aviso={`Despesa “${paraEstornar.descricao}”, no valor de ${formatarReais(paraEstornar.valor)}. Ela sai das somas do mês, mas continua na lista, marcada como estornada. Nada é apagado.`}
+          aoConfirmar={async (motivo) => {
+            await estornar.mutateAsync({ id: paraEstornar.id, motivo });
+            setParaEstornar(null);
+          }}
+          aoFechar={() => setParaEstornar(null)}
+        />
       )}
     </section>
   );
@@ -129,7 +174,11 @@ export function Despesas() {
       <div className="grid items-start gap-6 lg:grid-cols-3">
         <FormularioDespesa />
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <DespesasDoMes de={mes.de} ate={mes.ate} />
+          <DespesasDoMes
+            de={mes.de}
+            ate={mes.ate}
+            podeEstornar={sessao?.perfil === 'proprietario'}
+          />
           <DespesasFixas podePausar={sessao?.perfil === 'proprietario'} />
         </div>
       </div>

@@ -407,3 +407,21 @@ describe('encerrar contrato', () => {
     expect(screen.queryByText('Carlos Mendes')).not.toBeInTheDocument();
   });
 });
+
+describe('histórico com estorno', () => {
+  it('mostra o evento "Recebimento estornado" com o motivo', async () => {
+    const carlos = bancoMock.mensalistas.find((m) => m.id === 1);
+    if (!carlos) throw new Error('mensalista 1 não existe no mock');
+    carlos.historico.unshift({
+      id: 999,
+      evento: 'estornado',
+      em: '2026-10-26',
+      detalhes: 'Comprovante nº 7 estornado: Valor digitado errado',
+      usuario: 'Proprietário',
+    });
+    renderizarApp('/mensalistas/1', { perfil: 'proprietario' });
+    await titulo('Carlos Mendes');
+    expect(screen.getByText('Recebimento estornado')).toBeInTheDocument();
+    expect(screen.getByText(/Valor digitado errado/)).toBeInTheDocument();
+  });
+});

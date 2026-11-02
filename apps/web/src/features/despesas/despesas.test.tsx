@@ -31,6 +31,7 @@ function linhasDaLista() {
     .map((l) =>
       within(l)
         .getAllByRole('cell')
+        .slice(0, 4) // Data, Descrição, Tipo e Valor; a coluna Ação só existe para o Proprietário
         .map((c) => c.textContent),
     );
 }
@@ -90,6 +91,9 @@ describe('aba Despesas', () => {
       data: '2026-09-30',
       registradoPor: 'Proprietário',
       recorrenciaId: null,
+      estornado: false,
+      estornadoEm: null,
+      motivoEstorno: null,
     });
     renderizarApp('/despesas', { perfil: 'proprietario' });
     await titulo();
@@ -267,5 +271,35 @@ describe('aba Despesas', () => {
     falhando = false;
     await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }));
     expect(await secao('Despesas do mês').findByText('Aluguel')).toBeInTheDocument();
+  });
+});
+
+describe('estorno de despesa', () => {
+  it('o Proprietário estorna uma despesa: fica marcada e sai do total do mês', async () => {
+    renderizarApp('/despesas', { perfil: 'proprietario' });
+    await titulo();
+    await userEvent.click(await screen.findByRole('button', { name: 'Estornar despesa Luz' }));
+    const dialogo = await screen.findByRole('dialog', { name: 'Estornar despesa?' });
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Sim, estornar' }));
+    expect(await within(dialogo).findByText('Explique o motivo do estorno')).toBeInTheDocument();
+
+    await userEvent.type(within(dialogo).getByLabelText('Motivo'), 'Lançada duas vezes');
+    await userEvent.click(within(dialogo).getByRole('button', { name: 'Sim, estornar' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    expect(await secao('Despesas do mês').findByText('Estornada')).toBeInTheDocument();
+    expect(
+      secao('Despesas do mês').getByText(`Total do mês: ${reais('6830.00')}`),
+    ).toBeInTheDocument();
+    expect(
+      secao('Despesas do mês').queryByRole('button', { name: 'Estornar despesa Luz' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('o Auxiliar não vê o botão Estornar', async () => {
+    renderizarApp('/despesas', { perfil: 'auxiliar' });
+    await titulo();
+    expect(await secao('Despesas do mês').findByText('Luz')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Estornar/ })).not.toBeInTheDocument();
   });
 });
