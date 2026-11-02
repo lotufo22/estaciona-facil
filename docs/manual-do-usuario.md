@@ -133,14 +133,17 @@ três). A tabela vem em ordem de vencimento, do mais antigo ao mais novo, e cada
    certo.
 2. Escolha a **Forma de pagamento** (Pix, dinheiro, débito ou crédito). O **Valor** já vem preenchido
    com o valor do contrato; confira.
-3. Clique **uma vez** em **Confirmar recebimento**.
+3. A **Data do recebimento** já vem com a de hoje. Se você anotou o pagamento antes e está lançando
+   agora, mude para o **dia em que o dinheiro entrou** (não aceita data de amanhã em diante).
+4. Clique **uma vez** em **Confirmar recebimento**.
 
 ![Comprovante de recebimento](./manual/capturas/10-comprovante.png)
 
 O sistema mostra o **comprovante** (com número, cliente, placa, forma, data, valor e **próximo
 vencimento**). Clique em **Imprimir comprovante** para entregar ao cliente, ou em **Novo recebimento**
 para o próximo. A lista **Lançamentos do dia** mostra o que já foi recebido hoje e o **total do dia**;
-o botão **Ver comprovante** reabre qualquer um.
+o botão **Ver comprovante** reabre qualquer um. Para ver os lançamentos de outro dia, mude o **Dia
+dos lançamentos**.
 
 Pontos importantes:
 
@@ -150,7 +153,20 @@ Pontos importantes:
   não a partir de hoje. Se o cliente deve **três meses**, um pagamento quita só o mais antigo e ele
   continua em atraso até pagar os outros. Registre um pagamento por mês devido.
 - Contrato **encerrado** não recebe pagamento.
-- Pagamento registrado **não pode ser apagado**. Se errou, avise o Proprietário.
+- Pagamento registrado **não pode ser apagado**. Se errou, avise o Proprietário: ele pode **estornar**.
+
+### Estornar um recebimento (Proprietário)
+
+Quando o recebimento foi lançado com valor ou forma errados, o Proprietário clica em **Estornar** na linha
+dele, escreve o **motivo** (por exemplo, "valor digitado errado") e confirma. O que acontece:
+
+- O recebimento **continua na lista**, marcado como **Estornado**, e **deixa de somar** no total do dia, no
+  Painel e no Fluxo de caixa. **Nada é apagado.**
+- O **vencimento do cliente volta** ao que era antes desse recebimento.
+- O histórico do cliente mostra **Recebimento estornado**, com o motivo, quem estornou e quando.
+
+Só dá para estornar o **recebimento mais recente do contrato**. Se precisar estornar um mais antigo, estorne
+primeiro os mais novos (o sistema avisa qual). Depois de estornar, lance o recebimento certo.
 
 ## 8. Despesas
 
@@ -163,6 +179,10 @@ Para lançar uma despesa, preencha **Descrição**, **Valor** (por exemplo `86,5
 - **Fixa** repete **todo mês** (aluguel, luz, água). Ao escolher *Fixa*, aparece o **Dia do mês**. O
   sistema lança a despesa no mês atual e **cria sozinho o lançamento dos meses seguintes**, no dia certo,
   sem duplicar. Em meses curtos, uma despesa do dia 31 cai no último dia do mês.
+
+Uma despesa lançada errada pode ser **estornada** pelo Proprietário (botão **Estornar**, com o motivo). Ela
+continua na lista, marcada como **Estornada**, e deixa de somar no total do mês e no Fluxo de caixa. Uma
+despesa fixa estornada não é lançada de novo no mesmo mês.
 
 A tabela **Despesas fixas** lista as que se repetem. O Proprietário pode **Pausar** uma (por exemplo,
 quando o contrato do aluguel acaba) e **Retomar** depois. Pausar não apaga o que já foi lançado.

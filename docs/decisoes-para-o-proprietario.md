@@ -15,7 +15,7 @@ respostas, e o item 3 já foi respondido por elas.
 
 | # | Assunto | Urgência | Mudança necessária |
 |---|---|---|---|
-| 1 | Corrigir um recebimento ou uma despesa lançados errado | **Alta** | funcionalidade nova |
+| 1 | Corrigir um recebimento ou uma despesa lançados errado | ✅ estorno feito (opção A); **falta ele confirmar** | feita |
 | 2 | Renovar contrato semanal | Alta | pequena |
 | 3 | Internet no estacionamento | ✅ respondida; falta o campo de data | pequena |
 | 4 | Cliente que quita vários meses de uma vez | Média | funcionalidade nova |
@@ -54,6 +54,11 @@ forma de pagamento errados, o erro fica, e o vencimento do contrato já avançou
   não aguenta o dia a dia.
 
 **Sugestão.** A, também para despesas lançadas errado.
+
+**Como ficou (02/11/2026).** Foi feita a opção **A**, para recebimentos e despesas: só o Proprietário estorna,
+com **motivo**; o lançamento fica marcado e sai do caixa, e o vencimento volta. Para recebimento, só o
+**mais recente** do contrato pode ser estornado (os mais antigos, depois de estornar os novos). A regra vem
+da recomendação deste documento: **o proprietário ainda não respondeu**, e a resposta pode mudá-la.
 **Resposta:** ____________________
 
 ## 2. Renovar contrato semanal
@@ -81,9 +86,9 @@ horários de mais calmaria, sem horário certo". Só ele usaria o sistema.
 rodar o sistema localmente (a opção B deixa de fazer sentido). O aparelho principal é o **celular** (item
 12).
 
-**O que ainda falta.** Como não há horário fixo para lançar, o recebimento pode ser registrado **depois** do
-atendimento. Hoje a tela **só lança com a data de hoje**, então um recebimento anotado antes e lançado agora
-sairia com a data errada. Falta um **campo de data** no recebimento (ligado ao item 1).
+**O que faltava (feito em 02/11/2026).** Como não há horário fixo para lançar, o recebimento pode ser registrado
+**depois** do atendimento. A tela passou a ter o campo **Data do recebimento** (hoje por padrão, passado
+permitido, futuro não), e o caixa usa essa data.
 
 **Pergunta que sobra.** O que ele faz hoje se faltar internet no estacionamento? (Sugestão: anotar no caderno
 e lançar depois, com a data certa.)

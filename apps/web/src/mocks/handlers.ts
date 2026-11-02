@@ -9,7 +9,9 @@ import {
   normalizarPlaca,
   pagamentoCriarSchema,
   paraCentavos,
+  estornoSchema,
   proximoVencimento,
+  vencimentoAnterior,
   contaAtualizarSchema,
   recorrenciaAtualizarSchema,
   renovacaoSchema,
@@ -531,6 +533,11 @@ export const handlers = [
       return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
     }
     const { contratoId, valor, forma, pagoEm } = entrada.data;
+    if (pagoEm > bancoMock.hoje) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', {
+        pagoEm: 'A data do recebimento não pode ser futura',
+      });
+    }
     const m = acharPorContrato(String(contratoId));
     if (!m) return naoEncontrado('Contrato não encontrado.');
     if (m.status === 'encerrado') return contratoEncerrado();
@@ -544,6 +551,9 @@ export const handlers = [
       valor,
       forma,
       pagoEm,
+      estornado: false,
+      estornadoEm: null,
+      motivoEstorno: null,
     };
     bancoMock.recebimentos.unshift(pagamento);
     m.vencimento = proximoVencimento(m.vencimento, m.tipo, m.diaVencimento);
@@ -570,7 +580,9 @@ export const handlers = [
     );
     const resposta: PagamentosResposta = {
       itens,
-      total: deCentavos(itens.reduce((soma, r) => soma + paraCentavos(r.valor), 0)),
+      total: deCentavos(
+        itens.filter((r) => !r.estornado).reduce((soma, r) => soma + paraCentavos(r.valor), 0),
+      ),
     };
     return HttpResponse.json(resposta);
   }),
@@ -580,6 +592,46 @@ export const handlers = [
     if (bloqueio) return bloqueio;
     const pagamento = bancoMock.recebimentos.find((r) => r.id === Number(params.id));
     return pagamento ? HttpResponse.json(pagamento) : naoEncontrado('Comprovante não encontrado.');
+  }),
+
+  http.post('/api/pagamentos/:id/estorno', async ({ params, request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const pagamento = bancoMock.recebimentos.find((r) => r.id === Number(params.id));
+    if (!pagamento) return naoEncontrado('Comprovante não encontrado.');
+    const entrada = estornoSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    if (pagamento.estornado) {
+      return erro(409, 'JA_ESTORNADO', 'Este recebimento já foi estornado.');
+    }
+    // Só o mais recente ainda válido do contrato (o mock liga recebimento e contrato pela placa).
+    const maisRecente = bancoMock.recebimentos
+      .filter((r) => r.placa === pagamento.placa && !r.estornado && r.id > pagamento.id)
+      .sort((a, b) => b.id - a.id)[0];
+    if (maisRecente) {
+      return erro(
+        409,
+        'ESTORNO_FORA_DE_ORDEM',
+        `Estorne primeiro o recebimento nº ${maisRecente.id}, o mais recente deste contrato.`,
+      );
+    }
+    pagamento.estornado = true;
+    pagamento.estornadoEm = bancoMock.hoje;
+    pagamento.motivoEstorno = entrada.data.motivo;
+    const m = bancoMock.mensalistas.find((x) => x.placa === pagamento.placa);
+    if (m) {
+      m.vencimento = vencimentoAnterior(m.vencimento, m.tipo, m.diaVencimento);
+      m.historico.unshift({
+        id: proximoIdHistorico(),
+        evento: 'estornado',
+        em: bancoMock.hoje,
+        detalhes: `Comprovante nº ${pagamento.id} estornado: ${entrada.data.motivo}`,
+        usuario: bancoMock.sessao?.nome ?? null,
+      });
+    }
+    return HttpResponse.json({ pagamento, novoVencimento: m?.vencimento ?? '' });
   }),
 
   http.get('/api/despesas', ({ request }) => {
@@ -594,7 +646,9 @@ export const handlers = [
       .sort((a, b) => b.data.localeCompare(a.data) || b.id - a.id);
     const resposta: DespesasResposta = {
       itens,
-      total: deCentavos(itens.reduce((soma, d) => soma + paraCentavos(d.valor), 0)),
+      total: deCentavos(
+        itens.filter((d) => !d.estornado).reduce((soma, d) => soma + paraCentavos(d.valor), 0),
+      ),
     };
     return HttpResponse.json(resposta);
   }),
@@ -622,9 +676,28 @@ export const handlers = [
       data,
       registradoPor: bancoMock.sessao?.nome ?? null,
       recorrenciaId,
+      estornado: false,
+      estornadoEm: null,
+      motivoEstorno: null,
     };
     bancoMock.despesas.push(despesa);
     return HttpResponse.json({ despesaId: despesa.id, recorrenciaId }, { status: 201 });
+  }),
+
+  http.post('/api/despesas/:id/estorno', async ({ params, request }) => {
+    const bloqueio = exigir('proprietario');
+    if (bloqueio) return bloqueio;
+    const despesa = bancoMock.despesas.find((d) => d.id === Number(params.id));
+    if (!despesa) return naoEncontrado('Despesa não encontrada.');
+    const entrada = estornoSchema.safeParse(await request.json());
+    if (!entrada.success) {
+      return erro(422, 'DADOS_INVALIDOS', 'Confira os campos.', camposDoZod(entrada.error));
+    }
+    if (despesa.estornado) return erro(409, 'JA_ESTORNADO', 'Esta despesa já foi estornada.');
+    despesa.estornado = true;
+    despesa.estornadoEm = bancoMock.hoje;
+    despesa.motivoEstorno = entrada.data.motivo;
+    return HttpResponse.json(despesa);
   }),
 
   http.get(

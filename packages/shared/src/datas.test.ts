@@ -1,5 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { hojeEmSaoPaulo, proximoVencimento } from './datas';
+import { hojeEmSaoPaulo, proximoVencimento, ultimoDiaDoMes, vencimentoAnterior } from './datas';
+
+describe('vencimentoAnterior', () => {
+  it('volta um mês mantendo o dia', () => {
+    expect(vencimentoAnterior('2026-11-05', 'mensal', 5)).toBe('2026-10-05');
+  });
+
+  it('dia 31 volta ao último dia de fevereiro, e de 29 em ano bissexto', () => {
+    expect(vencimentoAnterior('2026-03-31', 'mensal', 31)).toBe('2026-02-28');
+    expect(vencimentoAnterior('2028-03-31', 'mensal', 31)).toBe('2028-02-29');
+  });
+
+  it('atravessa a virada de ano', () => {
+    expect(vencimentoAnterior('2026-01-15', 'mensal', 15)).toBe('2025-12-15');
+  });
+
+  it('contrato semanal volta 7 dias', () => {
+    expect(vencimentoAnterior('2026-11-12', 'semanal', 5)).toBe('2026-11-05');
+  });
+
+  it('é a inversa de proximoVencimento para qualquer dia de vencimento', () => {
+    for (let dia = 1; dia <= 31; dia += 1) {
+      for (let mes = 1; mes <= 12; mes += 1) {
+        const ate = Math.min(dia, ultimoDiaDoMes(2026, mes));
+        const atual = `2026-${String(mes).padStart(2, '0')}-${String(ate).padStart(2, '0')}`;
+        const seguinte = proximoVencimento(atual, 'mensal', dia);
+        expect(vencimentoAnterior(seguinte, 'mensal', dia)).toBe(atual);
+      }
+    }
+  });
+});
 
 describe('proximoVencimento', () => {
   it('avança um mês mantendo o dia', () => {

@@ -127,3 +127,25 @@ describe('gerarDespesasRecorrentes', () => {
     expect(await prisma.despesa.count()).toBe(1);
   });
 });
+
+describe('despesa fixa estornada', () => {
+  it('a geração do mesmo mês não cria cópia nova nem reativa a estornada', async () => {
+    await criarRecorrencia(5);
+    await gerarDespesasRecorrentes(prisma, '2026-11-05');
+    const [gerada] = await lancamentos();
+    const usuario = await prisma.usuario.findFirstOrThrow();
+    await prisma.despesa.update({
+      where: { id: gerada!.id },
+      data: {
+        estornadoEm: new Date(),
+        estornadoPor: usuario.id,
+        motivoEstorno: 'Pago em duplicidade',
+      },
+    });
+
+    expect(await gerarDespesasRecorrentes(prisma, '2026-11-20')).toBe(0);
+    const todas = await lancamentos();
+    expect(todas).toHaveLength(1);
+    expect(todas[0]?.estornadoEm).not.toBeNull();
+  });
+});

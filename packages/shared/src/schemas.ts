@@ -138,6 +138,15 @@ export const mensalistaAtualizarSchema = z
   .partial()
   .refine((o) => Object.keys(o).length > 0, 'Informe ao menos um campo para atualizar');
 
+/** O Proprietário explica por que estorna um recebimento ou uma despesa. */
+export const estornoSchema = z.object({
+  motivo: z
+    .string()
+    .trim()
+    .min(3, 'Explique o motivo do estorno')
+    .max(200, 'O motivo pode ter no máximo 200 letras'),
+});
+
 export const renovacaoSchema = z.object({
   motivo: z
     .string()
@@ -215,6 +224,7 @@ export type MensalistaCriarEntrada = z.infer<typeof mensalistaCriarSchema>;
 export type MensalistaCriarFormulario = z.input<typeof mensalistaCriarSchema>;
 export type MensalistaAtualizarEntrada = z.infer<typeof mensalistaAtualizarSchema>;
 export type RenovacaoEntrada = z.infer<typeof renovacaoSchema>;
+export type EstornoEntrada = z.infer<typeof estornoSchema>;
 export type PagamentoEntrada = z.infer<typeof pagamentoCriarSchema>;
 export type DespesaEntrada = z.infer<typeof despesaCriarSchema>;
 export type FiltrosCaixa = z.infer<typeof filtrosCaixaSchema>;

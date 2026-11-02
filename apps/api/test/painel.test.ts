@@ -6,6 +6,7 @@ import {
   criarDespesaDireta,
   criarEventoCriado,
   criarPagamentoDireto,
+  estornarDireto,
   limparMovimento,
 } from './ajudantesConsultas';
 import { entrarComo, semearBasico } from './ajudantesRotas';
@@ -62,6 +63,22 @@ describe('GET /painel', () => {
     expect(body.vencidos).toEqual({ quantidade: 2, total: '355.50' });
     expect(body.aVencer).toEqual({ quantidade: 1, total: '90.00' });
     expect(body.situacao).toEqual({ emDia: 1, aVencer: 1, vencido: 2 });
+  });
+
+  it('recebimento estornado não entra no resultado do mês nem nos últimos recebimentos', async () => {
+    const valido = await criarPagamentoDireto(prisma, contratoDaAna, {
+      valor: '600.00',
+      pagoEm: '2026-10-05',
+    });
+    const errado = await criarPagamentoDireto(prisma, contratoDaAna, {
+      valor: '900.00',
+      pagoEm: '2026-10-06',
+    });
+    await estornarDireto(prisma, 'pagamento', errado.id);
+
+    const { body } = await consultar();
+    expect(body.resultadoDoMes.receitas).toBe('600.00');
+    expect(body.ultimosRecebimentos.map((r: { id: number }) => r.id)).toEqual([valido.id]);
   });
 
   it('variacao do resultado é null quando o mês anterior é zero', async () => {

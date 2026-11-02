@@ -48,6 +48,7 @@ export async function somarPeriodo(
   const pagamentos = await prisma.pagamento.groupBy({
     by: ['pagoEm', 'forma'],
     where: {
+      estornadoEm: null,
       pagoEm: { gte: paraData(de), lte: paraData(ate) },
       ...(tipo || categoria
         ? {
@@ -62,7 +63,7 @@ export async function somarPeriodo(
   });
   const despesas = await prisma.despesa.groupBy({
     by: ['data'],
-    where: { data: { gte: paraData(de), lte: paraData(ate) } },
+    where: { estornadoEm: null, data: { gte: paraData(de), lte: paraData(ate) } },
     _sum: { valor: true },
   });
 

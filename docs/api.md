@@ -48,6 +48,8 @@ Erro inesperado vira `500 ERRO_INTERNO` sem detalhes internos.
 | `VAGA_OCUPADA` | 409 | a vaga já tem contrato ativo **no mesmo turno** |
 | `CONTRATO_ENCERRADO` | 409 | pagar, renovar, editar ou encerrar um contrato já encerrado |
 | `CHAVE_IDEMPOTENCIA_AUSENTE` | 400 | `POST /pagamentos` sem `Idempotency-Key` |
+| `ESTORNO_FORA_DE_ORDEM` | 409 | estornar um recebimento que não é o mais recente (ainda válido) do contrato |
+| `JA_ESTORNADO` | 409 | estornar um recebimento ou uma despesa que já foi estornado |
 | `MUITAS_TENTATIVAS` | 429 | 5 falhas de login em 15 minutos (traz `Retry-After`) |
 | `ERRO_INTERNO` | 500 | erro inesperado |
 
@@ -88,9 +90,10 @@ diurno e um noturno podem usar a mesma vaga. Encerrar libera a placa e a vaga na
 
 | Rota | O que faz | Quem | Respostas |
 |---|---|---|---|
-| `POST /pagamentos` | Registra o recebimento e avança o vencimento do contrato. Corpo: `contratoId`, `valor`, `forma` (`dinheiro`, `pix`, `debito`, `credito`), `pagoEm`. Devolve `{ pagamento, novoVencimento }` | todos | 201, 400, 404, 409, 422 |
+| `POST /pagamentos` | Registra o recebimento e avança o vencimento do contrato. Corpo: `contratoId`, `valor`, `forma` (`dinheiro`, `pix`, `debito`, `credito`), `pagoEm` (hoje ou uma data passada; futura dá `422` em `campos.pagoEm`). Devolve `{ pagamento, novoVencimento }` | todos | 201, 400, 404, 409, 422 |
 | `GET /pagamentos` | Lançamentos. Filtros: `de`, `ate`, `forma`. Devolve `{ itens, total }`, do mais recente ao mais antigo | todos | 200, 422 |
 | `GET /pagamentos/:id` | Dados do comprovante | todos | 200, 404 |
+| `POST /pagamentos/:id/estorno` | Estorna o recebimento mais recente ainda válido do contrato. Corpo: `motivo` (3 a 200 letras). O lançamento fica marcado (`estornado`, `estornadoEm`, `motivoEstorno`), o vencimento do contrato volta um passo (um mês, ou 7 dias no semanal), o histórico ganha o evento `estornado` e o caixa deixa de contá-lo. Devolve `{ pagamento, novoVencimento }` | Prop. | 200, 403, 404, 409, 422 |
 
 - **`Idempotency-Key` é obrigatória** no `POST`. Repetir a mesma chave devolve **o mesmo corpo e `201`, sem nova
   linha**, para clique duplo ou rede lenta não cobrarem duas vezes. Pedidos simultâneos com a mesma chave
@@ -104,7 +107,8 @@ diurno e um noturno podem usar a mesma vaga. Encerrar libera a placa e a vaga na
 | Rota | O que faz | Quem | Respostas |
 |---|---|---|---|
 | `POST /despesas` | Lança despesa. Corpo: `descricao`, `valor`, `tipo` (`fixa` ou `variavel`), `data`, e `diaDoMes` se fixa. Devolve `{ despesaId, recorrenciaId }` | todos | 201, 422 |
-| `GET /despesas` | Lista. Filtros: `de`, `ate`, `tipo`. Devolve `{ itens, total }` | todos | 200, 422 |
+| `GET /despesas` | Lista. Filtros: `de`, `ate`, `tipo`. Devolve `{ itens, total }`; o `total` não soma as estornadas | todos | 200, 422 |
+| `POST /despesas/:id/estorno` | Estorna uma despesa (qualquer uma ainda válida). Corpo: `motivo`. Continua na lista, marcada, e sai das somas; a despesa fixa estornada não é gerada de novo no mesmo mês. Devolve o item | Prop. | 200, 403, 404, 409, 422 |
 | `GET /recorrencias` | Despesas fixas, **ativas e pausadas** (campo `ativa`) | todos | 200 |
 | `PATCH /recorrencias/:id` | Pausa ou retoma. Corpo `{ ativa: boolean }` | Prop. | 200, 404, 422 |
 

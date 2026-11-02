@@ -1,4 +1,6 @@
 import type {
+  EstornoEntrada,
+  EstornoPagamentoResposta,
   PagamentoEntrada,
   PagamentoItem,
   PagamentosResposta,
@@ -72,6 +74,24 @@ export function useRegistrarPagamento() {
     },
     onError: (erro) => {
       if (erro.status >= 400 && erro.status < 500) tentativa.current = null;
+    },
+  });
+}
+
+/** Estorna o recebimento (só o Proprietário): o vencimento volta e o caixa deixa de contá-lo. */
+export function useEstornarPagamento() {
+  const cliente = useQueryClient();
+  return useMutation<EstornoPagamentoResposta, ErroApiCliente, EstornoEntrada & { id: number }>({
+    mutationFn: ({ id, motivo }) =>
+      apiFetch<EstornoPagamentoResposta>(`/pagamentos/${id}/estorno`, {
+        metodo: 'POST',
+        corpo: { motivo },
+      }),
+    onSuccess: ({ pagamento }) => {
+      cliente.setQueryData(chaveDoPagamento(pagamento.id), pagamento);
+      for (const chave of ['pagamentos', 'mensalistas', 'vencimentos', 'painel', 'caixa']) {
+        void cliente.invalidateQueries({ queryKey: [chave] });
+      }
     },
   });
 }

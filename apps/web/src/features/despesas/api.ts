@@ -1,6 +1,8 @@
 import type {
   DespesaEntrada,
+  DespesaItem,
   DespesasResposta,
+  EstornoEntrada,
   RecorrenciaItem,
   RecorrenciasResposta,
 } from '@estacionafacil/shared';
@@ -31,6 +33,20 @@ export function useCriarDespesa() {
     onSuccess: () => {
       // A despesa muda a lista, as despesas fixas (se for fixa) e o resultado do mês.
       for (const chave of ['despesas', 'recorrencias', 'caixa', 'painel']) {
+        void cliente.invalidateQueries({ queryKey: [chave] });
+      }
+    },
+  });
+}
+
+/** Estorna a despesa (só o Proprietário): continua na lista, marcada, e sai das somas. */
+export function useEstornarDespesa() {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, motivo }: EstornoEntrada & { id: number }) =>
+      apiFetch<DespesaItem>(`/despesas/${id}/estorno`, { metodo: 'POST', corpo: { motivo } }),
+    onSuccess: () => {
+      for (const chave of ['despesas', 'caixa', 'painel']) {
         void cliente.invalidateQueries({ queryKey: [chave] });
       }
     },

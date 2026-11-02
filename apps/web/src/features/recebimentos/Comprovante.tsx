@@ -58,13 +58,19 @@ export function Comprovante({ numero, novoVencimento, aoNovoRecebimento }: Compr
         <h2 className="text-xl font-bold">Comprovante de recebimento</h2>
         <p className="text-base">{`Nº ${p.numero}`}</p>
       </div>
+      {p.estornado && p.estornadoEm && (
+        <div role="note" className="rounded-lg border border-atraso bg-atraso-fundo p-4">
+          <p className="text-base font-bold text-atraso">Recebimento estornado</p>
+          <p className="text-base">{`Em ${formatarData(p.estornadoEm)}. Motivo: ${p.motivoEstorno ?? '—'}`}</p>
+        </div>
+      )}
       <dl className="flex flex-col">
         <Linha rotulo="Mensalista">{p.mensalista}</Linha>
         <Linha rotulo="Placa">{formatarPlaca(p.placa)}</Linha>
         <Linha rotulo="Forma de pagamento">{NOME_DA_FORMA[p.forma]}</Linha>
         <Linha rotulo="Data">{formatarData(p.pagoEm)}</Linha>
         <Linha rotulo="Valor">{formatarReais(p.valor)}</Linha>
-        {novoVencimento && (
+        {novoVencimento && !p.estornado && (
           <Linha rotulo="Próximo vencimento">{formatarData(novoVencimento)}</Linha>
         )}
       </dl>

@@ -236,3 +236,175 @@ describe('GET /pagamentos e /pagamentos/:id', () => {
     expect(nenhum.body.erro.codigo).toBe('NAO_ENCONTRADO');
   });
 });
+
+const estornar = (
+  id: number,
+  corpo: Record<string, unknown> = { motivo: 'Valor digitado errado' },
+  cookie = dono,
+) =>
+  request(app)
+    .post(`/api/pagamentos/${id}/estorno`)
+    .set(CABECALHO)
+    .set('Cookie', cookie)
+    .send(corpo);
+const vencimentoDe = async (contratoId: number) =>
+  (await prisma.contrato.findUniqueOrThrow({ where: { id: contratoId } })).vencimento
+    .toISOString()
+    .slice(0, 10);
+
+describe('POST /pagamentos/:id/estorno', () => {
+  it('estorna o recebimento, devolve o vencimento e grava o histórico', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-09-05' }); // vence 2026-10-05
+    const { body: pago } = await pagar(dadosDePagamento(contratoId));
+    expect(await vencimentoDe(contratoId)).toBe('2026-11-05');
+
+    const resposta = await estornar(pago.pagamento.id);
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.novoVencimento).toBe('2026-10-05');
+    expect(resposta.body.pagamento).toMatchObject({
+      id: pago.pagamento.id,
+      estornado: true,
+      estornadoEm: '2026-10-26',
+      motivoEstorno: 'Valor digitado errado',
+    });
+    expect(await vencimentoDe(contratoId)).toBe('2026-10-05');
+
+    const historico = await prisma.historicoContrato.findMany({
+      where: { contratoId },
+      orderBy: { id: 'asc' },
+    });
+    expect(historico.map((h) => h.evento)).toEqual(['criado', 'pagamento', 'estornado']);
+    expect(historico[2]?.detalhes).toContain(`nº ${pago.pagamento.id}`);
+    expect(historico[2]?.detalhes).toContain('Valor digitado errado');
+    const gravado = await prisma.pagamento.findUniqueOrThrow({ where: { id: pago.pagamento.id } });
+    expect(gravado.estornadoPor).not.toBeNull();
+  });
+
+  it('só o mais recente: estornar o primeiro de dois dá 409 ESTORNO_FORA_DE_ORDEM e nada muda', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-08-05' });
+    const { body: primeiro } = await pagar(dadosDePagamento(contratoId));
+    const { body: segundo } = await pagar(dadosDePagamento(contratoId));
+    const antes = await vencimentoDe(contratoId);
+
+    const resposta = await estornar(primeiro.pagamento.id);
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro.codigo).toBe('ESTORNO_FORA_DE_ORDEM');
+    expect(resposta.body.erro.mensagem).toContain(`nº ${segundo.pagamento.id}`);
+    expect(await vencimentoDe(contratoId)).toBe(antes);
+    const gravado = await prisma.pagamento.findUniqueOrThrow({
+      where: { id: primeiro.pagamento.id },
+    });
+    expect(gravado.estornadoEm).toBeNull();
+  });
+
+  it('em pilha: estornado o mais novo, o anterior passa a ser o mais recente válido', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-08-05' }); // vence 2026-09-05
+    const { body: primeiro } = await pagar(dadosDePagamento(contratoId));
+    const { body: segundo } = await pagar(dadosDePagamento(contratoId));
+    expect((await estornar(segundo.pagamento.id)).status).toBe(200);
+    expect((await estornar(primeiro.pagamento.id)).status).toBe(200);
+    expect(await vencimentoDe(contratoId)).toBe('2026-09-05');
+  });
+
+  it('estornar de novo: 409 JA_ESTORNADO, e o vencimento volta uma vez só', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-09-05' });
+    const { body: pago } = await pagar(dadosDePagamento(contratoId));
+    await estornar(pago.pagamento.id);
+    const resposta = await estornar(pago.pagamento.id);
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro.codigo).toBe('JA_ESTORNADO');
+    expect(await vencimentoDe(contratoId)).toBe('2026-10-05');
+  });
+
+  it('vencimento no dia 31: estornar duas vezes devolve exatamente os vencimentos anteriores', async () => {
+    const { contratoId } = await criarContrato({ diaVencimento: 31, inicio: '2026-01-31' });
+    expect(await vencimentoDe(contratoId)).toBe('2026-02-28');
+    const { body: primeiro } = await pagar(dadosDePagamento(contratoId, { pagoEm: '2026-02-20' }));
+    const { body: segundo } = await pagar(dadosDePagamento(contratoId, { pagoEm: '2026-03-20' }));
+    expect(segundo.novoVencimento).toBe('2026-04-30');
+    await estornar(segundo.pagamento.id);
+    expect(await vencimentoDe(contratoId)).toBe('2026-03-31');
+    await estornar(primeiro.pagamento.id);
+    expect(await vencimentoDe(contratoId)).toBe('2026-02-28');
+  });
+
+  it('contrato semanal: o vencimento volta 7 dias', async () => {
+    const { contratoId } = await criarContrato({ tipo: 'semanal', inicio: '2026-10-01' });
+    const inicial = await vencimentoDe(contratoId);
+    const { body: pago } = await pagar(dadosDePagamento(contratoId));
+    await estornar(pago.pagamento.id);
+    expect(await vencimentoDe(contratoId)).toBe(inicial);
+  });
+
+  it('contrato encerrado: o estorno é permitido', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-09-05' });
+    const { body: pago } = await pagar(dadosDePagamento(contratoId));
+    await request(app)
+      .post(`/api/contratos/${contratoId}/encerramento`)
+      .set(CABECALHO)
+      .set('Cookie', dono);
+    const resposta = await estornar(pago.pagamento.id);
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.pagamento.estornado).toBe(true);
+  });
+
+  it('motivo ausente ou curto: 422 em campos.motivo, e nada muda', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-09-05' });
+    const { body: pago } = await pagar(dadosDePagamento(contratoId));
+    for (const corpo of [{}, { motivo: 'ab' }, { motivo: '   ' }]) {
+      const resposta = await estornar(pago.pagamento.id, corpo);
+      expect(resposta.status).toBe(422);
+      expect(resposta.body.erro.campos.motivo).toBeTruthy();
+    }
+    expect(await vencimentoDe(contratoId)).toBe('2026-11-05');
+  });
+
+  it('Auxiliar: 403; id inexistente: 404', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-09-05' });
+    const { body: pago } = await pagar(dadosDePagamento(contratoId));
+    expect((await estornar(pago.pagamento.id, undefined, auxiliar)).status).toBe(403);
+    expect((await estornar(99999)).status).toBe(404);
+    expect(await vencimentoDe(contratoId)).toBe('2026-11-05');
+  });
+
+  it('dois estornos simultâneos do mesmo recebimento: um 200, um 409, vencimento volta uma vez', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-09-05' });
+    const { body: pago } = await pagar(dadosDePagamento(contratoId));
+    const [a, b] = await Promise.all([estornar(pago.pagamento.id), estornar(pago.pagamento.id)]);
+    expect([a.status, b.status].sort()).toEqual([200, 409]);
+    expect(await vencimentoDe(contratoId)).toBe('2026-10-05');
+  });
+});
+
+describe('estorno nas listas e na data do recebimento', () => {
+  it('a lista mostra o estornado marcado, mas o total não o soma; o comprovante também', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-08-05' });
+    await pagar(dadosDePagamento(contratoId, { valor: '255.00' }));
+    const { body: segundo } = await pagar(dadosDePagamento(contratoId, { valor: '100.00' }));
+    await estornar(segundo.pagamento.id);
+
+    const lista = await request(app).get('/api/pagamentos').set('Cookie', auxiliar);
+    expect(lista.body.itens).toHaveLength(2);
+    expect(lista.body.total).toBe('255.00');
+    const marcado = lista.body.itens.find((i: { id: number }) => i.id === segundo.pagamento.id);
+    expect(marcado).toMatchObject({ estornado: true, motivoEstorno: 'Valor digitado errado' });
+    const comprovante = await request(app)
+      .get(`/api/pagamentos/${segundo.pagamento.id}`)
+      .set('Cookie', auxiliar);
+    expect(comprovante.body).toMatchObject({ estornado: true, estornadoEm: '2026-10-26' });
+  });
+
+  it('data futura: 422 em campos.pagoEm e nada gravado; hoje e data passada são aceitas', async () => {
+    const { contratoId } = await criarContrato({ inicio: '2026-09-05' }); // vence 2026-10-05
+    const futura = await pagar(dadosDePagamento(contratoId, { pagoEm: '2026-10-27' }));
+    expect(futura.status).toBe(422);
+    expect(futura.body.erro.campos.pagoEm).toContain('futura');
+    expect(await prisma.pagamento.count()).toBe(0);
+
+    expect((await pagar(dadosDePagamento(contratoId, { pagoEm: '2026-10-26' }))).status).toBe(201);
+    const passada = await pagar(dadosDePagamento(contratoId, { pagoEm: '2026-09-20' }));
+    expect(passada.status).toBe(201);
+    expect(passada.body.pagamento.pagoEm).toBe('2026-09-20');
+    expect(await vencimentoDe(contratoId)).toBe('2026-12-05'); // dois pagamentos: a partir do vencimento
+  });
+});

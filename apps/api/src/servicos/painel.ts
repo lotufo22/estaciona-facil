@@ -83,6 +83,6 @@ export async function montarPainel(prisma: PrismaClient, hoje: string): Promise<
       aVencer: por('a_vencer').length,
       vencido: por('vencido').length,
     },
-    ultimosRecebimentos: (await listarPagamentos(prisma, { limite: 5 })).itens,
+    ultimosRecebimentos: (await listarPagamentos(prisma, { limite: 5, apenasValidos: true })).itens,
   };
 }
