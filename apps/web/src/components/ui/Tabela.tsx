@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+﻿import { useId, type ReactNode } from 'react';
 
 interface TabelaProps {
   /** Descrição lida por leitores de tela (não aparece na tela). */
@@ -45,20 +45,22 @@ export function Tabela({ legenda, cabecalhos, children }: TabelaProps) {
 }`;
 
   return (
-    <div className="overflow-x-auto">
+    <div className="min-w-0 overflow-x-auto">
       <style>{celular}</style>
-      <table data-tabela={id} className="w-full border-collapse text-left text-base">
+      <table data-tabela={id} className="w-full border-collapse text-left text-sm">
         <caption className="sr-only">{legenda}</caption>
         <thead>
-          <tr className="border-b border-borda text-texto-suave">
+          <tr className="border-b border-borda bg-fundo/80 text-[11px] tracking-wide text-texto-suave uppercase">
             {cabecalhos.map((c) => (
-              <th key={c} scope="col" className="px-2 py-3 font-semibold">
+              <th key={c} scope="col" className="px-3 py-3 font-medium">
                 {c}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="[&>tr]:border-b [&>tr]:border-borda">{children}</tbody>
+        <tbody className="[&>tr]:border-b [&>tr]:border-borda/60 [&>tr]:transition-colors [&>tr:hover]:bg-fundo/70 [&>tr:last-child]:border-0 [&_td]:px-3 [&_td]:py-4">
+          {children}
+        </tbody>
       </table>
     </div>
   );

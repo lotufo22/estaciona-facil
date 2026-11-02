@@ -21,3 +21,6 @@ test-results/
 
 # Funções da Netlify geradas por `npm run funcoes` (as fontes estão em netlify/funcoes)
 netlify/functions/
+
+# Metadados de origem dos downloads no Windows
+*:Zone.Identifier

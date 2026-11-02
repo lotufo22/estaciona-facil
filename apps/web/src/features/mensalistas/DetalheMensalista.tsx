@@ -1,4 +1,4 @@
-import {
+﻿import {
   formatarPlaca,
   formatarReais,
   mensalistaAtualizarSchema,
@@ -97,9 +97,9 @@ function FormularioEdicao({
     <form
       onSubmit={handleSubmit(enviar)}
       noValidate
-      className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+      className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
     >
-      <h2 className="text-xl font-bold">Editar dados</h2>
+      <h2 className="text-base font-semibold">Editar dados</h2>
       <div className="grid gap-4 md:grid-cols-2">
         <Campo
           rotulo="Telefone"
@@ -176,10 +176,10 @@ function FormularioRenovacao({
     <form
       onSubmit={handleSubmit(enviar)}
       noValidate
-      className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+      className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
     >
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-bold">Renovar contrato</h2>
+        <h2 className="text-base font-semibold">Renovar contrato</h2>
         <p className="text-base text-texto-suave">
           Estende o vencimento sem registrar pagamento, por exemplo num acordo com o cliente. O
           motivo fica no histórico.
@@ -247,8 +247,8 @@ function ConteudoDoDetalhe({ detalhe }: { detalhe: MensalistaDetalhe }) {
         }
       />
 
-      <section className="flex flex-col gap-6 rounded-lg border border-borda bg-superficie p-6">
-        <h2 className="text-xl font-bold">Dados</h2>
+      <section className="flex flex-col gap-6 rounded-xl border border-borda bg-superficie p-6">
+        <h2 className="text-base font-semibold">Dados</h2>
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Dado rotulo="Telefone">{formatarTelefone(detalhe.telefone)}</Dado>
           <Dado rotulo="Placa">{formatarPlaca(detalhe.placa)}</Dado>
@@ -292,8 +292,8 @@ function ConteudoDoDetalhe({ detalhe }: { detalhe: MensalistaDetalhe }) {
         <FormularioRenovacao detalhe={detalhe} aoFechar={fecharPainel} />
       )}
 
-      <section className="rounded-lg border border-borda bg-superficie p-6">
-        <h2 className="mb-4 text-xl font-bold">Histórico</h2>
+      <section className="rounded-xl border border-borda bg-superficie p-6">
+        <h2 className="mb-4 text-base font-semibold">Histórico</h2>
         <Tabela legenda="Histórico do contrato" cabecalhos={['Data', 'Evento', 'Detalhes', 'Por']}>
           {detalhe.historico.map((h) => (
             <tr key={h.id}>

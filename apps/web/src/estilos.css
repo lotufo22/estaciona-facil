@@ -1,60 +1,177 @@
-@import 'tailwindcss';
+﻿@import 'tailwindcss';
 
-/* Tokens da spec §7. Cores de texto precisam manter contraste ≥ 4,5:1 (ver estilos.test.ts). */
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-
-  --color-primaria: #4a55c7;
-  --color-primaria-escura: #3a44a8;
-  --color-primaria-clara: #e8eafb;
-  --color-destaque: #0a7f75;
-  --color-amarelo: #e0a100;
-
-  --color-texto: #1f2933;
-  --color-texto-suave: #52606d;
-  --color-fundo: #f5f7fa;
+  --color-acao: #0d6efd;
+  --color-marca-azul-claro: #6bb6ff;
+  --color-marca-sucesso: #22c55e;
+  --color-primaria: #0b5ed7;
+  --color-primaria-escura: #084298;
+  --color-primaria-clara: #eaf2ff;
+  --color-destaque: #15803d;
+  --color-amarelo: #ffc107;
+  --color-texto: #0b1e3c;
+  --color-texto-suave: #52647c;
+  --color-fundo: #f4f6fa;
   --color-superficie: #ffffff;
-  --color-borda: #cbd2d9;
-
-  --color-ok: #187534;
-  --color-ok-fundo: #e3f5e8;
-  --color-alerta: #8a5300;
-  --color-alerta-fundo: #fff1d6;
-  /* "Em atraso" e erros. O proprietário pediu um sistema sem vermelho: bordô, com fundo neutro
-     (sem o rosado de antes). A situação continua sempre em texto, nunca só pela cor. */
-  --color-atraso: #550000;
-  --color-atraso-fundo: #f2e9e9;
-
-  --color-barra: #2a3042;
-  --color-barra-texto: #aeb6d4;
-  --color-barra-icone: #d5daf2;
-  --color-barra-ativa: #3b4263;
+  --color-borda: #e0e5ed;
+  --color-ok: #15803d;
+  --color-ok-fundo: #effaf2;
+  --color-alerta: #805500;
+  --color-alerta-fundo: #fff6dc;
+  --color-atraso: #67502c;
+  --color-atraso-fundo: #f6efe4;
+  --color-barra: #0b1e3c;
+  --color-barra-texto: #bdcee5;
+  --color-barra-icone: #cfdef1;
+  --color-barra-ativa: #16365e;
 }
 
 @layer base {
   html {
     font-size: 16px;
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
   }
-
   body {
+    margin: 0;
     background-color: var(--color-fundo);
     color: var(--color-texto);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+  ::selection {
+    background: #dbe7fc;
+    color: #0b1e3c;
+  }
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+  input,
+  select,
+  textarea {
+    transition:
+      border-color 180ms,
+      box-shadow 180ms,
+      background-color 180ms;
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    box-shadow: 0 0 0 4px #0b5ed712;
+  }
+  input::placeholder {
+    color: #748194;
+  }
+  button,
+  a {
+    touch-action: manipulation;
+  }
 }
 
-/* Imprimir o comprovante: só ele aparece na folha (fora de @layer para vencer os utilitários). */
+@layer components {
+  .app-shell .grid > * {
+    min-width: 0;
+  }
+  .app-shell aside > a,
+  .app-shell aside > nav {
+    flex-shrink: 0;
+  }
+  .pagina-entrada {
+    animation: pagina-entrar 350ms ease-out both;
+  }
+  .kpis > article {
+    animation: pagina-entrar 400ms ease-out both;
+  }
+  .kpis > article:nth-child(2) {
+    animation-delay: 45ms;
+  }
+  .kpis > article:nth-child(3) {
+    animation-delay: 90ms;
+  }
+  .kpis > article:nth-child(4) {
+    animation-delay: 135ms;
+  }
+  .superficie {
+    border: 1px solid var(--color-borda);
+    border-radius: 0.875rem;
+    background: var(--color-superficie);
+    box-shadow: 0 2px 4px #0b1e3c03;
+  }
+  .linha-tabela {
+    transition: background-color 160ms ease;
+  }
+  .linha-tabela:hover {
+    background: #f7f9fc;
+  }
+  .planta-estacionamento {
+    animation: planta-entrar 900ms ease-out both;
+  }
+  .carro-planta {
+    animation: carro-entrar 1100ms ease-out both;
+  }
+}
+
+@keyframes pagina-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes planta-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes carro-entrar {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 @media print {
+  .app-shell {
+    padding: 0;
+  }
+  .pagina-entrada {
+    animation: none;
+    transform: none;
+  }
   body * {
     visibility: hidden;
   }
-
   .comprovante-imprimivel,
   .comprovante-imprimivel * {
     visibility: visible;
   }
-
   .comprovante-imprimivel {
     position: absolute;
     top: 0;
@@ -62,8 +179,13 @@
     width: 100%;
     border: none;
   }
-
   .nao-imprimir {
     display: none !important;
+  }
+}
+
+@media (min-width: 640px) and (max-height: 720px) {
+  .sidebar-dica {
+    display: none;
   }
 }

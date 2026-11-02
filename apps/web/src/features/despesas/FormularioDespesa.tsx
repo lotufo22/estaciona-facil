@@ -1,4 +1,4 @@
-import { despesaCriarSchema, type DespesaEntrada } from '@estacionafacil/shared';
+﻿import { despesaCriarSchema, type DespesaEntrada } from '@estacionafacil/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -66,9 +66,9 @@ export function FormularioDespesa() {
     <form
       onSubmit={handleSubmit(enviar)}
       noValidate
-      className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+      className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
     >
-      <h2 className="text-xl font-bold">Nova despesa</h2>
+      <h2 className="text-base font-semibold">Nova despesa</h2>
 
       <Campo
         rotulo="Descrição"

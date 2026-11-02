@@ -1,4 +1,4 @@
-# Instruções — EstacionaFácil
+﻿# Instruções — EstacionaFácil
 
 ## Começar
 
@@ -18,6 +18,25 @@ Este arquivo foi solicitado como `claude.md`. Ferramentas que exijam `CLAUDE.md`
 - Front organizado por `features`; reutilizar `components/ui`, `lib/api.ts` e TanStack Query, invalidando consultas após mutações.
 - Preservar carregamento, vazio, erro, sessão expirada, foco visível e situação com texto. Interface e mensagens em pt-BR, adequadas a usuários com pouca experiência digital.
 - Fase 1: mensalistas, contratos, recebimentos, vencimentos, despesas e caixa. Avulsos/estadias/turnos são Fase 2.
+
+## Frontend e responsividade (revisão de 02/11/2026)
+
+- Tailwind CSS 4, com tokens em `apps/web/src/estilos.css`; não adicionar outra biblioteca de estilos ou animações sem necessidade. Manter componentes em `components/ui` e páginas em `features`.
+- Direção visual: superfícies claras, azul profundo, bordas suaves, tipografia Inter e hierarquia discreta. KPIs usam superfície branca e ícones com cor, sem grandes fundos saturados. `Marca.tsx` usa a identidade fornecida pelo usuário (F, carro e marcador); o favicon usa uma simplificação vetorial desse símbolo. Não restaurar o monograma E. anterior.
+- O proprietário pediu ausência de vermelho: atraso e erros usam ocre escuro (`#67502c`, fundo `#f6efe4`), sem bordô. Os tokens visuais da spec antiga são históricos; o CSS e os testes de contraste descrevem a implementação atual.
+- `Casca.tsx` reserva espaço para a lateral somente a partir de 640 px; `BarraSuperior.tsx` fornece a lateral no computador e busca/cabeçalho compacto no celular. A lateral tem rolagem própria para telas baixas, inclusive paisagem.
+- Até 639 px, manter a `NavegacaoInferior` com os destinos por perfil e o menu Mais. Reservar espaço abaixo do conteúdo e respeitar `safe-area-inset-bottom`. `Tabela.tsx` converte linhas em cartões com rótulos; não duplicar as tabelas no DOM.
+- Inputs e seletores devem poder encolher (`min-w-0`, `w-full`); ações principais têm altura mínima de 48 px e os campos têm texto de 16 px. Grids devem considerar a largura útil depois da lateral, especialmente entre 640 e 1024 px. Não esconder overflow da página para disfarçar problemas de layout.
+- Transições de página, hover e entrada escalonada dos KPIs são CSS. Respeitar `prefers-reduced-motion` no CSS e nos gráficos por `lib/movimento.ts`; não usar animação contínua em elementos operacionais. Preservar o comprovante na impressão, sem transformações do contêiner animado.
+- A busca superior navega para `/mensalistas?busca=...`; a lista lê e sincroniza esse parâmetro, inclusive ao pesquisar novamente já dentro da lista.
+- Na validação visual, testar pelo menos 320, 360, 390, 414, 640, 768, 1024 e 1440 px, além de toque e paisagem. Verificar login, os dois perfis, menu Mais, formulários, tabelas, gráficos e rolagem horizontal. Emulação não substitui teste em celular físico.
+- Os mocks ficam em memória: recarregar o documento reinicia a sessão e os dados fictícios. Para testar a sequência de telas, usar links do Router ou entrar novamente após o reload. Login da demonstração: `dono` ou `auxiliar`, senha `teste123` (somente dados fictícios).
+
+### Novos assets de marca
+
+O usuário adicionou três PNGs em `docs/img`, validados e integrados em 02/11/2026. A [validação da identidade visual](docs/validacao-identidade-visual.md) registra as decisões e os limites. Preservar os originais e consumir os PNGs otimizados de `apps/web/public/marca/` com `srcSet`; não carregar os PNGs grandes no cabeçalho. Usar o ícone com texto HTML claro em fundo escuro, pois a logo horizontal tem texto escuro. Manter o favicon simplificado e a mesma marca no comprovante. Arquivos `:Zone.Identifier` são metadados, não assets.
+
+Cores de marca e de texto são distintas: `acao` (`#0D6EFD`) para botões brancos; `primaria` (`#0B5ED7`) para links/texto; `marca-sucesso` (`#22C55E`) para acentos e `ok` (`#15803D`) para texto verde. Amarelo usa texto escuro; não usar branco sobre amarelo ou verde vivo. Preservar os testes de contraste em `estilos.test.ts`, inclusive os novos tokens. A prancha não acrescenta indicadores funcionais de ocupação de vagas ao escopo.
 
 ## Invariantes
 
@@ -43,7 +62,7 @@ Este arquivo foi solicitado como `claude.md`. Ferramentas que exijam `CLAUDE.md`
 
 ## Execução e verificação
 
-Usar Node 22, como no CI. Preparação do banco e variáveis em [handoff.md](handoff.md).
+Usar Node 22 atualizado (22.22.2+) ou Node 24 compatível com as engines das dependências. Esta revisão foi validada com Node 24.22.2; o Node 20.18 instalado originalmente no WSL não atende ao projeto. Preparação do banco e variáveis em [handoff.md](handoff.md).
 
 ```bash
 npm ci

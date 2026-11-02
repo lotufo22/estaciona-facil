@@ -1,4 +1,4 @@
-import {
+﻿import {
   formatarPlaca,
   formatarReais,
   type Categoria,
@@ -7,7 +7,7 @@ import {
   type Turno,
 } from '@estacionafacil/shared';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CabecalhoPagina } from '../../app/CabecalhoPagina';
 import { Botao } from '../../components/ui/Botao';
 import { Campo } from '../../components/ui/Campo';
@@ -50,8 +50,11 @@ export function ListaMensalistas() {
   const { sessao } = useSessao();
   const ehProprietario = sessao?.perfil === 'proprietario';
 
-  const [busca, setBusca] = useState('');
-  const [buscaAplicada, setBuscaAplicada] = useState('');
+  const [parametros] = useSearchParams();
+  const buscaDaUrl = parametros.get('busca') ?? '';
+  const [busca, setBusca] = useState(buscaDaUrl);
+  useEffect(() => setBusca(buscaDaUrl), [buscaDaUrl]);
+  const [buscaAplicada, setBuscaAplicada] = useState(buscaDaUrl);
   const [situacao, setSituacao] = useState<Situacao | ''>('');
   const [categoria, setCategoria] = useState<Categoria | ''>('');
   const [tipo, setTipo] = useState<TipoContrato | ''>('');
@@ -101,7 +104,7 @@ export function ListaMensalistas() {
 
       <section
         aria-label="Filtros"
-        className="grid grid-cols-2 gap-4 rounded-lg border border-borda bg-superficie p-4 sm:p-6 xl:grid-cols-5"
+        className="grid grid-cols-2 gap-4 rounded-xl border border-borda bg-superficie p-4 sm:p-6 xl:grid-cols-5"
       >
         {/* No celular a busca ocupa a linha toda e os seletores ficam dois a dois (menos rolagem). */}
         <div className="col-span-2 xl:col-span-1">
@@ -173,7 +176,7 @@ export function ListaMensalistas() {
       )}
 
       {data && data.total > 0 && (
-        <section className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6">
+        <section className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6">
           <Tabela
             legenda="Mensalistas"
             cabecalhos={[

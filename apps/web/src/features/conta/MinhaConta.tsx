@@ -1,4 +1,4 @@
-import {
+﻿import {
   contaAtualizarSchema,
   trocarSenhaSchema,
   type ContaAtualizarEntrada,
@@ -55,9 +55,9 @@ function FormularioNome() {
     <form
       onSubmit={handleSubmit(enviar)}
       noValidate
-      className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+      className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
     >
-      <h2 className="text-xl font-bold">Meus dados</h2>
+      <h2 className="text-base font-semibold">Meus dados</h2>
       <p className="text-base text-texto-suave">
         Perfil: <strong>{sessao ? PERFIL[sessao.perfil] : ''}</strong>
       </p>
@@ -105,9 +105,9 @@ function FormularioSenha() {
     <form
       onSubmit={handleSubmit(enviar)}
       noValidate
-      className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+      className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
     >
-      <h2 className="text-xl font-bold">Trocar a senha</h2>
+      <h2 className="text-base font-semibold">Trocar a senha</h2>
       <Campo
         rotulo="Senha atual"
         type="password"

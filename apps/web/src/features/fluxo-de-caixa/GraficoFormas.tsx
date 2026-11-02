@@ -1,13 +1,13 @@
-import { formatarReais, paraCentavos, type CaixaResposta } from '@estacionafacil/shared';
+﻿import { formatarReais, paraCentavos, type CaixaResposta } from '@estacionafacil/shared';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { NOME_DA_FORMA } from '../recebimentos/Comprovante';
 
 /** Cada forma tem cor e também nome, valor e percentual em texto: a cor sozinha não basta. */
 const COR_DA_FORMA = {
-  pix: '#0A7F75',
-  dinheiro: '#4A55C7',
-  debito: '#E0A100',
-  credito: '#52606D',
+  pix: '#15803d',
+  dinheiro: '#0d6efd',
+  debito: '#ffc107',
+  credito: '#52647c',
 } as const;
 
 const emReais = (valor: unknown) => formatarReais(Number(valor).toFixed(2));
@@ -38,7 +38,7 @@ export function GraficoFormas({ porForma }: { porForma: CaixaResposta['porForma'
       <div
         role="img"
         aria-label={`Divisão das receitas por forma de pagamento. ${resumo}.`}
-        className="h-56 w-56 shrink-0"
+        className="h-56 w-full max-w-56"
       >
         <ResponsiveContainer
           width="100%"
@@ -54,6 +54,8 @@ export function GraficoFormas({ porForma }: { porForma: CaixaResposta['porForma'
               outerRadius={100}
               paddingAngle={2}
               isAnimationActive={false}
+              stroke="#0b1e3c"
+              strokeWidth={1}
             >
               {itens.map((f) => (
                 <Cell key={f.forma} fill={COR_DA_FORMA[f.forma]} />

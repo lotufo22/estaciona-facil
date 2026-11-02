@@ -1,4 +1,4 @@
-import {
+﻿import {
   CATEGORIAS,
   formatarPlaca,
   formatarReais,
@@ -133,7 +133,7 @@ export function Vencimentos() {
 
           <section
             aria-label="Filtros"
-            className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+            className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
           >
             <div className="flex flex-wrap gap-3">
               {CHIPS.map(({ valor, texto }) => {
@@ -172,7 +172,7 @@ export function Vencimentos() {
               orientacao="Não há contratos para essa combinação de filtros."
             />
           ) : (
-            <section className="rounded-lg border border-borda bg-superficie p-6">
+            <section className="rounded-xl border border-borda bg-superficie p-6">
               <Tabela
                 legenda="Contratos por data de vencimento"
                 cabecalhos={[

@@ -1,4 +1,4 @@
-import { useEffect, useId } from 'react';
+﻿import { useEffect, useId } from 'react';
 import { Botao } from '../../components/ui/Botao';
 import { MensagemErro } from '../../components/ui/MensagemErro';
 
@@ -36,7 +36,7 @@ export function DialogoEncerrar({
         aria-labelledby={idTitulo}
         className="flex w-full max-w-lg flex-col gap-4 rounded-lg bg-superficie p-6"
       >
-        <h2 id={idTitulo} className="text-xl font-bold">
+        <h2 id={idTitulo} className="text-base font-semibold">
           Encerrar contrato?
         </h2>
         <p className="text-base">
