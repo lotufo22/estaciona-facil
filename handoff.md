@@ -1,6 +1,6 @@
 # Handoff — EstacionaFácil
 
-Atualizado em 02/11/2026. Referência: `main` com a Tarefa 18 (Netlify, backup, migrações em CI e documentação), Usuários e Minha conta, o turno no contrato (PR #35), o relatório e a apresentação da Atividade 2 (PR #36) e o estorno de recebimentos e despesas com a data do recebimento (02/11/2026). Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
+Atualizado em 02/11/2026 (com a homologação publicada). Referência: `main` com a Tarefa 18 (Netlify, backup, migrações em CI e documentação), Usuários e Minha conta, o turno no contrato (PR #35), o relatório e a apresentação da Atividade 2 (PR #36) e o estorno de recebimentos e despesas com a data do recebimento (02/11/2026). Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
 
 ## Contexto e stack
 
@@ -39,7 +39,7 @@ Monorepo com npm workspaces. Fluxo: navegador → `/api` na mesma origem → Exp
 - Recebimentos com comprovante e idempotência, com **data do recebimento** (hoje ou passada; futura é recusada) e seletor do dia na lista.
 - **Estorno** (só proprietário, com motivo) de recebimentos e despesas: nada é apagado; o lançamento fica marcado e sai das somas. Do recebimento só o mais recente ainda válido do contrato; o vencimento volta um passo.
 - Despesas variáveis/fixas e recorrências com pausa/retomada.
-- Serviço `gerarDespesasRecorrentes`, idempotente por competência, chamado pela função agendada `gerar-despesas` (`03:00 UTC`, em `netlify.toml`). **Só roda em deploy publicado, e nada foi publicado.**
+- Serviço `gerarDespesasRecorrentes`, idempotente por competência, chamado pela função agendada `gerar-despesas` (`03:00 UTC`, em `netlify.toml`). **Só roda em deploy publicado (produção); nada foi publicado em produção, e a homologação é um deploy não produtivo, no qual ela não roda.**
 - Painel, vencimentos e fluxo de caixa com filtros.
 - Interface integrada à API por padrão, com mocks opcionais.
 - Testes compartilhados, de interface, API e aceitação; capturas em `docs/manual/capturas/`.
@@ -146,7 +146,7 @@ O CI executa `npm ci`, lint, typecheck e testes dos workspaces, o build do front
 
 ## Pendências e continuação
 
-A **Tarefa 18** está implementada, mas **nada foi implantado**:
+A **Tarefa 18** está implementada. **Em 02/11/2026 foi implantada só a homologação** (veja abaixo); a **produção não foi publicada**:
 
 1. Netlify: `netlify.toml`, função `api` (Express, função v2/ESM), redirecionamento `/api/*`, fallback do SPA e `trust proxy`. Publicação em produção **manual** (`[context.production] ignore = "exit 0"`).
 2. Agendamento diário de recorrências: função `gerar-despesas` às `03:00 UTC`.
@@ -158,7 +158,10 @@ A **Tarefa 18** está implementada, mas **nada foi implantado**:
 Pontos de atenção:
 
 - **Funções da Netlify:** em `netlify/funcoes/*.mts` só pode haver `export default`. Um `handler` nomeado faz a Netlify tratar a função como v1 e empacotá-la em CommonJS, e o `import.meta.url` do cliente gerado do Prisma fica indefinido (a função cai ao iniciar). Funções v2 não passam pelo esbuild da Netlify, por isso `npm run funcoes` gera o bundle em `netlify/functions`. O teste `netlify.test.ts` cobre isso.
-- Netlify, Supabase, o armazenamento do backup e os segredos do GitHub **ainda não foram criados nem exercitados**. O guia de instalação indica os passos, e a primeira execução real vai confirmar os detalhes das telas desses serviços.
+- **Homologação no ar (02/11/2026):** site da Netlify `estaciona-facil-homolog` (endereço `https://homologacao--estaciona-facil-homolog.netlify.app`) e projeto do Supabase `estaciona_facil`. É um *deploy* com alias, feito da `main` pela Netlify CLI; o procedimento está na seção 7 do guia de instalação. O banco tem as 3 migrações aplicadas (`base_inicial`, `turno_no_contrato`, `estorno`), feitas **da máquina de um integrante**, porque o workflow *Migrar o banco* travou no pooler (a execução fica 10 minutos em "Migrações pendentes" até o limite). A `DATABASE_URL` da Netlify é a do *Transaction pooler*, no mesmo valor para todos os escopos.
+- **Verificado na homologação:** `/api/saude` responde `ok` (consulta o banco), o front abre, o bundle é o novo e as rotas novas exigem login (401). **Não foi testado por dentro** (login, telas, estorno, turno): quem fez o deploy não tinha as credenciais. Conferir antes de mostrar ao proprietário e confirmar se o banco de homologação já tem o usuário proprietário (`npm run criar-proprietario`).
+- **A senha do banco foi redefinida** no Supabase para a migração. Confirmar que o segredo `DATABASE_URL_MIGRACAO` (GitHub, ambiente `homologacao`) foi atualizado; a `DATABASE_URL` da Netlify já foi. O `DATABASE_URL_BACKUP` é do banco de produção e não é afetado. Sintoma de senha velha: `/api/saude` dá 500 e o log da função diz `password authentication failed`.
+- **Ainda não criados nem exercitados:** a produção (site e projeto do Supabase), o armazenamento do backup e o backup noturno. O guia de instalação indica os passos.
 - `BACKUP_PASSPHRASE` precisa de cópia fora do GitHub; sem ela o backup não abre.
 
 A spec prevê publicação manual após CI, aceitação, backup/restauração e validação do guia; merge não equivale a autorização de deploy.
