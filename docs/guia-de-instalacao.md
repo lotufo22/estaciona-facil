@@ -55,13 +55,18 @@ GitHub Actions: CI, migrações (manual) e backup noturno ──► armazenament
 ## 3. Banco de dados (Supabase)
 
 1. Crie um projeto no Supabase (um para homologação; outro, depois, para produção). Anote a senha do banco.
+   Se você **redefinir** a senha depois, atualize-a nos lugares que usam **aquele projeto**: `DATABASE_URL`
+   (Netlify) e `DATABASE_URL_MIGRACAO` (GitHub, no ambiente dele); na produção, também
+   `DATABASE_URL_BACKUP`. Depois faça um novo *deploy*: a Netlify só aplica variável nova em *deploys* novos.
 2. No painel do projeto, abra **Connect** e copie duas *connection strings*:
    - **Transaction pooler** (porta `6543`): é a que o **site** usa → vira `DATABASE_URL`.
    - **Session pooler** (porta `5432`): serve às **migrações e ao backup** → vira `DATABASE_URL_MIGRACAO`
      e `DATABASE_URL_BACKUP`.
    - Use os *poolers*: a conexão direta do Supabase é só IPv6, e o GitHub Actions não a alcança.
    - Na URL do **Transaction pooler**, acrescente `?pgbouncer=true&connection_limit=1`.
-3. Aplique as migrações. Opção A, pelo GitHub (recomendada): veja a seção 6. Opção B, da sua máquina:
+3. Aplique as migrações. Opção A, pelo GitHub: veja a seção 6 (em 02/11/2026 o workflow travou no passo
+   "Migrações pendentes" até o limite de 10 minutos, por uma falha de conexão do GitHub Actions com o
+   *pooler*; se isso acontecer, cancele e use a opção B). Opção B, da sua máquina (foi a que funcionou):
 
    ```bash
    # .env na raiz (nunca vai para o Git): DATABASE_URL_MIGRACAO=<Session pooler>
@@ -69,6 +74,9 @@ GitHub Actions: CI, migrações (manual) e backup noturno ──► armazenament
    npm run migrar -w @estacionafacil/api
    ```
 
+   No PowerShell, sem usar o `.env`: `$env:DATABASE_URL_MIGRACAO = "<Session pooler>"; npm run migrar -w
+   @estacionafacil/api`. Depois, feche o terminal para a URL não ficar na sessão. Para conferir, no Supabase, a
+   tabela `_prisma_migrations` deve listar todas as pastas de `apps/api/prisma/migrations`.
 4. Crie as 49 vagas (35 de carro, 14 de moto). É seguro repetir:
 
    ```bash
@@ -100,7 +108,11 @@ o *pooler* e não a conexão direta.
    | `DATABASE_URL` | o **Transaction pooler** da seção 3, com `?pgbouncer=true&connection_limit=1` |
 
    É a única variável do site. Os segredos ficam só aqui: o repositório contém apenas o `.env.example`.
-3. Em *Deploys > Build settings*, ative **Stop auto publishing** (impede que o site de produção seja
+
+   **Escopos.** A Netlify guarda a variável por contexto (*Production*, *Deploy Previews*, *Branch deploys*).
+   Em um site que é só de homologação, use o **mesmo valor em todos** (*Same value in all deploy contexts*):
+   um *deploy* de prévia ou com alias usa o contexto dele, e um escopo diferente dá erro de senha ou de
+   banco ausente.3. Em *Deploys > Build settings*, ative **Stop auto publishing** (impede que o site de produção seja
    publicado sozinho a cada alteração). O `netlify.toml` já cancela os *builds* automáticos de produção
    (`[context.production] ignore = "exit 0"`), mas confirme também no painel.
 
@@ -145,16 +157,43 @@ A **publicação em produção é manual** e só acontece quando **todos** os cr
 - [ ] O backup foi executado e a **restauração foi testada** com sucesso (seção 9).
 - [ ] Este guia foi seguido do zero, sem passos faltando.
 
-Cumpridos os critérios, publique de uma máquina com a Netlify CLI logada (`npx netlify login`):
-
-```bash
-npx netlify deploy --build --prod
-```
+Cumpridos os critérios, publique de uma máquina com a Netlify CLI logada (`npx netlify login`), pelo mesmo
+caminho da homologação (abaixo), trocando `--alias homologacao` por `--prod` e usando o `--site` da produção.
+O comando simples `npx netlify deploy --build --prod` **abre um menu** ("Select the project you want to
+work with") por causa do monorepo e não termina em um terminal sem interação. A publicação **em produção ainda
+não foi exercitada**; só a da homologação foi.
 
 Meta: poucas publicações em produção durante o semestre, muito abaixo do limite de 20 por mês. A Netlify
 avisa por e-mail aos 50%, 75% e 100% dos créditos.
 
 **Fazer o merge na `main` não publica nada.**
+
+### Publicar na homologação (verificado em 02/11/2026)
+
+A homologação é um *deploy* não produtivo com alias: não gasta créditos de produção e não roda a função
+agendada (que só roda em *deploy* publicado). Pela Netlify CLI logada, da raiz do repositório:
+
+```powershell
+# 1. Migre o banco ANTES (o código novo precisa das colunas novas; a opção B da seção 3)
+# 2. Gere o mesmo build do netlify.toml
+npm run gerar -w @estacionafacil/api; npm run build -w @estacionafacil/web; npm run funcoes
+# 3. Publique os arquivos prontos (caminhos absolutos; o --filter evita o menu do monorepo)
+$R = (Get-Location).Path
+npx netlify deploy --no-build --filter @estacionafacil/web --dir "$R\apps\web\dist" --functions "$R\netlify\functions" --alias homologacao --site <id-do-site>
+```
+
+O `<id-do-site>` está em *Site configuration > Site information*. Sem `--prod`, o endereço fica
+`https://homologacao--<nome-do-site>.netlify.app`.
+
+**Como saber que deu certo:** `https://homologacao--<site>.netlify.app/api/saude` responde `{"status":"ok"}`
+(ele consulta o banco). Sem login, `/api/mensalistas` deve responder 401.
+
+**Ler os logs da função** (precisa do vínculo com o site: `npx netlify link`, ou um arquivo
+`.netlify/state.json` com `{ "siteId": "<id-do-site>" }`, que o Git ignora):
+
+```bash
+npx netlify logs --filter @estacionafacil/web --source functions --deploy-id <id-do-deploy> --since 30m
+```
 
 ## 8. Backup noturno
 
@@ -231,3 +270,7 @@ aceitação com navegador) e `npm run funcoes` (gera as funções da Netlify em 
 | Primeira abertura do dia demora | função "fria" (partida a frio) | normal; as seguintes são rápidas |
 | Supabase "pausado" | uma semana sem uso no plano gratuito | reative no painel do Supabase |
 | Login não funciona localmente | abrindo por `127.0.0.1` | use `http://localhost:5173` |
+| `/api/saude` dá 500 e o log da função diz `password authentication failed` (`28P01`) | a senha do banco mudou (por exemplo, foi redefinida no Supabase) e a `DATABASE_URL` da Netlify ficou com a antiga | atualize a variável em todos os escopos, o segredo `DATABASE_URL_MIGRACAO` no GitHub, e faça novo *deploy* |
+| O workflow *Migrar o banco* fica 10 minutos em "Migrações pendentes" | falha de conexão do GitHub Actions com o *pooler* do Supabase (visto em 02/11/2026) | cancele a execução e migre da sua máquina (seção 3, opção B) |
+| A CLI da Netlify pergunta "Select the project you want to work with" | o repositório é um monorepo | acrescente `--filter @estacionafacil/web` e passe `--dir` e `--functions` com caminho absoluto |
+| Depois do *deploy*, o endereço dá "Could not resolve host" | cache de DNS do seu computador para o nome novo | espere alguns minutos, troque o DNS ou teste de outra rede; confira com `nslookup <endereço> 8.8.8.8` |
