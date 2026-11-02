@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+﻿import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -23,6 +23,9 @@ function contraste(a: string, b: string): number {
 }
 
 const TOKENS = [
+  'acao',
+  'marca-azul-claro',
+  'marca-sucesso',
   'primaria',
   'primaria-escura',
   'primaria-clara',
@@ -47,6 +50,9 @@ const TOKENS = [
 
 // Texto (primeiro) sobre o fundo (segundo): todos os usos de texto da interface.
 const PARES_DE_TEXTO: [string, string][] = [
+  ['marca-azul-claro', 'barra'],
+  ['texto', 'amarelo'],
+  ['texto', 'marca-sucesso'],
   ['texto', 'fundo'],
   ['texto', 'superficie'],
   ['texto-suave', 'fundo'],
@@ -65,6 +71,7 @@ const PARES_DE_TEXTO: [string, string][] = [
 
 const BRANCO = '#ffffff';
 const PARES_SOBRE_BRANCO = [
+  'acao',
   'primaria',
   'primaria-escura',
   'atraso',
@@ -74,7 +81,7 @@ const PARES_SOBRE_BRANCO = [
   'barra-ativa',
 ];
 
-describe('tokens de cor (spec §7)', () => {
+describe('tokens de cor da identidade visual', () => {
   it.each(TOKENS)('o token %s existe como cor hexadecimal', (nome) => {
     expect(cor(nome)).toMatch(/^#[0-9a-f]{6}$/);
   });

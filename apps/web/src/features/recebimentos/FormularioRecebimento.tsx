@@ -1,4 +1,4 @@
-import {
+﻿import {
   FORMAS_PAGAMENTO,
   pagamentoCriarSchema,
   type MensalistaItem,
@@ -109,9 +109,9 @@ export function FormularioRecebimento({
     <form
       onSubmit={handleSubmit(enviar)}
       noValidate
-      className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+      className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
     >
-      <h2 className="text-xl font-bold">Novo recebimento</h2>
+      <h2 className="text-base font-semibold">Novo recebimento</h2>
 
       <SeletorMensalista
         escolhido={escolhido}

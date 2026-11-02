@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+﻿import { useEffect, useId, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icone } from '../components/ui/Icone';
 import type { AbaDefinicao } from './abas';
@@ -13,7 +13,7 @@ const estaNaAba = (pathname: string, aba: AbaDefinicao) =>
   pathname === aba.para || pathname.startsWith(`${aba.para}/`);
 
 const CLASSE_DO_ITEM =
-  'flex min-h-16 flex-1 flex-col items-center justify-center gap-1 px-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white';
+  'flex min-h-16 flex-1 transition-colors duration-200 flex-col items-center justify-center gap-1 px-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white';
 
 /**
  * Barra de abas na parte de baixo da tela, onde o polegar alcança (só no celular). As abas do dia a
@@ -49,13 +49,13 @@ export function NavegacaoInferior({ principais, mais, pathname }: NavegacaoInfer
 
       <nav
         aria-label="Abas principais"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-barra-ativa bg-barra pb-[env(safe-area-inset-bottom)] text-white"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-barra-ativa bg-barra pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_#15263d12] text-white"
       >
         {aberto && (
           <ul
             id={idDoMenu}
             aria-label="Mais abas"
-            className="absolute right-2 bottom-full mb-2 flex w-64 flex-col overflow-hidden rounded-lg bg-barra shadow-lg ring-1 ring-barra-ativa"
+            className="pagina-entrada absolute right-2 bottom-full mb-2 flex w-64 flex-col overflow-hidden rounded-lg bg-barra shadow-lg ring-1 ring-barra-ativa"
           >
             {mais.map((aba) => (
               <li key={aba.para}>

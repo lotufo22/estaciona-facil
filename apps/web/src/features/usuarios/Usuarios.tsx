@@ -1,4 +1,4 @@
-import {
+﻿import {
   usuarioCriarSchema,
   type UsuarioCriarEntrada,
   type UsuarioItem,
@@ -48,9 +48,9 @@ function FormularioNovoAuxiliar() {
     <form
       onSubmit={handleSubmit(enviar)}
       noValidate
-      className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+      className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
     >
-      <h2 className="text-xl font-bold">Novo auxiliar</h2>
+      <h2 className="text-base font-semibold">Novo auxiliar</h2>
       <p className="text-base text-texto-suave">
         O auxiliar registra recebimentos, consulta mensalistas e lança despesas. Passe a ele o login
         e a senha inicial; ele pode trocar a senha em "Minha conta".
@@ -179,8 +179,8 @@ export function Usuarios() {
         subtitulo="Quem pode entrar no sistema. Só o proprietário vê esta página."
       />
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6 lg:col-span-2">
-          <h2 className="text-xl font-bold">Usuários cadastrados</h2>
+        <section className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6 lg:col-span-2">
+          <h2 className="text-base font-semibold">Usuários cadastrados</h2>
           {consulta.isPending && <Carregando texto="Carregando os usuários…" />}
           {consulta.isError && (
             <MensagemErro

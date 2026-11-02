@@ -1,4 +1,4 @@
-import { formatarReais, type DespesaItem } from '@estacionafacil/shared';
+﻿import { formatarReais, type DespesaItem } from '@estacionafacil/shared';
 import { useState } from 'react';
 import { CabecalhoPagina } from '../../app/CabecalhoPagina';
 import { DialogoEstorno } from '../../components/DialogoEstorno';
@@ -31,8 +31,8 @@ function DespesasDoMes({
   const [paraEstornar, setParaEstornar] = useState<DespesaItem | null>(null);
   const cabecalhos = ['Data', 'Descrição', 'Tipo', 'Valor', ...(podeEstornar ? ['Ação'] : [])];
   return (
-    <section className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6">
-      <h2 className="text-xl font-bold">Despesas do mês</h2>
+    <section className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6">
+      <h2 className="text-base font-semibold">Despesas do mês</h2>
       {consulta.isPending && <Carregando texto="Carregando as despesas…" />}
       {consulta.isError && (
         <MensagemErro
@@ -108,8 +108,8 @@ function DespesasFixas({ podePausar }: { podePausar: boolean }) {
   const cabecalhos = ['Despesa', 'Quando', 'Valor', 'Situação', ...(podePausar ? ['Ação'] : [])];
 
   return (
-    <section className="flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6">
-      <h2 className="text-xl font-bold">Despesas fixas</h2>
+    <section className="flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6">
+      <h2 className="text-base font-semibold">Despesas fixas</h2>
       {consulta.isPending && <Carregando texto="Carregando as despesas fixas…" />}
       {consulta.isError && (
         <MensagemErro

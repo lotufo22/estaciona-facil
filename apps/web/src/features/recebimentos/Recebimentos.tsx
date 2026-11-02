@@ -1,4 +1,4 @@
-import { formatarPlaca, formatarReais, type PagamentoItem } from '@estacionafacil/shared';
+﻿import { formatarPlaca, formatarReais, type PagamentoItem } from '@estacionafacil/shared';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CabecalhoPagina } from '../../app/CabecalhoPagina';
@@ -80,9 +80,9 @@ export function Recebimentos() {
         />
       )}
 
-      <section className="nao-imprimir flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6">
+      <section className="nao-imprimir flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="text-xl font-bold">Lançamentos do dia</h2>
+          <h2 className="text-base font-semibold">Lançamentos do dia</h2>
           <Campo
             rotulo="Dia dos lançamentos"
             type="date"

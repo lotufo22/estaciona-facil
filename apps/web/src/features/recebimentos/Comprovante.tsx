@@ -1,5 +1,6 @@
-import { formatarPlaca, formatarReais, type FormaPagamento } from '@estacionafacil/shared';
+﻿import { formatarPlaca, formatarReais, type FormaPagamento } from '@estacionafacil/shared';
 import type { ReactNode } from 'react';
+import { Marca } from '../../components/ui/Marca';
 import { Botao } from '../../components/ui/Botao';
 import { Carregando } from '../../components/ui/Carregando';
 import { MensagemErro } from '../../components/ui/MensagemErro';
@@ -51,11 +52,13 @@ export function Comprovante({ numero, novoVencimento, aoNovoRecebimento }: Compr
   return (
     <section
       aria-label="Comprovante de recebimento"
-      className="comprovante-imprimivel flex flex-col gap-4 rounded-lg border border-borda bg-superficie p-6"
+      className="comprovante-imprimivel flex flex-col gap-4 rounded-xl border border-borda bg-superficie p-6"
     >
       <div className="flex flex-col gap-1">
-        <p className="text-base font-bold text-primaria">EstacionaFácil</p>
-        <h2 className="text-xl font-bold">Comprovante de recebimento</h2>
+        <div className="mb-3">
+          <Marca />
+        </div>
+        <h2 className="text-base font-semibold">Comprovante de recebimento</h2>
         <p className="text-base">{`Nº ${p.numero}`}</p>
       </div>
       {p.estornado && p.estornadoEm && (

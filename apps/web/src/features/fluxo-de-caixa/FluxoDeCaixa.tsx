@@ -1,4 +1,4 @@
-import {
+﻿import {
   filtrosCaixaSchema,
   formatarReais,
   paraCentavos,
@@ -61,7 +61,7 @@ export function FluxoDeCaixa() {
 
       <section
         aria-label="Filtros"
-        className="grid gap-4 rounded-lg border border-borda bg-superficie p-6 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid gap-4 rounded-xl border border-borda bg-superficie p-6 sm:grid-cols-2 xl:grid-cols-4"
       >
         <Campo
           rotulo="De"
@@ -107,7 +107,7 @@ export function FluxoDeCaixa() {
 
       {data && (
         <>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="kpis grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <CartaoKpi
               tom="primario"
               icone="recebimentos"
@@ -141,12 +141,12 @@ export function FluxoDeCaixa() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <section className="rounded-lg border border-borda bg-superficie p-6 lg:col-span-2">
-              <h2 className="mb-4 text-xl font-bold">Receitas e despesas por mês</h2>
+            <section className="rounded-xl border border-borda bg-superficie p-6 lg:col-span-2">
+              <h2 className="mb-4 text-base font-semibold">Receitas e despesas por mês</h2>
               <GraficoReceitaDespesa serie={data.serieMensal} />
             </section>
-            <section className="rounded-lg border border-borda bg-superficie p-6">
-              <h2 className="mb-4 text-xl font-bold">Divisão por forma de pagamento</h2>
+            <section className="rounded-xl border border-borda bg-superficie p-6">
+              <h2 className="mb-4 text-base font-semibold">Divisão por forma de pagamento</h2>
               <GraficoFormas porForma={data.porForma} />
             </section>
           </div>

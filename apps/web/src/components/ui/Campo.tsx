@@ -1,4 +1,4 @@
-import { useId, type ComponentProps } from 'react';
+﻿import { useId, type ComponentProps } from 'react';
 import { juntar } from './classes';
 
 export interface CampoProps extends Omit<ComponentProps<'input'>, 'value'> {
@@ -16,8 +16,8 @@ export function Campo({ rotulo, valor, erro, ajuda, id, className, ...resto }: C
   const mensagem = erro ?? ajuda;
 
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={idCampo} className="text-base font-semibold text-texto">
+    <div className="flex min-w-0 flex-col gap-2">
+      <label htmlFor={idCampo} className="text-sm font-medium text-texto">
         {rotulo}
       </label>
       <input
@@ -26,7 +26,7 @@ export function Campo({ rotulo, valor, erro, ajuda, id, className, ...resto }: C
         aria-invalid={erro ? 'true' : 'false'}
         aria-describedby={mensagem ? idMensagem : undefined}
         className={juntar(
-          'min-h-13 rounded-lg bg-superficie px-4 py-3 text-base text-texto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primaria',
+          'min-h-12 w-full min-w-0 rounded-lg bg-superficie px-4 py-3 text-base text-texto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primaria',
           erro ? 'border-2 border-atraso' : 'border border-borda',
           className,
         )}

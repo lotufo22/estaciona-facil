@@ -1,4 +1,4 @@
-import {
+﻿import {
   mensalistaCriarSchema,
   type MensalistaCriarEntrada,
   type MensalistaCriarFormulario,
@@ -79,7 +79,7 @@ export function CadastroMensalista() {
       <form
         onSubmit={handleSubmit(enviar)}
         noValidate
-        className="flex flex-col gap-6 rounded-lg border border-borda bg-superficie p-6"
+        className="flex flex-col gap-6 rounded-xl border border-borda bg-superficie p-6"
       >
         <div className="grid gap-4 md:grid-cols-2">
           <Campo

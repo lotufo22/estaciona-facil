@@ -1,4 +1,4 @@
-import { formatarPlaca, formatarReais, type FormaPagamento } from '@estacionafacil/shared';
+﻿import { formatarPlaca, formatarReais, type FormaPagamento } from '@estacionafacil/shared';
 import { CabecalhoPagina } from '../../app/CabecalhoPagina';
 import { CartaoKpi } from '../../components/ui/CartaoKpi';
 import { Carregando } from '../../components/ui/Carregando';
@@ -6,6 +6,10 @@ import { EstadoVazio } from '../../components/ui/EstadoVazio';
 import { MensagemErro } from '../../components/ui/MensagemErro';
 import { Tabela } from '../../components/ui/Tabela';
 import { usePainel } from './api';
+import { Link } from 'react-router-dom';
+import { LinkBotao } from '../../components/ui/LinkBotao';
+import { Icone } from '../../components/ui/Icone';
+import { hoje } from '../../lib/hoje';
 import { GraficoReceitaDespesa } from '../../components/GraficoReceitaDespesa';
 import { GraficoSituacao } from './GraficoSituacao';
 
@@ -29,7 +33,32 @@ export function Painel() {
 
   return (
     <>
-      <CabecalhoPagina titulo="Painel" subtitulo="Como estão os contratos e o caixa do mês" />
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-texto-suave">
+        <p className="flex items-center gap-2">
+          <span aria-hidden="true" className="size-1.5 rounded-full bg-ok" />
+          Sua operação em um só lugar
+        </p>
+        <p className="flex items-center gap-2 capitalize">
+          <Icone nome="vencimentos" className="size-4" />
+          {new Intl.DateTimeFormat('pt-BR', {
+            month: 'long',
+            year: 'numeric',
+            timeZone: 'America/Sao_Paulo',
+          }).format(new Date(`${hoje()}T12:00:00-03:00`))}
+        </p>
+      </div>
+      <CabecalhoPagina
+        titulo="Painel"
+        subtitulo="Acompanhe os contratos e o resultado do seu estacionamento."
+        acao={
+          <LinkBotao to="/recebimentos">
+            <span aria-hidden="true" className="text-lg">
+              +
+            </span>
+            Registrar recebimento
+          </LinkBotao>
+        }
+      />
       {isPending && <Carregando texto="Carregando o painel…" />}
       {isError && (
         <MensagemErro
@@ -39,7 +68,7 @@ export function Painel() {
       )}
       {data && (
         <>
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="kpis grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <CartaoKpi
               tom="primario"
               icone="mensalistas"
@@ -75,19 +104,36 @@ export function Painel() {
             />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <section className="rounded-lg border border-borda bg-superficie p-6 lg:col-span-2">
-              <h2 className="mb-4 text-xl font-bold">Receitas e despesas</h2>
+          <div className="grid gap-5 xl:grid-cols-3">
+            <section className="superficie min-w-0 p-5 sm:p-6 xl:col-span-2">
+              <div className="mb-6">
+                <h2 className="text-base font-semibold">Receitas e despesas</h2>
+                <p className="mt-1 text-xs text-texto-suave">A evolução do caixa, mês a mês</p>
+              </div>
               <GraficoReceitaDespesa serie={data.serieMensal} />
             </section>
-            <section className="rounded-lg border border-borda bg-superficie p-6">
-              <h2 className="mb-4 text-xl font-bold">Situação dos contratos</h2>
+            <section className="superficie min-w-0 p-5 sm:p-6">
+              <h2 className="mb-4 text-base font-semibold">Situação dos contratos</h2>
               <GraficoSituacao situacao={data.situacao} />
             </section>
           </div>
 
-          <section className="rounded-lg border border-borda bg-superficie p-6">
-            <h2 className="mb-4 text-xl font-bold">Últimos recebimentos</h2>
+          <section className="superficie min-w-0 p-5 sm:p-6">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold">Últimos recebimentos</h2>
+                <p className="mt-1 text-xs text-texto-suave">
+                  Os pagamentos mais recentes do estacionamento
+                </p>
+              </div>
+              <Link
+                to="/recebimentos"
+                className="flex min-h-11 items-center gap-2 rounded text-xs font-semibold text-primaria hover:underline focus-visible:outline-2 focus-visible:outline-primaria"
+              >
+                Ver recebimentos
+                <Icone nome="seta" className="size-4" />
+              </Link>
+            </div>
             {data.ultimosRecebimentos.length === 0 ? (
               <EstadoVazio
                 titulo="Nenhum recebimento ainda"
