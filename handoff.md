@@ -32,7 +32,7 @@ Até 639 px: sem lateral, navegação fixa inferior com área segura do aparelho
 
 Na raiz do projeto, `npm run dev:mocks -w @estacionafacil/web`. A interface fica em `http://localhost:5173`. Credenciais exclusivamente fictícias, só dos mocks: `dono` ou `auxiliar`, senha `teste123`. Os mocks estão em memória: atualizar o documento reinicia a sessão e os dados; entrar novamente e navegar pelos links internos para manter o contexto. Para acessar de um celular na mesma rede, usar o endereço LAN da máquina que expõe o Vite (`--host 0.0.0.0`) e verificar o firewall; `localhost` no celular aponta para o próprio aparelho. O acesso de celular físico não foi configurado nesta revisão.
 
-As capturas versionadas do manual e os tokens da spec ainda retratam o design anterior. Atualizá-los no próximo ciclo de documentação/aceitação, usando o procedimento de capturas com banco descartável. A homologação recebeu este redesign em 02/11/2026; a produção não.
+As capturas do manual foram **regravadas em 02/11/2026** com o novo visual (e alimentam o relatório e os slides da Atividade 2). Os tokens da spec ainda retratam o design anterior, e o texto do manual pode precisar de revisão (por exemplo, a navegação agora é lateral no computador). A homologação recebeu este redesign em 02/11/2026; a produção não.
 
 ## Novas logos e paleta — integração de 02/11/2026
 
