@@ -161,6 +161,57 @@ test('4. os contratos aparecem como em dia, a vencer ou vencido (aqui: em dia)',
   await expect(linha).toContainText('Em dia');
 });
 
+test('4b. estorno: o recebimento com data de ontem é estornado, o vencimento volta e o Auxiliar não vê o botão', async ({
+  page,
+}) => {
+  await entrar(page, 'dono');
+  const vencimento = async () =>
+    (await (await page.request.get(`/api/mensalistas/${mensalistaId}`)).json()).contrato
+      .vencimento as string;
+  const antes = await vencimento();
+  const ontem = new Date(`${hoje()}T12:00:00Z`);
+  ontem.setUTCDate(ontem.getUTCDate() - 1);
+  const dataDeOntem = ontem.toISOString().slice(0, 10);
+  const [ano, mes, dia] = dataDeOntem.split('-');
+
+  await page.getByRole('navigation', { name: 'Abas principais' }).getByText('Recebimentos').click();
+  await page.getByLabel('Buscar mensalista por nome ou placa', { exact: true }).fill('ABC1D23');
+  await page.getByRole('button', { name: /Maria Teste/ }).click();
+  await page.getByLabel('Valor', { exact: true }).fill('100.00');
+  await page.getByLabel('Data do recebimento', { exact: true }).fill(dataDeOntem);
+  await page.getByRole('button', { name: 'Confirmar recebimento' }).click();
+  await expect(page.getByRole('region', { name: 'Comprovante de recebimento' })).toContainText(
+    `${dia}/${mes}/${ano}`,
+  );
+  expect((await vencimento()) > antes).toBe(true);
+
+  // A lista passou para o dia do recebimento: dá para estornar e dizer por quê.
+  await page.getByRole('button', { name: /Estornar recebimento/ }).click();
+  const dialogo = page.getByRole('dialog', { name: 'Estornar recebimento?' });
+  await dialogo.getByRole('button', { name: 'Sim, estornar' }).click();
+  await expect(dialogo.getByText('Explique o motivo do estorno')).toBeVisible();
+  await dialogo.getByLabel('Motivo', { exact: true }).fill('Valor digitado errado');
+  await dialogo.getByRole('button', { name: 'Sim, estornar' }).click();
+  await expect(page.getByText('Estornado', { exact: true })).toBeVisible();
+
+  expect(await vencimento()).toBe(antes);
+  const dobrado = await (
+    await page.request.get(`/api/pagamentos?de=${dataDeOntem}&ate=${dataDeOntem}`)
+  ).json();
+  expect(dobrado.itens[0]).toMatchObject({
+    estornado: true,
+    motivoEstorno: 'Valor digitado errado',
+  });
+  expect(dobrado.total).toBe('0.00');
+
+  // O Auxiliar vê os recebimentos de hoje, mas não corrige nenhum.
+  await sair(page);
+  await entrar(page, 'auxiliar');
+  await expect(page.getByRole('heading', { name: 'Recebimentos', level: 1 })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Ver comprovante/ }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /Estornar/ })).toHaveCount(0);
+});
+
 test('5. a despesa fixa é lançada e fica como recorrência', async ({ page }) => {
   await entrar(page, 'dono');
   await page.getByRole('navigation', { name: 'Abas principais' }).getByText('Despesas').click();

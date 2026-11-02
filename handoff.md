@@ -1,6 +1,6 @@
 # Handoff — EstacionaFácil
 
-Atualizado em 01/11/2026. Referência: `main` no commit `1b94fec` (PR #33), que inclui a Tarefa 18 (Netlify, backup, migrações em CI e documentação) e, depois dela, Usuários, Minha conta e correções de edição e layout. Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
+Atualizado em 02/11/2026. Referência: `main` com a Tarefa 18 (Netlify, backup, migrações em CI e documentação), Usuários e Minha conta, o turno no contrato (PR #35), o relatório e a apresentação da Atividade 2 (PR #36) e o estorno de recebimentos e despesas com a data do recebimento (02/11/2026). Este retrato descreve o código, sem certificar implantação ou aceitação pelo proprietário.
 
 ## Contexto e stack
 
@@ -36,7 +36,8 @@ Monorepo com npm workspaces. Fluxo: navegador → `/api` na mesma origem → Exp
 - Autenticação e autorização nos dois perfis.
 - Aba **Usuários** (só proprietário): cadastro de auxiliares, alteração de nome, ativação e redefinição de senha. Desativar ou redefinir senha encerra as sessões do auxiliar; só existe um proprietário. **Minha conta** (ambos os perfis, pelo nome no alto): troca de nome e de senha.
 - Cadastro/edição de mensalistas, veículo e contrato (com turno diurno/noturno); renovação, encerramento e histórico.
-- Recebimentos com comprovante e idempotência.
+- Recebimentos com comprovante e idempotência, com **data do recebimento** (hoje ou passada; futura é recusada) e seletor do dia na lista.
+- **Estorno** (só proprietário, com motivo) de recebimentos e despesas: nada é apagado; o lançamento fica marcado e sai das somas. Do recebimento só o mais recente ainda válido do contrato; o vencimento volta um passo.
 - Despesas variáveis/fixas e recorrências com pausa/retomada.
 - Serviço `gerarDespesasRecorrentes`, idempotente por competência, chamado pela função agendada `gerar-despesas` (`03:00 UTC`, em `netlify.toml`). **Só roda em deploy publicado, e nada foi publicado.**
 - Painel, vencimentos e fluxo de caixa com filtros.
@@ -53,7 +54,7 @@ Todas as rotas usam o prefixo `/api`.
 | --- | --- |
 | Público | `GET /saude` (consulta o banco) e `POST /auth/login` |
 | Ambos os perfis autenticados | Sessão/logout; Minha conta (`PATCH /conta`, `POST /conta/senha`); consulta de mensalistas/detalhes; registro e consulta de pagamentos/comprovantes; lançamento e consulta de despesas; consulta de recorrências |
-| Somente proprietário | Gestão de auxiliares (`/usuarios`); cadastro/edição de mensalistas; renovação/encerramento; painel, vencimentos e caixa; pausa/retomada de recorrências |
+| Somente proprietário | Gestão de auxiliares (`/usuarios`); estorno de recebimentos e despesas (`POST /pagamentos/:id/estorno`, `POST /despesas/:id/estorno`); cadastro/edição de mensalistas; renovação/encerramento; painel, vencimentos e caixa; pausa/retomada de recorrências |
 
 O proprietário inicia no Painel e vê sete abas (com Usuários). O auxiliar inicia em Recebimentos e vê Mensalistas, Recebimentos e Despesas. A matriz é exercitada em `apps/api/test/permissoes.test.ts`; esconder abas não substitui autorização.
 
@@ -69,10 +70,11 @@ Login admite cinco falhas por par login/IP em quinze minutos; não há limite po
 4. Pagamento avança a partir do vencimento atual, mesmo atrasado: um mês no mensal ou sete dias no semanal. Dia inexistente é limitado ao último dia do mês.
 5. `POST /pagamentos` exige `Idempotency-Key`. Pagamento, vencimento e histórico são atômicos; há lock `FOR UPDATE`. Replay devolve o pagamento existente sem duplicar receita; `novoVencimento` corresponde ao vencimento atual do contrato, podendo mudar após outro pagamento.
 6. Renovação estende sem receita, exige proprietário e motivo. Hoje recebe `meses` e avança em meses mesmo em contrato semanal; confirmar intenção antes de alterar.
-7. Caixa usa datas de recebimento/despesa. Filtros de tipo de contrato/categoria afetam somente receitas e tornam `resultado` nulo.
+7. Caixa usa datas de recebimento/despesa e **exclui os estornados** (inclusive no Painel, nos totais das listas e nos últimos recebimentos). Filtros de tipo de contrato/categoria afetam somente receitas e tornam `resultado` nulo.
 8. Encerramento preserva histórico e libera ocupação. Índices únicos parciais limitam um contrato ativo por veículo e um por vaga **e turno** (`diurno`/`noturno`): um noturno pode dividir a vaga de um diurno. Não existe turno integral; quem usa o mesmo carro de dia e de noite é um contrato só (hoje um diurno com valor combinado).
 9. Despesa fixa cria lançamento inicial e recorrência numa transação. Recorrência/competência é única. A geração recupera atraso dentro do mês recebido, sem recompor automaticamente todos os meses anteriores.
 10. A migração inicial contém SQL manual: índices parciais, `CHECK`s e RLS sem políticas em todas as tabelas. Revisar novas migrações e habilitar RLS em novas tabelas. RLS não substitui autorização da API.
+11. **Estorno:** colunas `estornado_em`, `estornado_por` e `motivo_estorno` em `pagamentos` e `despesas` (CHECK: as três nulas ou as três preenchidas) e o evento de histórico `estornado`. O estorno de recebimento trava o contrato (`FOR UPDATE`), recusa se houver recebimento válido mais novo (`ESTORNO_FORA_DE_ORDEM`) ou se já estornado (`JA_ESTORNADO`) e devolve o vencimento com `vencimentoAnterior` (inversa de `proximoVencimento`). A despesa fixa estornada mantém a competência, então a geração mensal não a recria. **A regra segue a opção A do item 1 de `docs/decisoes-para-o-proprietario.md`; o proprietário ainda não respondeu.**
 
 ## Executar localmente
 
