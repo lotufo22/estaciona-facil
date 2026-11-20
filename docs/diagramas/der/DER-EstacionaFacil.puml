@@ -1,0 +1,142 @@
+@startuml DER-EstacionaFacil
+title EstacionaFácil: diagrama de relacionamento do banco de dados (PostgreSQL)
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam ArrowColor #475569
+skinparam entity {
+  BackgroundColor White
+  BorderColor #0B1E3C
+}
+
+entity "usuarios" as usuarios {
+  * id : int <<PK>>
+  --
+    nome : text
+  * login : text <<UK>>  (normalizado)
+    senha_hash : text  (argon2id)
+    perfil : perfil  (proprietario | auxiliar)
+    ativo : boolean  (padrão: true)
+}
+
+entity "sessoes" as sessoes {
+  * id : text <<PK>>
+  --
+  * usuario_id : int <<FK>>
+    expira_em : timestamptz  (12 h sem uso)
+}
+
+entity "tentativas_login" as tentativas_login {
+  * id : int <<PK>>
+  --
+    login : text  (sem FK, de propósito)
+    ip : text
+    ocorrida_em : timestamptz  (limite: 5 em 15 min)
+}
+
+entity "mensalistas" as mensalistas {
+  * id : int <<PK>>
+  --
+    nome : text
+    telefone : text
+    arquivado_em : timestamptz  (nulo = ativo)
+}
+
+entity "veiculos" as veiculos {
+  * id : int <<PK>>
+  --
+  * mensalista_id : int <<FK>>
+  * placa : text <<UK>>  (normalizada)
+    categoria : categoria  (carro | moto)
+}
+
+entity "vagas" as vagas {
+  * id : int <<PK>>
+  --
+  * codigo : text <<UK>>  (01–35, M1–M14)
+    categoria : categoria  (carro | moto)
+}
+
+entity "contratos" as contratos {
+  * id : int <<PK>>
+  --
+  * mensalista_id : int <<FK>>
+  * veiculo_id : int <<FK>>
+  * vaga_id : int <<FK>>
+    tipo : tipo_contrato  (mensal | semanal)
+    turno : turno  (diurno | noturno)
+    valor : numeric(12,2)  (> 0)
+    dia_vencimento : smallint  (1 a 31)
+    inicio : date
+    vencimento : date  (próxima data a pagar)
+    status : status_contrato  (ativo | encerrado)
+    encerrado_em : timestamptz
+}
+
+entity "pagamentos" as pagamentos {
+  * id : int <<PK>>
+  --
+  * contrato_id : int <<FK>>
+    valor : numeric(12,2)  (> 0)
+    forma : forma_pagamento  (dinheiro, pix, débito, crédito)
+    pago_em : date
+    mes_referencia : date  (1º dia do mês)
+  * registrado_por : int <<FK>>
+  * chave_idempotencia : text <<UK>>  (Idempotency-Key)
+    estornado_em : timestamptz  (estorno (3 colunas juntas))
+  * estornado_por : int <<FK>>
+    motivo_estorno : text
+}
+
+entity "historico_contrato" as historico_contrato {
+  * id : int <<PK>>
+  --
+  * contrato_id : int <<FK>>
+    evento : evento_historico  (criado, renovado…)
+    em : timestamptz
+  * usuario_id : int <<FK>>
+    detalhes : text
+}
+
+entity "recorrencias_despesa" as recorrencias_despesa {
+  * id : int <<PK>>
+  --
+    descricao : text
+    valor : numeric(12,2)  (> 0)
+    dia_do_mes : smallint  (1 a 31)
+    ativa : boolean  (pausa/retoma)
+}
+
+entity "despesas" as despesas {
+  * id : int <<PK>>
+  --
+    descricao : text
+    valor : numeric(12,2)  (> 0)
+    tipo : tipo_despesa  (fixa | variável)
+    data : date
+  * registrado_por : int <<FK>>
+  * recorrencia_id : int <<FK>>
+    competencia : date  (único com recorrencia_id)
+    estornado_em : timestamptz  (estorno (3 colunas juntas))
+  * estornado_por : int <<FK>>
+    motivo_estorno : text
+}
+
+mensalistas ||--o{ veiculos : tem
+mensalistas ||--o{ contratos : contrata
+veiculos ||--o{ contratos : é de
+vagas |o--o{ contratos : ocupada por
+contratos ||--o{ pagamentos : recebe
+contratos ||--o{ historico_contrato : registra
+usuarios ||--o{ sessoes : abre
+usuarios ||--o{ pagamentos : registra / estorna
+usuarios |o--o{ despesas : lança / estorna
+usuarios |o--o{ historico_contrato : faz
+recorrencias_despesa |o--o{ despesas : gera
+
+note bottom
+Regras no SQL (fora do Prisma): índices únicos parciais "um contrato ativo por veículo" e "por vaga e turno";
+CHECKs de valor > 0, dia 1–31 e das 3 colunas de estorno; RLS ligado em todas as tabelas.
+A situação do contrato (vencido, a vencer, em dia) não é coluna: é calculada a partir de contratos.vencimento.
+end note
+@enduml
