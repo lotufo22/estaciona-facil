@@ -1,0 +1,209 @@
+@startuml Diagrama-de-Classes-Dominio
+title EstacionaFácil: diagrama de classes de domínio
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam ArrowColor #475569
+skinparam class {
+  BackgroundColor White
+  BorderColor #0B1E3C
+}
+hide empty members
+
+class Usuario {
+  - id: int
+  - nome: string
+  - login: string {único}
+  - senhaHash: string
+  - perfil: Perfil
+  - ativo: boolean
+  --
+  + trocarSenha(atual, nova)
+  + atualizarNome(nome)
+}
+
+class Sessao {
+  - id: string <<hash do token>>
+  - usuarioId: int
+  - expiraEm: DataHora
+  --
+  + renovar() <<12 h sem uso>>
+  + encerrar()
+}
+
+class TentativaLogin {
+  - id: int
+  - login: string
+  - ip: string
+  - ocorridaEm: DataHora
+  --
+  + verificarLimite() <<5 em 15 min>>
+  + registrarFalha()
+}
+
+class Mensalista {
+  - id: int
+  - nome: string
+  - telefone: string
+  - arquivadoEm: DataHora?
+  --
+  + cadastrar(veículo, contrato)
+  + atualizar(telefone, placa, vaga, valor)
+}
+
+class Veiculo {
+  - id: int
+  - mensalistaId: int
+  - placa: string {única}
+  - categoria: Categoria
+  --
+  + normalizarPlaca()
+}
+
+class Vaga {
+  - id: int
+  - codigo: string {único}
+  - categoria: Categoria
+}
+
+class Contrato {
+  - id: int
+  - mensalistaId: int
+  - veiculoId: int
+  - vagaId: int?
+  - tipo: TipoContrato
+  - turno: Turno
+  - valor: Dinheiro <<NUMERIC(12,2)>>
+  - diaVencimento: int
+  - inicio: Data
+  - vencimento: Data
+  - status: StatusContrato
+  - encerradoEm: DataHora?
+  --
+  + situacao(hoje): Situacao
+  + renovar(meses, motivo)
+  + encerrar()
+  + proximoVencimento(): Data
+}
+
+class Pagamento {
+  - id: int <<nº do comprovante>>
+  - contratoId: int
+  - valor: Dinheiro
+  - forma: FormaPagamento
+  - pagoEm: Data
+  - mesReferencia: Data
+  - registradoPor: int
+  - chaveIdempotencia: string {única}
+  - estornadoEm: DataHora?
+  - estornadoPor: int?
+  - motivoEstorno: string?
+  --
+  + registrar() <<avança o vencimento>>
+  + estornar(motivo) <<só proprietário>>
+}
+
+class HistoricoContrato {
+  - id: int
+  - contratoId: int
+  - evento: EventoHistorico
+  - em: DataHora
+  - usuarioId: int?
+  - detalhes: string?
+}
+
+class RecorrenciaDespesa {
+  - id: int
+  - descricao: string
+  - valor: Dinheiro
+  - diaDoMes: int
+  - ativa: boolean
+  --
+  + gerarDespesasDoMes() <<sem duplicar>>
+  + pausar() / retomar()
+}
+
+class Despesa {
+  - id: int
+  - descricao: string
+  - valor: Dinheiro
+  - tipo: TipoDespesa
+  - data: Data
+  - registradoPor: int?
+  - recorrenciaId: int?
+  - competencia: Data?
+  - estornadoEm: DataHora?
+  - estornadoPor: int?
+  - motivoEstorno: string?
+  --
+  + lancar()
+  + estornar(motivo) <<só proprietário>>
+}
+
+enum Perfil {
+  proprietario
+  auxiliar
+}
+
+enum Categoria {
+  carro
+  moto
+}
+
+enum TipoContrato {
+  mensal
+  semanal
+}
+
+enum Turno {
+  diurno
+  noturno
+}
+
+enum StatusContrato {
+  ativo
+  encerrado
+}
+
+enum FormaPagamento {
+  dinheiro
+  pix
+  debito
+  credito
+}
+
+enum TipoDespesa {
+  fixa
+  variavel
+}
+
+enum EventoHistorico {
+  criado
+  renovado
+  pagamento
+  estornado
+  encerrado
+}
+
+enum Situacao <<calculada, não gravada>> {
+  vencido
+  a_vencer
+  em_dia
+}
+
+Mensalista "1" *-- "0..*" Veiculo : possui
+Mensalista "1" --> "0..*" Contrato : contrata
+Veiculo "1" --> "0..*" Contrato : é de
+Vaga "0..1" --> "0..*" Contrato : ocupada por
+Contrato "1" *-- "0..*" Pagamento : recebe
+Contrato "1" *-- "0..*" HistoricoContrato : registra
+Usuario "1" *-- "0..*" Sessao : abre
+Usuario "1" --> "0..*" Pagamento : registra / estorna
+Usuario "0..1" --> "0..*" Despesa : lança / estorna
+RecorrenciaDespesa "0..1" --> "0..*" Despesa : gera
+Contrato ..> Situacao : situacao(hoje)
+
+note bottom
+O código é feito de funções (servicos/ e packages/shared/), não de classes de objeto.
+As operações mostradas são essas funções, agrupadas por classe só para a modelagem.
+end note
+@enduml
